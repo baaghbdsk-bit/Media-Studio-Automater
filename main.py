@@ -120,8 +120,75 @@ def main():
     elif args.action == "ig-diagnose":
         from scripts.ig_diagnose import diagnose_session
         result = diagnose_session(headless=True)
-        console.print(f"[bold green]IG Diagnostic Result: {result.status} (exit code {result.exit_code})[/bold green]"
+        console.print(f"[bold green]IG Diagnostic Result: {result.status} (exit code {result.exit_code})[/bold green]")
 
+    elif args.action == "schedule-reels-shorts":
+        console.print(f"[bold cyan]⏰ Running scheduled Reels/Shorts...[/bold cyan]")
+        engine.run_studio_all()
+
+    elif args.action == "schedule-explainer":
+        console.print(f"[bold magenta]⏰ Running scheduled Explainer...[/bold magenta]")
+        import json
+        history_file = _BASE_DIR / "studio_history.json"
+        should_run = True
+        if history_file.exists():
+            with open(history_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            events = data.get("events", [])
+            last_explainer = None
+            for event in reversed(events):
+                if event.get("type") == "explainer_video":
+                    last_explainer = event.get("time", "")
+                    break
+            if last_explainer:
+                from datetime import datetime
+                last_dt = datetime.strptime(last_explainer, "%Y-%m-%d %I:%M %p")
+                today = datetime.now()
+                days_diff = (today - last_dt).days
+                if days_diff < 2:
+                    console.print(f"[yellow]⚠️ Not an alternate day (last was {days_diff} days ago)[/yellow]")
+                    should_run = False
+        if should_run:
+            engine.run_studio_all()
+        else:
+            console.print("[yellow]Skipping explainer - not alternate day[/yellow]")
+
+    elif args.action == "schedule-today":
+        from datetime import datetime
+        current_time = datetime.now().strftime("%I:%M %p")
+        console.print(f"[bold cyan]Current time: {current_time}[/bold cyan]")
+        if current_time in ["05:15 PM", "07:15 PM"]:
+            console.print(f"[bold green]Running scheduled Reels/Shorts publish...[/bold green]")
+            engine.run_studio_all()
+        elif current_time == "09:15 PM":
+            console.print(f"[bold magenta]Running scheduled Explainer video publish...[/bold magenta]")
+            import json
+            history_file = _BASE_DIR / "studio_history.json"
+            should_run = True
+            if history_file.exists():
+                with open(history_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                events = data.get("events", [])
+                last_explainer = None
+                for event in reversed(events):
+                    if event.get("type") == "explainer_video":
+                        last_explainer = event.get("time", "")
+                        break
+                if last_explainer:
+                    from datetime import datetime
+                    last_dt = datetime.strptime(last_explainer, "%Y-%m-%d %I:%M %p")
+                    today = datetime.now()
+                    days_diff = (today - last_dt).days
+                    if days_diff >= 2:
+                        console.print(f"[green]Alternate day confirmed - generating Manim explainer[/green]")
+                    else:
+                        console.print(f"[yellow]Not an alternate day (last was {days_diff} days ago)[/yellow]")
+                        should_run = False
+            if should_run:
+                engine.run_studio_all()
+        else:
+            console.print(f"[yellow]Not a scheduled time. Current time: {current_time}[/yellow]")
+            console.print(f"Scheduled times: 5:15 PM, 7:15 PM (Reels/Shorts), 9:15 PM (Explainer - alternate days)")
 
 if __name__ == "__main__":
     main()
