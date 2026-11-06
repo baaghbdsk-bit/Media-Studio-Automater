@@ -74,11 +74,13 @@ def main():
             "instagram-reel",
             "instagram-carousel",
             "pinterest",
+            "threads",
             "generate-video",
             "generate-carousel",
             "login-instagram",
             "login-pinterest",
             "login-youtube",
+            "login-threads",
             "ig-diagnose",
             "metrics"
         ],
@@ -117,6 +119,10 @@ def main():
         console.print(f"[bold red]📌 Publishing Pinterest Pin (Dry-run: {args.dry_run})...[/bold red]")
         engine.publish_pinterest()
 
+    elif args.action == "threads":
+        console.print(f"[bold magenta]🧵 Publishing Threads Take (Dry-run: {args.dry_run})...[/bold magenta]")
+        engine.publish_threads()
+
     elif args.action == "generate-video":
         console.print(f"[bold cyan]⏳ Synthesizing Video only...[/bold cyan]")
         from src.video_generator import VideoGenerator
@@ -142,6 +148,10 @@ def main():
     elif args.action == "login-youtube":
         from scripts.login_youtube import login_youtube
         login_youtube()
+
+    elif args.action == "login-threads":
+        from scripts.login_threads import login_threads
+        login_threads()
 
     elif args.action == "ig-diagnose":
         from scripts.ig_diagnose import diagnose_session

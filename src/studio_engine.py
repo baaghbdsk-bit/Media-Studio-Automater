@@ -20,6 +20,7 @@ from src.instagram_carousel import InstagramCarouselGenerator
 from src.youtube_automater import YouTubeAutomater
 from src.instagram_automater import InstagramAutomater
 from src.pinterest_automater import PinterestAutomater
+from src.threads_automater import ThreadsAutomater
 
 if sys.platform == "win32":
     try:
@@ -73,7 +74,7 @@ class StudioEngine:
         """
         console.print("\n[bold cyan]🚀 Starting Media Studio Broadcast Cycle...[/bold cyan]")
         start_time = time.time()
-        results = {"youtube": False, "instagram_reel": False, "instagram_carousel": False, "pinterest": False}
+        results = {"youtube": False, "instagram_reel": False, "instagram_carousel": False, "pinterest": False, "threads": False}
 
         topic = self.get_fresh_topic()
         title = topic.get("title", "AI Architecture Breakthrough")
@@ -205,6 +206,27 @@ class StudioEngine:
         except Exception as ex:
             console.print(f"[red]Pinterest error: {ex}[/red]")
 
+        # 7. Publish to Threads (Visual/Take)
+        try:
+            th = ThreadsAutomater(headless=True, dry_run=self.dry_run)
+            th_text = f"⚡ {title}\n\n{summary}\n\n💡 Pro-Tip: {pro_tip}\n\n📊 Live 260+ model benchmarks: https://app.neubench.workers.dev"
+            first_slide = valid_slides[0] if valid_slides else None
+            if self.dry_run:
+                console.print(f"[yellow][DRY RUN] Would publish Threads take: {title}[/yellow]")
+                results["threads"] = True
+            elif not th.is_session_available():
+                console.print("[yellow]⚠️ Threads not authenticated. Run 'python main.py login-threads'.[/yellow]")
+            else:
+                console.print(f"[bold magenta]🧵 Publishing to Threads: {title[:50]}...[/bold magenta]")
+                t_ok, t_msg = th.post_to_threads(text=th_text, media_path=first_slide)
+                if t_ok:
+                    console.print("[bold green]✅ Threads post published![/bold green]")
+                    results["threads"] = True
+                else:
+                    console.print(f"[yellow]Threads note: {t_msg}[/yellow]")
+        except Exception as ex:
+            console.print(f"[red]Threads error: {ex}[/red]")
+
         # Record success
         if any(results.values()):
             self.record_topic(title)
@@ -294,4 +316,23 @@ class StudioEngine:
             self.record_topic(title)
         else:
             console.print(f"[yellow]Pinterest note: {msg}[/yellow]")
+        return ok
+
+    def publish_threads(self) -> bool:
+        topic = self.get_fresh_topic()
+        title = topic.get("title", "AI Concept")
+        gen = InstagramCarouselGenerator()
+        slides = gen.generate_dynamic_carousel(topic)
+        first_slide = str(slides[0]) if slides and Path(slides[0]).exists() else None
+        if self.dry_run:
+            console.print(f"[yellow][DRY RUN] Would publish Threads take: {title}[/yellow]")
+            return True
+        th = ThreadsAutomater(headless=True, dry_run=self.dry_run)
+        text = f"⚡ {title}\n\n{topic.get('summary', '')}\n\n💡 {topic.get('pro_tip', '')}\n\nhttps://app.neubench.workers.dev"
+        ok, msg = th.post_to_threads(text=text, media_path=first_slide)
+        if ok:
+            console.print("[bold green]✅ Threads post published![/bold green]")
+            self.record_topic(title)
+        else:
+            console.print(f"[yellow]Threads note: {msg}[/yellow]")
         return ok
