@@ -1,6 +1,5 @@
-"""
-Media Studio Automater CLI.
-Autonomous Production Studio for YouTube Shorts, Instagram Reels & Carousels, and Pinterest.
+"""Media Studio Automater CLI.
+Autonomous Production Studio for YouTube Shorts, Instagram Reels, and Pinterest.
 """
 import sys
 import subprocess
@@ -63,7 +62,7 @@ def display_metrics():
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Media Studio Automater: High-Impact Video & Visual Publishing Suite for YouTube, Instagram, and Pinterest"
+        description="Media Studio Automater: High-Impact Video & Visual Publishing Suite for YouTube Shorts, Instagram Reels, and Pinterest"
     )
     parser.add_argument(
         "action",
@@ -72,17 +71,13 @@ def main():
             "post-all",
             "youtube",
             "instagram-reel",
-            "instagram-carousel",
             "pinterest",
-            "threads",
             "generate-video",
-            "generate-carousel",
-            "login-instagram",
-            "login-pinterest",
-            "login-youtube",
-            "login-threads",
             "ig-diagnose",
-            "metrics"
+            "metrics",
+            "schedule-reels-shorts",
+            "schedule-explainer",
+            "schedule-today"
         ],
         help="Action to perform"
     )
@@ -111,17 +106,9 @@ def main():
         console.print(f"[bold magenta]🎥 Publishing Instagram Reel (Dry-run: {args.dry_run})...[/bold magenta]")
         engine.publish_instagram_reel()
 
-    elif args.action == "instagram-carousel":
-        console.print(f"[bold magenta]📸 Publishing Instagram Carousel (Dry-run: {args.dry_run})...[/bold magenta]")
-        engine.publish_instagram_carousel()
-
     elif args.action == "pinterest":
         console.print(f"[bold red]📌 Publishing Pinterest Pin (Dry-run: {args.dry_run})...[/bold red]")
         engine.publish_pinterest()
-
-    elif args.action == "threads":
-        console.print(f"[bold magenta]🧵 Publishing Threads Take (Dry-run: {args.dry_run})...[/bold magenta]")
-        engine.publish_threads()
 
     elif args.action == "generate-video":
         console.print(f"[bold cyan]⏳ Synthesizing Video only...[/bold cyan]")
@@ -130,33 +117,11 @@ def main():
         res = VideoGenerator().generate_dynamic_short(topic, dry_run=args.dry_run)
         console.print(f"[bold green]Video generated: {res}[/bold green]")
 
-    elif args.action == "generate-carousel":
-        console.print(f"[bold magenta]⏳ Rendering Carousel only...[/bold magenta]")
-        from src.instagram_carousel import InstagramCarouselGenerator
-        topic = {"title": args.topic} if args.topic else engine.get_fresh_topic()
-        slides = InstagramCarouselGenerator().generate_dynamic_carousel(topic)
-        console.print(f"[bold green]Carousel generated: {len(slides)} slides[/bold green]")
-
-    elif args.action == "login-instagram":
-        from scripts.login_instagram import login_instagram
-        login_instagram()
-
-    elif args.action == "login-pinterest":
-        from scripts.login_pinterest import login_pinterest
-        login_pinterest()
-
-    elif args.action == "login-youtube":
-        from scripts.login_youtube import login_youtube
-        login_youtube()
-
-    elif args.action == "login-threads":
-        from scripts.login_threads import login_threads
-        login_threads()
-
     elif args.action == "ig-diagnose":
         from scripts.ig_diagnose import diagnose_session
         result = diagnose_session(headless=True)
-        console.print(f"[bold green]IG Diagnostic Result: {result.status} (exit code {result.exit_code})[/bold green]")
+        console.print(f"[bold green]IG Diagnostic Result: {result.status} (exit code {result.exit_code})[/bold green]"
+
 
 if __name__ == "__main__":
     main()
