@@ -221,8 +221,8 @@ def render_short(title: str, day_label: str, scenes: List[Dict[str, Any]], narra
     words = _synthesize(narration, str(audio_path))
     _write_karaoke_srt(words, str(srt_path))
 
-    audio_dur = words[-1]["end"] if words else 30.0
-    total = min(max(audio_dur + 0.25, 12.0), 58.0)
+    audio_dur = words[-1]["end"] if words else 300.0
+    total = min(max(audio_dur + 0.25, 300.0), 600.0)
     weights = [s.get("weight", 1.0) for s in scenes]
     wsum = sum(weights) or 1.0
     durations = [round(total * (s.get("weight", 1.0) / wsum), 2) for s in scenes]

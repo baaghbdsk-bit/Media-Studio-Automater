@@ -61,6 +61,7 @@ class VideoGenerator:
         """
         High-performance direct FFmpeg assembly.
         Renders multi-scene vertical 1080x1920 video with voiceover in seconds.
+        Compatible MP4/H.264 format for Instagram Reels, YouTube Shorts, and Pinterest.
         """
         import subprocess
         concat_file = Path(output_path).parent / "concat_list.txt"
@@ -74,7 +75,7 @@ class VideoGenerator:
                     last_img = Path(scene_images[-1][0]).resolve().as_posix()
                     f.write(f"file '{last_img}'\n")
 
-            total_scene_dur = min(sum(dur for _, dur in scene_images), 58.0) if scene_images else 55.0
+            total_scene_dur = min(sum(dur for _, dur in scene_images), 180.0) if scene_images else 60.0
 
             cmd = [
                 "ffmpeg", "-y",
@@ -86,16 +87,20 @@ class VideoGenerator:
                 "-c:v", "libx264",
                 "-pix_fmt", "yuv420p",
                 "-c:a", "aac",
-                "-preset", "ultrafast",
-                "-r", "24",
+                "-b:a", "192k",
+                "-ar", "44100",
+                "-movflags", "+faststart",
+                "-profile:v", "main",
+                "-level", "3.1",
+                "-r", "30",
                 str(output_path)
             ]
 
-            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=120)
+            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=300)
             if proc.returncode != 0:
-                print(f"[VideoGenerator] FFmpeg error: {proc.stderr[:300]}")
+                print(f"[VideoGenerator] FFmpeg error: {proc.stderr[:500]}")
                 return False
-            return Path(output_path).exists() and Path(output_path).stat().st_size > 50000
+            return Path(output_path).exists() and Path(output_path).stat().st_size > 100000
         except Exception as ex:
             print(f"[VideoGenerator] FFmpeg execution exception: {ex}")
             return False
@@ -325,12 +330,12 @@ class VideoGenerator:
                 await self._synthesize_speech(narration, audio_path)
             asyncio.run(asyncio.wait_for(_timed_synth(), timeout=60.0))
 
-            # 2. Match scene durations to synthesized audio length (targeting 50-60s)
+            # 2. Match scene durations to synthesized audio length (targeting 60-180s / 1-3 mins)
             audio_dur = self._get_audio_duration(audio_path)
-            total_dur = min(max(audio_dur, 48.0), 59.0)
-            d1 = round(total_dur * 0.22, 1)
-            d2 = round(total_dur * 0.28, 1)
-            d3 = round(total_dur * 0.28, 1)
+            total_dur = min(max(audio_dur, 60.0), 180.0)
+            d1 = round(total_dur * 0.25, 1)
+            d2 = round(total_dur * 0.30, 1)
+            d3 = round(total_dur * 0.30, 1)
             d4 = round(total_dur - (d1 + d2 + d3), 1)
             scenes[0]["duration"] = d1
             scenes[1]["duration"] = d2
