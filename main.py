@@ -1,0 +1,152 @@
+"""
+Media Studio Automater CLI.
+Autonomous Production Studio for YouTube Shorts, Instagram Reels & Carousels, and Pinterest.
+"""
+import sys
+import subprocess
+import time
+from pathlib import Path
+
+# Auto-detect and use virtualenv python (check local or sibling X-Post-Automater venv)
+_BASE_DIR = Path(__file__).resolve().parent
+_LOCAL_VENV_PY = _BASE_DIR / "venv" / "Scripts" / "python.exe"
+_SIBLING_VENV_PY = Path("E:/X-Post-Automater/venv/Scripts/python.exe")
+_TARGET_PY = _LOCAL_VENV_PY if _LOCAL_VENV_PY.exists() else (_SIBLING_VENV_PY if _SIBLING_VENV_PY.exists() else None)
+
+if _TARGET_PY and Path(sys.executable).resolve() != _TARGET_PY.resolve():
+    try:
+        sys.exit(subprocess.call([str(_TARGET_PY)] + sys.argv))
+    except Exception:
+        pass
+
+import argparse
+import json
+
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
+
+console = Console()
+
+def display_metrics():
+    history_file = _BASE_DIR / "studio_history.json"
+    if not history_file.exists():
+        console.print("[yellow]No studio_history.json found yet.[/yellow]")
+        return
+    try:
+        with open(history_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        topics = data.get("posted_topics", [])
+        events = data.get("events", [])
+        
+        console.print("\n" + "="*60, style="bold cyan")
+        console.print("🎬 MEDIA STUDIO AUTOMATER METRICS", style="bold magenta")
+        console.print(f"Total Published Topics: {len(topics)} | Events Recorded: {len(events)}")
+        console.print("="*60, style="bold cyan")
+        
+        if topics:
+            table = Table(title="Recent Published Topics")
+            table.add_column("#", style="dim", width=4)
+            table.add_column("Topic Title", style="bold green")
+            for idx, top in enumerate(topics[-10:], 1):
+                table.add_row(str(idx), str(top))
+            console.print(table)
+    except Exception as e:
+        console.print(f"[red]Error reading metrics: {e}[/red]")
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Media Studio Automater: High-Impact Video & Visual Publishing Suite for YouTube, Instagram, and Pinterest"
+    )
+    parser.add_argument(
+        "action",
+        choices=[
+            "studio-all",
+            "post-all",
+            "youtube",
+            "instagram-reel",
+            "instagram-carousel",
+            "pinterest",
+            "generate-video",
+            "generate-carousel",
+            "login-instagram",
+            "login-pinterest",
+            "login-youtube",
+            "ig-diagnose",
+            "metrics"
+        ],
+        help="Action to perform"
+    )
+    parser.add_argument("--dry-run", action="store_true", help="Run in simulation mode without publishing live")
+    parser.add_argument("--topic", type=str, default="", help="Custom topic to generate content for")
+
+    args = parser.parse_args()
+
+    if args.action == "metrics":
+        display_metrics()
+        return
+
+    from src.studio_engine import StudioEngine
+
+    engine = StudioEngine(dry_run=args.dry_run)
+
+    if args.action in ("studio-all", "post-all"):
+        console.print(f"[bold cyan]🚀 Triggering Studio Broadcast Cycle (Dry-run: {args.dry_run})...[/bold cyan]")
+        engine.run_studio_all()
+
+    elif args.action == "youtube":
+        console.print(f"[bold cyan]🎬 Publishing YouTube Short (Dry-run: {args.dry_run})...[/bold cyan]")
+        engine.publish_youtube()
+
+    elif args.action == "instagram-reel":
+        console.print(f"[bold magenta]🎥 Publishing Instagram Reel (Dry-run: {args.dry_run})...[/bold magenta]")
+        engine.publish_instagram_reel()
+
+    elif args.action == "instagram-carousel":
+        console.print(f"[bold magenta]📸 Publishing Instagram Carousel (Dry-run: {args.dry_run})...[/bold magenta]")
+        engine.publish_instagram_carousel()
+
+    elif args.action == "pinterest":
+        console.print(f"[bold red]📌 Publishing Pinterest Pin (Dry-run: {args.dry_run})...[/bold red]")
+        engine.publish_pinterest()
+
+    elif args.action == "generate-video":
+        console.print(f"[bold cyan]⏳ Synthesizing Video only...[/bold cyan]")
+        from src.video_generator import VideoGenerator
+        topic = {"title": args.topic} if args.topic else engine.get_fresh_topic()
+        res = VideoGenerator().generate_dynamic_short(topic, dry_run=args.dry_run)
+        console.print(f"[bold green]Video generated: {res}[/bold green]")
+
+    elif args.action == "generate-carousel":
+        console.print(f"[bold magenta]⏳ Rendering Carousel only...[/bold magenta]")
+        from src.instagram_carousel import InstagramCarouselGenerator
+        topic = {"title": args.topic} if args.topic else engine.get_fresh_topic()
+        slides = InstagramCarouselGenerator().generate_dynamic_carousel(topic)
+        console.print(f"[bold green]Carousel generated: {len(slides)} slides[/bold green]")
+
+    elif args.action == "login-instagram":
+        from scripts.login_instagram import login_instagram
+        login_instagram()
+
+    elif args.action == "login-pinterest":
+        from scripts.login_pinterest import login_pinterest
+        login_pinterest()
+
+    elif args.action == "login-youtube":
+        from scripts.login_youtube import login_youtube
+        login_youtube()
+
+    elif args.action == "ig-diagnose":
+        from scripts.ig_diagnose import diagnose_session
+        result = diagnose_session(headless=True)
+        console.print(f"[bold green]IG Diagnostic Result: {result.status} (exit code {result.exit_code})[/bold green]")
+
+if __name__ == "__main__":
+    main()

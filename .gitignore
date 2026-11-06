@@ -1,0 +1,10 @@
+venv/
+.env
+__pycache__/
+*.pyc
+instagram_session/
+pinterest_session/
+youtube_token.json
+client_secret*.json
+*.log
+generated_visuals/videos/
