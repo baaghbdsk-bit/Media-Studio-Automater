@@ -47,10 +47,17 @@ def login_youtube():
             creds = None
 
     if not creds or not creds.valid:
+        refreshed = False
         if creds and creds.expired and creds.refresh_token:
             print("[YouTube Auth] Refreshing expired token...")
-            creds.refresh(Request())
-        else:
+            try:
+                creds.refresh(Request())
+                refreshed = True
+            except Exception as e:
+                print(f"[YouTube Auth] Token refresh failed ({e}). Re-authenticating...")
+                creds = None
+
+        if not refreshed or not creds or not creds.valid:
             print("\n[YouTube Auth] Starting local OAuth authorization server...")
             flow = InstalledAppFlow.from_client_secrets_file(str(CLIENT_SECRETS_FILE), SCOPES)
             creds = flow.run_local_server(port=8088, open_browser=True)
