@@ -92,25 +92,26 @@ class StudioEngine:
         except Exception:
             return True
 
-    def run_studio_all(self) -> Dict[str, bool]:
+    def run_studio_all(self, topic: Optional[Dict[str, Any]] = None) -> Dict[str, bool]:
         """
         Executes unified video studio production (9:16 Vertical Manim Short/Reel):
-        1. Selects fresh high-signal AI breakthrough topic.
-        2. Renders 50-58s vertical HD 1080x1920 Manim video with neural voiceover & synced captions.
+        1. Selects fresh high-signal breakthrough topic (or uses provided topic).
+        2. Renders 1 to 3 minute vertical HD 1080x1920 Manim video with neural voiceover & synced captions.
         3. Broadcasts to YouTube Shorts, Instagram Reels (with Share to Threads), Pinterest, and Threads.
         """
         console.print("\n[bold cyan]🚀 Starting Media Studio Broadcast Cycle (Manim 9:16)...[/bold cyan]")
         start_time = time.time()
         results = {"youtube": False, "instagram_reel": False, "pinterest": False, "threads": False}
 
-        topic = self.get_fresh_topic()
+        if not topic:
+            topic = self.get_fresh_topic()
         title = topic.get("title", "AI Architecture Breakthrough")
         summary = topic.get("summary", "")
         pro_tip = topic.get("pro_tip", "")
         console.print(f"[bold magenta]🎬 Studio Topic Selected: {title}[/bold magenta]")
 
-        # 1. Render Manim Short Video (<= 58s)
-        console.print("[cyan]⏳ Synthesizing 50-58s Manim mathematical animation...[/cyan]")
+        # 1. Render Manim Short Video (1 to 3 mins)
+        console.print("[cyan]⏳ Synthesizing 1-3 minute Manim mathematical animation...[/cyan]")
         vid_gen = VideoGenerator()
         v_res = vid_gen.generate_dynamic_short(topic, dry_run=self.dry_run)
         video_path = Path(v_res.get("video_path") or "")
@@ -237,13 +238,14 @@ class StudioEngine:
         console.print(f"\n[bold green]🏁 Studio Broadcast Complete in {duration}s! Results: {results}[/bold green]\n")
         return results
 
-    def publish_youtube_explainer(self) -> bool:
+    def publish_youtube_explainer(self, topic: Optional[Dict[str, Any]] = None) -> bool:
         """
-        Renders and publishes a full 16:9 Landscape Manim Long Explainer Video (3-5 mins) to YouTube.
+        Renders and publishes a full 16:9 Landscape Manim Long Explainer Video (5-10 mins) to YouTube.
         Includes chapter timestamps, technical derivations, and benchmark comparisons.
         """
-        console.print("\n[bold magenta]🎬 Starting YouTube Long Explainer Production (16:9 Manim)...[/bold magenta]")
-        topic = self.get_fresh_topic()
+        console.print("\n[bold magenta]🎬 Starting YouTube Long Explainer Production (16:9 Manim 5-10 min)...[/bold magenta]")
+        if not topic:
+            topic = self.get_fresh_topic()
         title = topic.get("title", "Frontier AI Architecture Deep-Dive")
         summary = topic.get("summary", "")
         pro_tip = topic.get("pro_tip", "")
@@ -255,8 +257,10 @@ class StudioEngine:
         srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
         chapters = v_res.get("chapters", [
             "00:00 Introduction & The Scaling Dilemma",
-            "01:10 Mathematical Formulation & Architecture",
-            "02:40 Production Benchmarks on NeuBench"
+            "01:45 Formal Mathematical Decomposition",
+            "03:30 Dynamic Tensor Routing & SRAM Tiles",
+            "05:15 Hardware Profiling & Compute Efficiency",
+            "07:00 NeuBench Benchmarks & Production Rules"
         ])
 
         if self.dry_run:
@@ -296,27 +300,38 @@ class StudioEngine:
     def schedule_autopilot(self) -> Dict[str, Any]:
         """
         Primary 4-hour cron scheduler method:
-        1. Checks if it is an alternate day for YouTube Explainer. If so, produces 16:9 explainer.
-        2. Executes unified 9:16 Shorts/Reels/Pins/Threads Manim broadcast.
+        1. Selects exactly ONE fresh, non-duplicate topic.
+        2. Produces and publishes 9:16 Short/Reel/Pin/Thread (1 to 3 minutes).
+        3. If alternate day, produces and publishes 16:9 Long Explainer (5 to 10 minutes) on the EXACT SAME topic.
+        4. Permanently records the topic so the next cycle chooses a new topic.
         """
         report = {"explainer_run": False, "broadcast_results": {}}
         console.print("\n[bold cyan]⏰ 4-Hour Autopilot Heartbeat Triggered...[/bold cyan]")
 
-        # Check alternate day condition for YouTube Long Explainer
+        # 1. Select ONE single fresh topic for this cycle
+        topic = self.get_fresh_topic()
+        title = topic.get("title", "AI Architecture Breakthrough")
+        console.print(f"[bold magenta]🎬 Studio Unified Cycle Topic: {title}[/bold magenta]")
+
+        # 2. Run 9:16 Manim Short / Reel broadcast across YouTube Shorts, Instagram Reels, Pinterest, Threads (1-3 min)
+        b_res = self.run_studio_all(topic=topic)
+        report["broadcast_results"] = b_res
+
+        # 3. Check alternate day condition for YouTube Long Explainer on the SAME topic (5-10 min)
         if self.is_alternate_day_for_explainer():
-            console.print("[bold magenta]📅 Alternate day detected: Running 16:9 YouTube Explainer pipeline...[/bold magenta]")
-            ok_exp = self.publish_youtube_explainer()
+            console.print("[bold magenta]📅 Alternate day detected: Running 16:9 YouTube Explainer on the SAME topic...[/bold magenta]")
+            ok_exp = self.publish_youtube_explainer(topic=topic)
             report["explainer_run"] = ok_exp
         else:
             console.print("[yellow]⏳ Not an alternate day for explainer - skipping long video slot.[/yellow]")
 
-        # Run 9:16 Manim Short / Reel broadcast across all platforms
-        b_res = self.run_studio_all()
-        report["broadcast_results"] = b_res
+        # 4. Permanently record topic so it is NEVER duplicated in subsequent runs
+        self.record_topic(title)
         return report
 
-    def publish_youtube(self) -> bool:
-        topic = self.get_fresh_topic()
+    def publish_youtube(self, topic: Optional[Dict[str, Any]] = None) -> bool:
+        if not topic:
+            topic = self.get_fresh_topic()
         title = topic.get("title", "AI Concept")
         vid_gen = VideoGenerator()
         v_res = vid_gen.generate_dynamic_short(topic, dry_run=self.dry_run)

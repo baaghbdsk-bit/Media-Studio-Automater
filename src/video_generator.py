@@ -79,7 +79,7 @@ class VideoGenerator:
 
         print(f"[VideoGenerator] 🎬 Rendering Manim scene '{scene_name}' with Manim Community...")
         try:
-            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=400, cwd=str(output_dir))
+            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=700, cwd=str(output_dir))
             if proc.returncode != 0:
                 print(f"[VideoGenerator] Manim render note: {proc.stderr[-300:] if proc.stderr else ''}")
                 return None
@@ -141,7 +141,7 @@ class VideoGenerator:
     def generate_dynamic_short(self, topic_data: Dict[str, Any], dry_run: bool = False) -> Dict[str, Optional[str]]:
         """
         Renders a full-production 9:16 Vertical (1080x1920) Manim Animation Short/Reel.
-        Strictly clamped <= 58s for YouTube Shorts & Instagram Reels compliance.
+        Duration: 1 to 3 minutes (60s to 180s) for comprehensive in-depth explanation.
         """
         title = topic_data.get("title", "AI Breakthrough")
         summary = topic_data.get("summary", "Understanding modern artificial intelligence systems.")
@@ -150,15 +150,16 @@ class VideoGenerator:
         pro_tip = topic_data.get("pro_tip", "Always benchmark real latency on live workloads.")
         narration = topic_data.get("narration")
 
-        if not narration or len(narration.split()) < 50:
+        if not narration or len(narration.split()) < 90:
             narration = (
-                f"In this engineering breakdown, we analyze {title}. "
-                f"{summary}. "
-                f"Why does this matter so much for production deployments? "
-                f"Under conventional architectures, {problem}. Memory transfer creates a severe latency bottleneck. "
-                f"The core technical unlock is {solution}. This achieves dramatic acceleration without degrading precision. "
-                f"Here is your production engineering rule: {pro_tip}. "
-                f"To inspect live latency, memory, and token economics across 260-plus frontier models, explore NeuBench at app.neubench.workers.dev."
+                f"Welcome to this engineering breakdown of {title}. "
+                f"{summary} "
+                f"To understand why this development is shaking up the artificial intelligence landscape, let's examine the critical bottleneck engineers face. "
+                f"Under conventional architectures, {problem} This forces hardware compute units into prolonged idle states while waiting for memory transfers across the bus. "
+                f"Here is how this architectural breakthrough solves the bottleneck: {solution} "
+                f"By rethinking tensor access patterns and routing data dynamically, modern systems eliminate the memory wall while preserving full numerical precision. "
+                f"If you are deploying frontier AI to production, keep this rule in mind: {pro_tip} "
+                f"To inspect live token costs, memory footprints, and latency benchmarks across 260 frontier models, explore NeuBench at app.neubench.workers.dev."
             )
 
         slug = re.sub(r'[^a-zA-Z0-9]+', '_', title.lower()).strip('_')[:35]
@@ -183,19 +184,19 @@ class VideoGenerator:
             print(f"[VideoGenerator] Generating neural voiceover for: '{title[:40]}'...")
             async def _synth():
                 await self._synthesize_speech(narration, audio_path)
-            asyncio.run(asyncio.wait_for(_synth(), timeout=60.0))
+            asyncio.run(asyncio.wait_for(_synth(), timeout=90.0))
 
-            # 2. Measure audio duration and clamp to <= 58.0s
+            # 2. Measure audio duration and clamp to 1 - 3 minutes (60.0s to 180.0s)
             audio_dur = self._get_audio_duration(audio_path)
-            total_dur = min(max(audio_dur, 30.0), 58.0)
-            print(f"[VideoGenerator] Target Short duration: {total_dur:.1f}s (Audio: {audio_dur:.1f}s)")
+            total_dur = min(max(audio_dur, 60.0), 180.0)
+            print(f"[VideoGenerator] Target Short duration (1-3 min): {total_dur:.1f}s (Audio: {audio_dur:.1f}s)")
 
             # 3. Generate SRT subtitle file
             sub_scenes = [
-                {"duration": total_dur * 0.25, "caption": f"{title} Explained"},
+                {"duration": total_dur * 0.22, "caption": f"{title} Explained"},
                 {"duration": total_dur * 0.25, "caption": "The Core Compute Bottleneck"},
-                {"duration": total_dur * 0.30, "caption": "The Architectural Unlock"},
-                {"duration": total_dur * 0.20, "caption": "Production Rule & NeuBench"}
+                {"duration": total_dur * 0.35, "caption": "The Architectural Unlock"},
+                {"duration": total_dur * 0.18, "caption": "Production Rule & NeuBench"}
             ]
             self._generate_srt_file(sub_scenes, srt_path)
 
@@ -224,7 +225,7 @@ class VideoGenerator:
     def generate_dynamic_explainer(self, topic_data: Dict[str, Any], dry_run: bool = False) -> Dict[str, Optional[str]]:
         """
         Renders a full 16:9 Landscape (1920x1080) Manim Long-Form Explainer Video for YouTube.
-        Duration: 3 to 5 minutes with chapters and mathematical derivations.
+        Duration: 5 to 10 minutes (300s to 600s) with 5 chapters and mathematical derivations.
         """
         title = topic_data.get("title", "Frontier AI Architecture")
         summary = topic_data.get("summary", "Complete engineering breakdown of frontier AI architectures.")
@@ -240,6 +241,14 @@ class VideoGenerator:
         video_path = str(video_dir / f"youtube_explainer_{slug}.mp4")
         srt_path = str(video_dir / f"explainer_subtitles_{slug}.srt")
 
+        chapters = [
+            "00:00 Introduction & The Scaling Dilemma",
+            "01:45 Formal Mathematical Decomposition",
+            "03:30 Dynamic Tensor Routing & SRAM Tiles",
+            "05:15 Hardware Profiling & Compute Efficiency",
+            "07:00 NeuBench Benchmarks & Production Rules"
+        ]
+
         if dry_run:
             if not Path(video_path).exists():
                 Path(video_path).touch()
@@ -247,30 +256,42 @@ class VideoGenerator:
                 "video_path": video_path,
                 "srt_path": srt_path,
                 "audio_path": audio_path,
-                "chapters": ["00:00 Introduction", "01:00 Mathematical Formulation", "02:30 Production Benchmarks"]
+                "chapters": chapters
             }
 
         try:
-            # Long-form comprehensive narration
+            # Long-form comprehensive narration (5 to 10 minutes)
             long_narration = (
-                f"Welcome to this technical deep-dive on {title}. "
-                f"{summary}. "
-                f"To truly understand why this breakthrough is critical, we first need to confront the core limitation of modern scale. "
-                f"Under conventional architectures, {problem}. As sequence length increases, memory bandwidth rather than raw compute becomes the hard physical bottleneck. "
-                f"Now let us examine the mathematical unlock. {solution}. "
-                f"Notice how the decomposition restructures memory access patterns, slashing the memory footprint while preserving model expressivity. "
-                f"When deploying these architectures to production, here is your essential engineering takeaway: {pro_tip}. "
-                f"For live token economics, throughput benchmarks, and latency comparisons across 260 frontier AI models, explore NeuBench at app.neubench.workers.dev."
+                f"Welcome to this comprehensive technical deep-dive into {title}. "
+                f"In this video, we conduct a rigorous mathematical and architectural analysis of one of the most critical breakthroughs in modern artificial intelligence systems. "
+                f"{summary} "
+                f"Let us begin with Chapter 1: The Core Compute Dilemma and the Hardware Wall. "
+                f"To understand why this innovation has become essential for frontier models, we must first examine the physical bottlenecks of traditional architectures. "
+                f"Under conventional transformer and neural network implementations, {problem} "
+                f"As input sequences grow, data transfer between high-bandwidth memory and on-chip SRAM creates an unavoidable latency penalty. Compute cores spend up to seventy percent of their clock cycles idle, waiting on memory bus synchronization. "
+                f"Now let us advance to Chapter 2: The Formal Mathematical Formulation. "
+                f"The foundational key to overcoming this wall is {solution} "
+                f"By reformulating the underlying tensor operations, we decouple parameter capacity from memory access frequency. Notice how low-rank matrix decomposition and factorized projection reduce the active computational footprint from quadratic complexity down to near linear scaling. "
+                f"This brings us to Chapter 3: Dynamic Tensor Routing and SRAM Execution. "
+                f"At the hardware level, execution kernels are fused directly into high-speed on-chip SRAM tiles. Intermediate activation states are streamed dynamically across tensor cores rather than flushed back to off-chip DRAM. This eliminates redundant read-write round trips and keeps GPU vector pipelines fully saturated throughout the inference and training passes. "
+                f"Next, in Chapter 4: Hardware Profiling, FLOP Utilization, and Latency Scaling. "
+                f"When profiling models under real-world multi-tenant production loads, legacy baselines typically achieve under thirty percent Model FLOPs Utilization due to memory stalls. With this optimized architecture, Model FLOPs Utilization jumps past seventy percent, delivering a three to four-fold acceleration in generation throughput without degrading numerical precision or output perplexity. "
+                f"Finally, let us examine Chapter 5: Empirical Benchmarks on NeuBench and the Production Deployment Playbook. "
+                f"When translating this architecture into production systems, here is your essential engineering rule: {pro_tip} "
+                f"Always validate real-world latency distributions, memory usage under peak concurrency, and cost per million tokens rather than relying solely on theoretical compute numbers. "
+                f"For continuously updated token economics, throughput benchmarks, and live latency evaluations across more than 260 frontier AI models, explore the interactive NeuBench platform at app.neubench.workers.dev. "
+                f"Thank you for watching this deep-dive. Subscribe for more mathematical and architectural breakdowns of state-of-the-art AI systems."
             )
 
-            print(f"[VideoGenerator] Synthesizing Long-Form Explainer narration...")
+            print(f"[VideoGenerator] Synthesizing Long-Form Explainer narration (5-10 min target)...")
             async def _synth():
                 await self._synthesize_speech(long_narration, audio_path)
-            asyncio.run(asyncio.wait_for(_synth(), timeout=120.0))
+            asyncio.run(asyncio.wait_for(_synth(), timeout=240.0))
 
+            # Clamp explainer duration between 300.0s (5m) and 600.0s (10m)
             audio_dur = self._get_audio_duration(audio_path)
-            total_dur = max(audio_dur, 60.0)
-            print(f"[VideoGenerator] Explainer duration: {total_dur:.1f}s")
+            total_dur = min(max(audio_dur, 300.0), 600.0)
+            print(f"[VideoGenerator] Target Explainer duration (5-10 min): {total_dur:.1f}s (Audio: {audio_dur:.1f}s)")
 
             # Generate 16:9 Widescreen Manim Scene
             manim_code = generate_explainer_manim_code(topic_data, target_duration=total_dur)
@@ -284,11 +305,7 @@ class VideoGenerator:
                         "video_path": video_path,
                         "srt_path": srt_path,
                         "audio_path": audio_path,
-                        "chapters": [
-                            "00:00 Introduction & The Scaling Dilemma",
-                            "01:10 Mathematical Formulation & Architecture",
-                            "02:40 Production Benchmarks on NeuBench"
-                        ]
+                        "chapters": chapters
                     }
         except Exception as ex:
             print(f"[VideoGenerator] Long explainer error: {ex}")

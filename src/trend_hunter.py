@@ -773,9 +773,59 @@ class TrendHunter:
 
         if used_topics:
             used_set = set(t.lower().strip() for t in used_topics)
-            unseen = [item for item in ai_concept_bank if item.get("title", "").lower().strip() not in used_set]
-            if unseen:
-                return random.choice(unseen)
+        else:
+            used_set = set()
+
+        # Dynamic Gemini topic synthesis with strict anti-duplication
+        try:
+            import config
+            if getattr(config, "GEMINI_API_KEY", ""):
+                from google import genai
+                client = genai.Client(api_key=config.GEMINI_API_KEY)
+                model_name = getattr(config, "GEMINI_MODEL", "gemini-3.8-flash")
+                used_sample = list(used_set)[-15:]
+                prompt = (
+                    "Generate 1 cutting-edge, trending AI systems, paper or architecture breakthrough topic "
+                    "(e.g., test-time compute scaling, BitNet 1.58b, diffusion forcing, paged attention, state-space models, FP8 GEMM, etc.). "
+                    f"STRICT REQUIREMENT: DO NOT select or overlap with any of these already used topics: {used_sample}. "
+                    "Respond with ONLY a raw JSON object matching this schema:\n"
+                    "{\n"
+                    '  "title": "Precise Technical Title",\n'
+                    '  "category": "ARCHITECTURE or INFERENCE or SYSTEMS",\n'
+                    '  "tagline": "One punchy hook line",\n'
+                    '  "summary": "2-3 sentences explaining the mechanism",\n'
+                    '  "problem": "1-2 sentences on the hardware/memory bottleneck",\n'
+                    '  "solution": "1-2 sentences on the mathematical unlock",\n'
+                    '  "pro_tip": "1 actionable production engineering rule",\n'
+                    '  "narration": "70-90 words spoken explanation for video"\n'
+                    "}"
+                )
+                res = client.models.generate_content(model=model_name, contents=prompt)
+                txt = res.text.strip()
+                if "```json" in txt:
+                    txt = txt.split("```json")[1].split("```")[0].strip()
+                elif "```" in txt:
+                    txt = txt.split("```")[1].split("```")[0].strip()
+                import json
+                ai_data = json.loads(txt)
+                gen_title = ai_data.get("title", "").strip()
+                if gen_title and gen_title.lower() not in used_set:
+                    gen_words = set(re.findall(r'\w+', gen_title.lower()))
+                    overlap_found = False
+                    for u in used_set:
+                        u_words = set(re.findall(r'\w+', u.lower()))
+                        if len(gen_words & u_words) >= 3 and len(gen_words & u_words) / max(len(gen_words), 1) > 0.5:
+                            overlap_found = True
+                            break
+                    if not overlap_found:
+                        print(f"[TrendHunter] 🤖 Gemini dynamically synthesized fresh topic: {gen_title}")
+                        return ai_data
+        except Exception as e:
+            pass
+
+        unseen = [item for item in ai_concept_bank if item.get("title", "").lower().strip() not in used_set]
+        if unseen:
+            return random.choice(unseen)
 
         return random.choice(ai_concept_bank)
 

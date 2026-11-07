@@ -15,9 +15,10 @@ def escape_str(text: str) -> str:
     cleaned = cleaned.replace('\\', '\\\\').replace('"', '\\"').replace('\n', ' ').strip()
     return re.sub(r'\s+', ' ', cleaned)
 
-def generate_short_manim_code(topic: Dict[str, Any], target_duration: float = 54.0) -> str:
+def generate_short_manim_code(topic: Dict[str, Any], target_duration: float = 75.0) -> str:
     """
     Generates a complete 9:16 Vertical (1080x1920) Manim Scene script.
+    Duration: 1 to 3 minutes (60s to 180s, default 75s).
     Optimized for high-impact educational Shorts, Reels, and Pinterest pins.
     """
     title = escape_str(topic.get("title", "AI Architecture"))
@@ -27,11 +28,14 @@ def generate_short_manim_code(topic: Dict[str, Any], target_duration: float = 54
     solution = escape_str(topic.get("solution", "Dynamic routing and memory optimization accelerate throughput."))
     pro_tip = escape_str(topic.get("pro_tip", "Always benchmark real latency on live workloads."))
 
+    # Target duration strictly in 60s to 180s range
+    target_duration = max(min(target_duration, 180.0), 60.0)
+
     # Calculate act durations to match target_duration
-    t1 = round(target_duration * 0.22, 1)  # Concept & Hook (~12s)
-    t2 = round(target_duration * 0.25, 1)  # The Core Bottleneck (~13s)
-    t3 = round(target_duration * 0.35, 1)  # The Mechanism & Unlock (~19s)
-    t4 = round(target_duration - (t1 + t2 + t3), 1)  # Production Rule (~10s)
+    t1 = round(target_duration * 0.22, 1)  # Concept & Hook (~16s)
+    t2 = round(target_duration * 0.25, 1)  # The Core Bottleneck (~19s)
+    t3 = round(target_duration * 0.35, 1)  # The Mechanism & Unlock (~26s)
+    t4 = round(target_duration - (t1 + t2 + t3), 1)  # Production Rule (~14s)
 
     code = f'''from manim import *
 import numpy as np
@@ -167,10 +171,11 @@ class ShortExplainerScene(Scene):
     return code
 
 
-def generate_explainer_manim_code(topic: Dict[str, Any], target_duration: float = 180.0) -> str:
+def generate_explainer_manim_code(topic: Dict[str, Any], target_duration: float = 330.0) -> str:
     """
     Generates a complete 16:9 Landscape (1920x1080) Manim Scene script.
-    Comprehensive 3-5 minute mathematical & architectural deep-dive for YouTube.
+    Comprehensive 5 to 10 minute mathematical & architectural deep-dive for YouTube.
+    Duration strictly clamped between 300.0s (5m) and 600.0s (10m).
     """
     title = escape_str(topic.get("title", "Frontier AI Architecture"))
     category = escape_str(topic.get("category", "SYSTEMS").upper())
@@ -179,10 +184,17 @@ def generate_explainer_manim_code(topic: Dict[str, Any], target_duration: float 
     solution = escape_str(topic.get("solution", "Mathematical formulation and architectural decomposition."))
     pro_tip = escape_str(topic.get("pro_tip", "Production rules for scaling and deployment."))
 
+    target_duration = max(min(target_duration, 600.0), 300.0)
+    c1 = round(target_duration * 0.18, 1)  # Chapter 1 (~60s)
+    c2 = round(target_duration * 0.22, 1)  # Chapter 2 (~72s)
+    c3 = round(target_duration * 0.22, 1)  # Chapter 3 (~72s)
+    c4 = round(target_duration * 0.20, 1)  # Chapter 4 (~66s)
+    c5 = round(target_duration - (c1 + c2 + c3 + c4), 1)  # Chapter 5 (~60s)
+
     code = f'''from manim import *
 import numpy as np
 
-# 16:9 Widescreen Configuration
+# 16:9 Widescreen Configuration (1920x1080)
 config.pixel_width = 1920
 config.pixel_height = 1080
 config.frame_width = 16.0
@@ -193,11 +205,11 @@ config.background_color = "#070B14"
 class LongExplainerScene(Scene):
     def construct(self):
         # ----------------------------------------------------
-        # CHAPTER 1: INTRO & THE INTUITION
+        # CHAPTER 1: INTRO & THE SCALING DILEMMA ({c1}s)
         # ----------------------------------------------------
         ch1_tag = Text("CHAPTER 1 // THE SCALING DILEMMA", font_size=20, color="#38BDF8", weight=BOLD).to_corner(UL, buff=0.8)
-        title_txt = Text("{title}", font_size=44, color="#FFFFFF", weight=BOLD).shift(UP * 1.8)
-        sub_txt = Text("{summary[:110]}...", font_size=24, color="#94A3B8").next_to(title_txt, DOWN, buff=0.35)
+        title_txt = Text("{title}", font_size=42, color="#FFFFFF", weight=BOLD).shift(UP * 2.0)
+        sub_txt = Text("{summary[:110]}...", font_size=22, color="#94A3B8").next_to(title_txt, DOWN, buff=0.35)
 
         self.play(FadeIn(ch1_tag), Write(title_txt), FadeIn(sub_txt), run_time=2.5)
 
@@ -206,25 +218,25 @@ class LongExplainerScene(Scene):
             x_range=[0, 10, 2],
             y_range=[0, 100, 20],
             x_length=6.5,
-            y_length=3.5,
+            y_length=3.2,
             axis_config={{"color": "#475569"}},
         ).shift(DOWN * 1.6 + LEFT * 2.5)
 
         curve_dense = axes.plot(lambda x: 1.2 * (x**2), color="#F43F5E", x_range=[0, 8.8])
-        dense_label = Text("Dense Model: O(N^2) IO Bottleneck", font_size=18, color="#FB7185").next_to(curve_dense, UP, buff=0.2)
+        dense_label = Text("Dense Architecture: O(N^2) Latency", font_size=17, color="#FB7185").next_to(curve_dense, UP, buff=0.2)
 
         curve_sparse = axes.plot(lambda x: 4.5 * x, color="#10B981", x_range=[0, 9.5])
-        sparse_label = Text("Optimized Architecture: O(N) Linear", font_size=18, color="#34D399").next_to(curve_sparse, RIGHT, buff=0.2)
+        sparse_label = Text("Optimized Unlock: O(N) Linear", font_size=17, color="#34D399").next_to(curve_sparse, RIGHT, buff=0.2)
 
         self.play(Create(axes), Create(curve_dense), Write(dense_label), run_time=3.0)
         self.play(Create(curve_sparse), Write(sparse_label), run_time=2.5)
-        self.wait(3.0)
+        self.wait({max(c1 - 10.0, 5.0)})
         self.play(FadeOut(VGroup(ch1_tag, title_txt, sub_txt, axes, curve_dense, dense_label, curve_sparse, sparse_label)), run_time=1.0)
 
         # ----------------------------------------------------
-        # CHAPTER 2: MATHEMATICAL / ARCHITECTURAL FORMULATION
+        # CHAPTER 2: MATHEMATICAL DECOMPOSITION ({c2}s)
         # ----------------------------------------------------
-        ch2_tag = Text("CHAPTER 2 // MATHEMATICAL DECOMPOSITION", font_size=20, color="#818CF8", weight=BOLD).to_corner(UL, buff=0.8)
+        ch2_tag = Text("CHAPTER 2 // FORMAL MATHEMATICAL DECOMPOSITION", font_size=20, color="#818CF8", weight=BOLD).to_corner(UL, buff=0.8)
         self.play(FadeIn(ch2_tag), run_time=1.0)
 
         # Draw Tensor / Matrix Block Decomposition
@@ -235,7 +247,6 @@ class LongExplainerScene(Scene):
 
         plus_sign = Text("+", font_size=48, color="#FFFFFF").shift(LEFT * 1.2 + DOWN * 0.2)
 
-        # Low rank matrices
         m_a = RoundedRectangle(corner_radius=0.15, width=1.4, height=3.5, color="#10B981")
         m_a.set_fill("#064E3B", opacity=0.85).shift(RIGHT * 0.5 + DOWN * 0.2)
         m_a_txt = Text("A\\n[d x r]", font_size=18, color="#D1FAE5")
@@ -248,32 +259,88 @@ class LongExplainerScene(Scene):
         m_b_txt = Text("B [r x k]", font_size=18, color="#D1FAE5")
         m_b_grp = VGroup(m_b, m_b_txt)
 
-        formula_desc = Text("{solution[:110]}...", font_size=22, color="#F8FAFC").shift(DOWN * 3.0)
+        formula_desc = Text("{solution[:110]}...", font_size=21, color="#F8FAFC").shift(DOWN * 3.0)
 
         self.play(FadeIn(m_base_grp), Write(plus_sign), FadeIn(m_a_grp), Write(mult_dot), FadeIn(m_b_grp), run_time=3.5)
         self.play(FadeIn(formula_desc), run_time=1.5)
-        self.wait(4.0)
+        self.wait({max(c2 - 8.0, 5.0)})
         self.play(FadeOut(VGroup(ch2_tag, m_base_grp, plus_sign, m_a_grp, mult_dot, m_b_grp, formula_desc)), run_time=1.0)
 
         # ----------------------------------------------------
-        # CHAPTER 3: BENCHMARK BREAKDOWN & PRODUCTION PROTOCOL
+        # CHAPTER 3: DYNAMIC TENSOR ROUTING & MEMORY ACCESS ({c3}s)
         # ----------------------------------------------------
-        ch3_tag = Text("CHAPTER 3 // PRODUCTION BENCHMARKS & NEUBENCH", font_size=20, color="#10B981", weight=BOLD).to_corner(UL, buff=0.8)
+        ch3_tag = Text("CHAPTER 3 // DYNAMIC TENSOR ROUTING & SRAM TILES", font_size=20, color="#34D399", weight=BOLD).to_corner(UL, buff=0.8)
         self.play(FadeIn(ch3_tag), run_time=1.0)
+
+        core_node = Circle(radius=1.0, color="#10B981", stroke_width=3)
+        core_node.set_fill("#064E3B", opacity=0.85).shift(LEFT * 4.0)
+        core_txt = Text("Dispatch\\nRouter", font_size=20, color="#D1FAE5")
+        core_grp = VGroup(core_node, core_txt)
+
+        tiles = VGroup()
+        for idx, tname in enumerate(["SRAM Tile 0", "SRAM Tile 1", "SRAM Tile 2"]):
+            tile_rect = RoundedRectangle(corner_radius=0.15, width=4.0, height=1.1, color="#0284C7")
+            tile_rect.set_fill("#082F49", opacity=0.85)
+            tile_lbl = Text(tname, font_size=18, color="#BAE6FD")
+            tile_grp = VGroup(tile_rect, tile_lbl).shift(RIGHT * 2.5 + UP * (1.4 - idx * 1.4))
+            tiles.add(tile_grp)
+
+        route_arrows = VGroup(*[
+            Arrow(core_node.get_right(), t.get_left(), buff=0.2, color="#38BDF8", stroke_width=3)
+            for t in tiles
+        ])
+
+        routing_note = Text("Direct on-chip SRAM fused kernels prevent high-latency DRAM round-trips", font_size=19, color="#E2E8F0").shift(DOWN * 3.0)
+
+        self.play(Create(core_grp), run_time=1.5)
+        self.play(LaggedStart(*[GrowArrow(a) for a in route_arrows], lag_ratio=0.3), FadeIn(tiles), run_time=2.5)
+        self.play(FadeIn(routing_note), run_time=1.2)
+        self.wait({max(c3 - 7.5, 5.0)})
+        self.play(FadeOut(VGroup(ch3_tag, core_grp, tiles, route_arrows, routing_note)), run_time=1.0)
+
+        # ----------------------------------------------------
+        # CHAPTER 4: HARDWARE PROFILING & COMPUTE EFFICIENCY ({c4}s)
+        # ----------------------------------------------------
+        ch4_tag = Text("CHAPTER 4 // HARDWARE PROFILING & FLOP UTILIZATION", font_size=20, color="#F59E0B", weight=BOLD).to_corner(UL, buff=0.8)
+        self.play(FadeIn(ch4_tag), run_time=1.0)
+
+        bar_frame = RoundedRectangle(corner_radius=0.2, width=12.0, height=3.6, color="#D97706", stroke_width=2)
+        bar_frame.set_fill("#1F1501", opacity=0.85).shift(UP * 0.2)
+
+        p1_bar = RoundedRectangle(corner_radius=0.1, width=3.5, height=0.7, color="#EF4444").set_fill("#7F1D1D", opacity=0.9).shift(LEFT * 2.0 + UP * 0.9)
+        p1_txt = Text("Legacy Baseline: 28% MFU (Memory Bound)", font_size=17, color="#FECACA").next_to(p1_bar, RIGHT, buff=0.3)
+
+        p2_bar = RoundedRectangle(corner_radius=0.1, width=8.5, height=0.7, color="#10B981").set_fill("#064E3B", opacity=0.9).shift(LEFT * 0.0 + DOWN * 0.5)
+        p2_txt = Text("Optimized Pipeline: 74% MFU (Compute Bound)", font_size=17, color="#D1FAE5").next_to(p2_bar, RIGHT, buff=0.3)
+
+        hw_sub = Text("Slashing memory overhead unlocks peak Tensor Core compute throughput", font_size=19, color="#FDE68A").shift(DOWN * 2.8)
+
+        self.play(FadeIn(bar_frame), run_time=1.0)
+        self.play(FadeIn(p1_bar), Write(p1_txt), run_time=1.8)
+        self.play(FadeIn(p2_bar), Write(p2_txt), run_time=2.0)
+        self.play(FadeIn(hw_sub), run_time=1.2)
+        self.wait({max(c4 - 8.0, 5.0)})
+        self.play(FadeOut(VGroup(ch4_tag, bar_frame, p1_bar, p1_txt, p2_bar, p2_txt, hw_sub)), run_time=1.0)
+
+        # ----------------------------------------------------
+        # CHAPTER 5: BENCHMARK BREAKDOWN & PRODUCTION PLAYBOOK ({c5}s)
+        # ----------------------------------------------------
+        ch5_tag = Text("CHAPTER 5 // PRODUCTION BENCHMARKS & NEUBENCH", font_size=20, color="#10B981", weight=BOLD).to_corner(UL, buff=0.8)
+        self.play(FadeIn(ch5_tag), run_time=1.0)
 
         card_rule = RoundedRectangle(corner_radius=0.25, width=13.0, height=2.8, color="#10B981", stroke_width=2)
         card_rule.set_fill("#06281E", opacity=0.92).shift(UP * 0.8)
         rule_head = Text("CRITICAL PRODUCTION ENGINEERING TAKEAWAY", font_size=22, color="#34D399", weight=BOLD).shift(UP * 1.5)
         rule_desc = Text("{pro_tip}", font_size=22, color="#ECFDF5", line_spacing=1.3).next_to(rule_head, DOWN, buff=0.4)
 
-        link_box = RoundedRectangle(corner_radius=0.2, width=10.0, height=1.2, color="#38BDF8")
+        link_box = RoundedRectangle(corner_radius=0.2, width=11.0, height=1.2, color="#38BDF8")
         link_box.set_fill("#0B1E3B", opacity=0.9).shift(DOWN * 1.8)
-        link_txt = Text("Live 260+ Model Benchmarks: https://app.neubench.workers.dev", font_size=22, color="#E0F2FE", weight=BOLD)
+        link_txt = Text("Compare 260+ Live Model Benchmarks: https://app.neubench.workers.dev", font_size=21, color="#E0F2FE", weight=BOLD)
         link_txt.move_to(link_box.get_center())
 
         self.play(FadeIn(VGroup(card_rule, rule_head, rule_desc), shift=UP*0.3), run_time=2.0)
         self.play(FadeIn(VGroup(link_box, link_txt), shift=UP*0.2), run_time=1.5)
-        self.wait(5.0)
-        self.play(FadeOut(VGroup(ch3_tag, card_rule, rule_head, rule_desc, link_box, link_txt)), run_time=1.0)
+        self.wait({max(c5 - 6.5, 5.0)})
+        self.play(FadeOut(VGroup(ch5_tag, card_rule, rule_head, rule_desc, link_box, link_txt)), run_time=1.0)
 '''
     return code
