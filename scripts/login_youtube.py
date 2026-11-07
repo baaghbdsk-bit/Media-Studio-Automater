@@ -5,12 +5,17 @@ from pathlib import Path
 
 # Auto-switch to virtual environment Python if invoked via global python
 _BASE_DIR = Path(__file__).resolve().parent.parent
-_VENV_PYTHON = _BASE_DIR / "venv" / "Scripts" / "python.exe"
-if _VENV_PYTHON.exists() and Path(sys.executable).resolve() != _VENV_PYTHON.resolve():
-    try:
-        sys.exit(subprocess.call([str(_VENV_PYTHON)] + sys.argv))
-    except Exception:
-        pass
+_CANDIDATE_VENVS = [
+    _BASE_DIR / "venv" / "Scripts" / "python.exe",
+    Path(r"E:\X-Post-Automater\venv\Scripts\python.exe"),
+    _BASE_DIR.parent / "venv" / "Scripts" / "python.exe",
+]
+for _candidate in _CANDIDATE_VENVS:
+    if _candidate.exists() and Path(sys.executable).resolve() != _candidate.resolve():
+        try:
+            sys.exit(subprocess.call([str(_candidate)] + sys.argv))
+        except Exception:
+            pass
 
 # Ensure UTF-8 on Windows
 if sys.platform == "win32":
