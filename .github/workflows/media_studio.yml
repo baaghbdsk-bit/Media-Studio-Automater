@@ -1,0 +1,97 @@
+name: Media Studio Cloud Autopilot (YouTube Shorts, Instagram Reels, Pinterest, Threads)
+
+on:
+  schedule:
+    # 2 scheduled broadcasts daily at high-engagement global traffic windows:
+    # 1. 11:15 UTC (4:45 PM IST / 6:45 AM EST - Early US East standup & India evening transition)
+    # 2. 15:15 UTC (8:45 PM IST / 10:45 AM EST - Prime US midday & Global tech peak)
+    - cron: '15 11 * * *'
+    - cron: '15 15 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run mode (simulate without publishing)'
+        required: false
+        default: 'false'
+        type: string
+      action:
+        description: 'Action to execute'
+        required: false
+        default: 'studio-all'
+        type: choice
+        options:
+          - studio-all
+          - youtube
+          - instagram-reel
+          - pinterest
+          - generate-video
+
+concurrency:
+  group: 'media-studio-cloud-engine'
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  media-studio-autopilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install System Dependencies (ffmpeg, fonts)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core fonts-liberation
+
+      - name: Upgrade Pip & Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright Browsers (Chromium)
+        run: |
+          playwright install chromium --with-deps
+
+      - name: Execute Media Studio Production & Broadcast
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: 'gemini-2.5-flash'
+          YOUTUBE_TOKEN_BASE64: ${{ secrets.YOUTUBE_TOKEN_BASE64 }}
+          INSTAGRAM_COOKIES_BASE64: ${{ secrets.INSTAGRAM_COOKIES_BASE64 }}
+          PINTEREST_COOKIES_BASE64: ${{ secrets.PINTEREST_COOKIES_BASE64 }}
+          THREADS_COOKIES_BASE64: ${{ secrets.THREADS_COOKIES_BASE64 }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+        run: |
+          ACTION="${{ github.event.inputs.action || 'studio-all' }}"
+          DRY_RUN_FLAG=""
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            DRY_RUN_FLAG="--dry-run"
+          fi
+          echo "🚀 Executing action: $ACTION (dry_run: ${{ github.event.inputs.dry_run || 'false' }})"
+          python main.py "$ACTION" $DRY_RUN_FLAG
+
+      - name: Persist Studio State & Topic History
+        if: always()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add studio_history.json
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(autopilot): sync studio state and published topics [skip ci]"
+            git pull --rebase origin master || true
+            git push origin master
+          else
+            echo "No state changes to commit."
+          fi

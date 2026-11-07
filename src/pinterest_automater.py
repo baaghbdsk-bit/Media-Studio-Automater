@@ -1,3 +1,5 @@
+import os
+import base64
 import sys
 import time
 import json
@@ -22,6 +24,22 @@ class PinterestAutomater:
         self.user_data_dir = config.BASE_DIR / "pinterest_session"
         self.last_outcome_unknown = False
         self.last_message = ""
+        self._ensure_cookies()
+
+    def _ensure_cookies(self):
+        """Restores cookies from environment variable if missing from disk."""
+        import base64
+        env_b64 = os.environ.get("PINTEREST_COOKIES_BASE64")
+        cookie_file = self.user_data_dir / "cookies.json"
+        if env_b64 and not cookie_file.exists():
+            try:
+                self.user_data_dir.mkdir(parents=True, exist_ok=True)
+                raw = base64.b64decode(env_b64).decode("utf-8")
+                with open(cookie_file, "w", encoding="utf-8") as cf:
+                    cf.write(raw)
+                print("[PinterestAutomater] Restored Pinterest session from PINTEREST_COOKIES_BASE64")
+            except Exception as e:
+                print(f"[PinterestAutomater] Failed to restore PINTEREST_COOKIES_BASE64: {e}")
 
     def is_session_available(self) -> bool:
         cookie_file = self.user_data_dir / "cookies.json"

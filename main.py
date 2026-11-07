@@ -118,9 +118,9 @@ def main():
         console.print(f"[bold green]Video generated: {res}[/bold green]")
 
     elif args.action == "ig-diagnose":
-        from scripts.ig_diagnose import diagnose_session
-        result = diagnose_session(headless=True)
-        console.print(f"[bold green]IG Diagnostic Result: {result.status} (exit code {result.exit_code})[/bold green]")
+        from scripts import ig_diagnose
+        exit_code = ig_diagnose.main()
+        console.print(f"[bold green]IG Diagnostic completed (exit code {exit_code})[/bold green]")
 
     elif args.action == "schedule-reels-shorts":
         console.print(f"[bold cyan]⏰ Running scheduled Reels/Shorts...[/bold cyan]")

@@ -1,6 +1,6 @@
 """
 Media Studio Automater Engine.
-Dedicated High-Impact Visual Studio for YouTube Shorts, Instagram Reels, Instagram Carousels, and Pinterest Pins.
+Autonomous High-Impact Video Studio for YouTube Shorts, Instagram Reels, Pinterest Video Pins, and Threads.
 """
 import sys
 import os
@@ -16,8 +16,10 @@ import config
 from src.trend_hunter import TrendHunter
 from src.ai_generator import AIGenerator
 from src.video_generator import VideoGenerator
+from src.youtube_automater import YouTubeAutomater
 from src.instagram_automater import InstagramAutomater
 from src.pinterest_automater import PinterestAutomater
+from src.threads_automater import ThreadsAutomater
 
 if sys.platform == "win32":
     try:
@@ -58,20 +60,30 @@ class StudioEngine:
         return topic
 
     def record_topic(self, title: str):
-        self.history.setdefault("posted_topics", []).append(title)
+        if title not in self.history.setdefault("posted_topics", []):
+            self.history["posted_topics"].append(title)
+        self._save_history()
+
+    def record_event(self, event_type: str, title: str, details: Dict[str, Any]):
+        event = {
+            "time": datetime.now().strftime("%Y-%m-%d %I:%M %p"),
+            "type": event_type,
+            "title": title,
+            "details": details
+        }
+        self.history.setdefault("events", []).append(event)
         self._save_history()
 
     def run_studio_all(self) -> Dict[str, bool]:
         """
-        Executes unified studio production:
+        Executes unified video studio production:
         1. Selects fresh high-signal AI breakthrough topic.
         2. Renders 50-58s vertical HD 1080x1920 video with neural voiceover & synced captions.
-        3. Renders 5-slide dynamic cheatsheet carousel (1080x1350).
-        4. Broadcasts to YouTube Shorts, Instagram Reels, Instagram Carousel, and Pinterest.
+        3. Broadcasts to YouTube Shorts, Instagram Reels, Pinterest, and Threads.
         """
         console.print("\n[bold cyan]🚀 Starting Media Studio Broadcast Cycle...[/bold cyan]")
         start_time = time.time()
-        results = {"youtube": False, "instagram_reel": False, "instagram_carousel": False, "pinterest": False}
+        results = {"youtube": False, "instagram_reel": False, "pinterest": False, "threads": False}
 
         topic = self.get_fresh_topic()
         title = topic.get("title", "AI Architecture Breakthrough")
@@ -79,16 +91,14 @@ class StudioEngine:
         pro_tip = topic.get("pro_tip", "")
         console.print(f"[bold magenta]🎬 Studio Topic Selected: {title}[/bold magenta]")
 
-        # 1. Render Video (for YouTube Shorts & Instagram Reels)
+        # 1. Render Video (for YouTube Shorts, Instagram Reels, Pinterest, & Threads)
         console.print("[cyan]⏳ Synthesizing 50-58s high-production vertical video...[/cyan]")
         vid_gen = VideoGenerator()
         v_res = vid_gen.generate_dynamic_short(topic, dry_run=self.dry_run)
         video_path = Path(v_res.get("video_path") or "")
         srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
 
-        
-
-        # 3. Publish to YouTube Shorts
+        # 2. Publish to YouTube Shorts
         try:
             yt = YouTubeAutomater()
             yt_title = f"{title} Explained #Shorts"[:90]
@@ -102,10 +112,15 @@ class StudioEngine:
                 console.print(f"[yellow][DRY RUN] Would upload YouTube Short: {yt_title}[/yellow]")
                 results["youtube"] = True
             elif not yt.is_authenticated:
-                console.print("[yellow]⚠️ YouTube not authenticated. Run 'python main.py login-youtube'.[/yellow]")
+                console.print("[yellow]⚠️ YouTube not authenticated. Check YOUTUBE_TOKEN_BASE64 or run 'python scripts/login_youtube.py'.[/yellow]")
             elif video_path.exists():
                 console.print(f"[bold magenta]🎬 Uploading Short to YouTube: {yt_title}...[/bold magenta]")
-                res = yt.upload_short(video_path=str(video_path), title=yt_title, description=yt_desc, srt_path=str(srt_path) if srt_path and srt_path.exists() else None)
+                res = yt.upload_short(
+                    video_path=str(video_path),
+                    title=yt_title,
+                    description=yt_desc,
+                    srt_path=str(srt_path) if srt_path and srt_path.exists() else None
+                )
                 if res:
                     console.print(f"[bold green]✅ YouTube Short live: {res.get('url', '')}[/bold green]")
                     results["youtube"] = True
@@ -114,7 +129,7 @@ class StudioEngine:
         except Exception as ex:
             console.print(f"[red]YouTube error: {ex}[/red]")
 
-        # 4. Publish to Instagram Reel (9:16 Uncropped)
+        # 3. Publish to Instagram Reel (9:16 Uncropped) with 'Share to Threads' enabled
         try:
             ig = InstagramAutomater(headless=True, dry_run=self.dry_run)
             reel_caption = (
@@ -125,15 +140,15 @@ class StudioEngine:
                 "#Reels #AI #MachineLearning #DeepLearning #Coding #Tech"
             )
             if self.dry_run:
-                console.print(f"[yellow][DRY RUN] Would publish Instagram Reel: {title}[/yellow]")
+                console.print(f"[yellow][DRY RUN] Would publish Instagram Reel: {title} (with Share to Threads)[/yellow]")
                 results["instagram_reel"] = True
             elif not ig.is_session_available():
-                console.print("[yellow]⚠️ Instagram not authenticated. Run 'python main.py login-instagram'.[/yellow]")
+                console.print("[yellow]⚠️ Instagram not authenticated. Set INSTAGRAM_COOKIES_BASE64 or check instagram_session/cookies.json.[/yellow]")
             elif video_path.exists():
-                console.print(f"[bold magenta]🎥 Publishing 9:16 Reel to Instagram (@neubench)...[/bold magenta]")
+                console.print(f"[bold magenta]🎥 Publishing 9:16 Reel to Instagram (@neubench) & Threads...[/bold magenta]")
                 r_ok, r_msg = ig.post_reel(str(video_path), reel_caption)
                 if r_ok:
-                    console.print("[bold green]✅ Instagram Reel published![/bold green]")
+                    console.print("[bold green]✅ Instagram Reel published successfully![/bold green]")
                     results["instagram_reel"] = True
                 else:
                     console.print(f"[yellow]Instagram Reel note: {r_msg}[/yellow]")
@@ -142,50 +157,20 @@ class StudioEngine:
         except Exception as ex:
             console.print(f"[red]Instagram Reel error: {ex}[/red]")
 
-        # 5. Publish to Instagram Carousel (Original 4:5 Uncropped 5-Slide Cheatsheet)
-        try:
-            ig = InstagramAutomater(headless=True, dry_run=self.dry_run)
-            carousel_caption = (
-                f"🧠 {title} • Engineering Cheatsheet\n\n"
-                f"⚡ {summary}\n\n"
-                "Swipe through the 1-page breakdown ➡️\n\n"
-                f"💡 Pro-Tip: {pro_tip}\n\n"
-                "📌 Save this post for your revision!\n"
-                "📊 Live 260+ model benchmarks: app.neubench.workers.dev\n\n"
-                "#AI #MachineLearning #AIEngineering #Coding #Developers #Tech"
-            )
-            if self.dry_run:
-                console.print(f"[yellow][DRY RUN] Would publish Instagram Carousel ({len(valid_slides)} slides)[/yellow]")
-                results["instagram_carousel"] = True
-            elif not ig.is_session_available():
-                console.print("[yellow]⚠️ Instagram not authenticated. Run 'python main.py login-instagram'.[/yellow]")
-            elif valid_slides:
-                console.print(f"[bold magenta]📸 Publishing 5-Slide Carousel to Instagram (@neubench)...[/bold magenta]")
-                c_ok, c_msg = ig.post_carousel(valid_slides, carousel_caption)
-                if c_ok:
-                    console.print("[bold green]✅ Instagram Carousel published![/bold green]")
-                    results["instagram_carousel"] = True
-                else:
-                    console.print(f"[yellow]Instagram Carousel note: {c_msg}[/yellow]")
-            else:
-                console.print("[yellow]⚠️ Instagram Carousel skipped: slides rendering failed.[/yellow]")
-        except Exception as ex:
-            console.print(f"[red]Instagram Carousel error: {ex}[/red]")
-
-        # 6. Publish to Pinterest (Multi-Slide Carousel Pin)
+        # 4. Publish to Pinterest (Vertical Video Pin)
         try:
             pin = PinterestAutomater(headless=True, dry_run=self.dry_run)
             p_desc = f"{title}\n\n{summary}\n\n💡 Pro-Tip: {pro_tip}\n\nLive AI Benchmarks: https://app.neubench.workers.dev\n\n#AI #Tech #MachineLearning #Engineering"
             if self.dry_run:
-                console.print(f"[yellow][DRY RUN] Would publish Pinterest Carousel Pin: {title}[/yellow]")
+                console.print(f"[yellow][DRY RUN] Would publish Pinterest Video Pin: {title}[/yellow]")
                 results["pinterest"] = True
             elif not pin.is_session_available():
-                console.print("[yellow]⚠️ Pinterest not authenticated. Run 'python main.py login-pinterest'.[/yellow]")
-            elif valid_slides:
-                console.print(f"[bold magenta]📌 Publishing {len(valid_slides)}-Slide Pin to Pinterest: {title[:50]}...[/bold magenta]")
+                console.print("[yellow]⚠️ Pinterest not authenticated. Set PINTEREST_COOKIES_BASE64 or check pinterest_session/cookies.json.[/yellow]")
+            elif video_path.exists():
+                console.print(f"[bold magenta]📌 Publishing Video Pin to Pinterest: {title[:50]}...[/bold magenta]")
                 p_ok, p_msg = pin.create_pin(
-                    image_path=valid_slides,
-                    title=f"{title} • AI Cheatsheet"[:80],
+                    image_path=str(video_path),
+                    title=f"{title} • AI Breakdown"[:80],
                     description=p_desc,
                     link="https://app.neubench.workers.dev"
                 )
@@ -195,13 +180,40 @@ class StudioEngine:
                 else:
                     console.print(f"[yellow]Pinterest note: {p_msg}[/yellow]")
             else:
-                console.print("[yellow]⚠️ Pinterest skipped: slides rendering failed.[/yellow]")
+                console.print("[yellow]⚠️ Pinterest skipped: video rendering failed.[/yellow]")
         except Exception as ex:
             console.print(f"[red]Pinterest error: {ex}[/red]")
+
+        # 5. Dedicated Broadcast to Threads (Failsafe alongside Instagram crosspost)
+        try:
+            threads = ThreadsAutomater(headless=True, dry_run=self.dry_run)
+            threads_text = (
+                f"🧠 {title}\n\n"
+                f"{summary}\n\n"
+                f"💡 Engineering Rule: {pro_tip}\n\n"
+                "📊 Live 260+ model benchmarks: https://app.neubench.workers.dev\n\n"
+                "#AI #Tech #Engineering"
+            )
+            if self.dry_run:
+                console.print(f"[yellow][DRY RUN] Would publish Threads take: {title}[/yellow]")
+                results["threads"] = True
+            elif not threads.is_session_available():
+                console.print("[dim]Threads session not configured directly; relying on Instagram 'Share to Threads'.[/dim]")
+            else:
+                console.print(f"[bold magenta]🧵 Publishing to Threads...[/bold magenta]")
+                t_ok, t_msg = threads.post(threads_text)
+                if t_ok:
+                    console.print("[bold green]✅ Threads post published![/bold green]")
+                    results["threads"] = True
+                else:
+                    console.print(f"[dim]Threads note: {t_msg}[/dim]")
+        except Exception as ex:
+            console.print(f"[dim]Threads broadcast note: {ex}[/dim]")
 
         # Record success
         if any(results.values()):
             self.record_topic(title)
+            self.record_event("video_broadcast", title, results)
 
         duration = round(time.time() - start_time, 1)
         console.print(f"\n[bold green]🏁 Studio Broadcast Complete in {duration}s! Results: {results}[/bold green]\n")
@@ -230,6 +242,7 @@ class StudioEngine:
         if res:
             console.print(f"[bold green]✅ YouTube Short live: {res.get('url', '')}[/bold green]")
             self.record_topic(title)
+            self.record_event("youtube_short", title, {"url": res.get("url")})
             return True
         return False
 
@@ -248,45 +261,44 @@ class StudioEngine:
         if ok:
             console.print(f"[bold green]✅ Instagram Reel published![/bold green]")
             self.record_topic(title)
+            self.record_event("instagram_reel", title, {"msg": msg})
         else:
             console.print(f"[yellow]Instagram Reel note: {msg}[/yellow]")
-        return ok
-
-    def publish_instagram_carousel(self) -> bool:
-        topic = self.get_fresh_topic()
-        title = topic.get("title", "AI Concept")
-        gen = InstagramCarouselGenerator()
-        slides = gen.generate_dynamic_carousel(topic)
-        valid = [str(p) for p in slides if Path(p).exists()] if slides else []
-        if self.dry_run:
-            console.print(f"[yellow][DRY RUN] Would publish Instagram Carousel: {title}[/yellow]")
-            return True
-        ig = InstagramAutomater(headless=True, dry_run=self.dry_run)
-        caption = f"🧠 {title} • Engineering Cheatsheet\n\n{topic.get('summary', '')}\n\n#AI #Coding"
-        ok, msg = ig.post_carousel(valid, caption)
-        if ok:
-            console.print(f"[bold green]✅ Instagram Carousel published![/bold green]")
-            self.record_topic(title)
-        else:
-            console.print(f"[yellow]Instagram Carousel note: {msg}[/yellow]")
         return ok
 
     def publish_pinterest(self) -> bool:
         topic = self.get_fresh_topic()
         title = topic.get("title", "AI Concept")
-        # No carousel slides - publish single pin with title/description
+        vid_gen = VideoGenerator()
+        v_res = vid_gen.generate_dynamic_short(topic, dry_run=self.dry_run)
+        vpath = Path(v_res.get("video_path") or "")
         if self.dry_run:
             console.print(f"[yellow][DRY RUN] Would publish Pinterest Pin: {title}[/yellow]")
             return True
         pin = PinterestAutomater(headless=True, dry_run=self.dry_run)
-        # Since we removed the carousel section, use no image or a placeholder
         desc = f"{title}\n\n{topic.get('summary', '')}\n\n#AI #Tech"
-        ok, msg = pin.create_pin(image_path=None, title=f"{title} • AI Cheatsheet"[:80], description=desc)
+        ok, msg = pin.create_pin(image_path=str(vpath), title=f"{title} • AI Breakdown"[:80], description=desc)
         if ok:
             console.print("[bold green]✅ Pinterest Pin published![/bold green]")
             self.record_topic(title)
+            self.record_event("pinterest_pin", title, {"msg": msg})
         else:
             console.print(f"[yellow]Pinterest note: {msg}[/yellow]")
         return ok
 
-    
+    def publish_threads(self) -> bool:
+        topic = self.get_fresh_topic()
+        title = topic.get("title", "AI Concept")
+        if self.dry_run:
+            console.print(f"[yellow][DRY RUN] Would publish Threads take: {title}[/yellow]")
+            return True
+        threads = ThreadsAutomater(headless=True, dry_run=self.dry_run)
+        text = f"🧠 {title}\n\n{topic.get('summary', '')}\n\n💡 {topic.get('pro_tip', '')}\n\nhttps://app.neubench.workers.dev"
+        ok, msg = threads.post(text)
+        if ok:
+            console.print("[bold green]✅ Threads post published![/bold green]")
+            self.record_topic(title)
+            self.record_event("threads_post", title, {"msg": msg})
+        else:
+            console.print(f"[yellow]Threads note: {msg}[/yellow]")
+        return ok

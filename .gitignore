@@ -4,7 +4,14 @@ __pycache__/
 *.pyc
 instagram_session/
 pinterest_session/
+threads_session/
 youtube_token.json
 client_secret*.json
 *.log
 generated_visuals/videos/
+generated_visuals/*.json
+generated_visuals/*.png
+AI_SERIES/
+tools/*.txt
+tools/fix_*.py
+tools/apply_*.py

@@ -22,6 +22,23 @@ class InstagramAutomater:
         self.user_data_dir = config.BASE_DIR / "instagram_session"
         self.last_outcome_unknown = False
         self.last_message = ""
+        self._ensure_cookies()
+
+    def _ensure_cookies(self):
+        """Restores cookies from environment variable if missing from disk."""
+        import os
+        import base64
+        env_b64 = os.environ.get("INSTAGRAM_COOKIES_BASE64")
+        cookie_file = self.user_data_dir / "cookies.json"
+        if env_b64 and not cookie_file.exists():
+            try:
+                self.user_data_dir.mkdir(parents=True, exist_ok=True)
+                raw = base64.b64decode(env_b64).decode("utf-8")
+                with open(cookie_file, "w", encoding="utf-8") as f:
+                    f.write(raw)
+                print("[InstagramAutomater] Restored Instagram session from INSTAGRAM_COOKIES_BASE64")
+            except Exception as e:
+                print(f"[InstagramAutomater] Failed to restore INSTAGRAM_COOKIES_BASE64: {e}")
 
     def is_session_available(self) -> bool:
         """Checks if a saved Instagram session with valid cookies exists."""
@@ -347,6 +364,29 @@ class InstagramAutomater:
                                 print("[InstagramAutomater] ✅ Hidden like and view counts enabled for Reel.")
                 except Exception as ex:
                     print(f"[InstagramAutomater] Note on advanced settings: {ex}")
+
+                # 6c. Enable 'Share to Threads' if option is present
+                try:
+                    threads_selectors = [
+                        'div[role="dialog"] [role="switch"]:near(:text("Threads"))',
+                        'div[role="dialog"] label:has-text("Threads")',
+                        'div[role="dialog"] span:has-text("Share to Threads")',
+                        'div[role="dialog"] div:has-text("Share to Threads")',
+                        'div[role="dialog"] span:has-text("Threads")'
+                    ]
+                    for t_sel in threads_selectors:
+                        threads_elem = page.locator(t_sel).first
+                        if threads_elem.is_visible(timeout=1500):
+                            sw = threads_elem.locator('[role="switch"], input[type="checkbox"]').first
+                            target = sw if sw.is_visible(timeout=500) else threads_elem
+                            is_checked = target.is_checked() if hasattr(target, 'is_checked') else (target.get_attribute("aria-checked") == "true")
+                            if not is_checked:
+                                target.click()
+                                page.wait_for_timeout(800)
+                                print("[InstagramAutomater] ✅ 'Share to Threads' option enabled for Reel!")
+                            break
+                except Exception as ex:
+                    print(f"[InstagramAutomater] Note on Threads toggle: {ex}")
 
                 # 7. Click 'Share' button
                 print("[InstagramAutomater] Clicking Share button...")

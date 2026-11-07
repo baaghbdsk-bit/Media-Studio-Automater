@@ -1,7 +1,44 @@
 {
   "posted_topics": [
     "On the Opportunities and Challenges of Prefill-to-Autoregressive Cross",
-    "Quantized FP8 vs Dense Weights for Autonomous Coding Agents"
+    "Quantized FP8 vs Dense Weights for Autonomous Coding Agents",
+    "Mixture of Experts (MoE)",
+    "Retrieval-Augmented Generation (RAG)",
+    "Signed but Steerable: Measuring and Closing the Text-Vector Integrity "
   ],
-  "events": []
+  "events": [
+    {
+      "time": "2026-11-08 02:46 AM",
+      "type": "video_broadcast",
+      "title": "Mixture of Experts (MoE)",
+      "details": {
+        "youtube": true,
+        "instagram_reel": true,
+        "pinterest": false,
+        "threads": false
+      }
+    },
+    {
+      "time": "2026-11-08 02:47 AM",
+      "type": "video_broadcast",
+      "title": "Retrieval-Augmented Generation (RAG)",
+      "details": {
+        "youtube": true,
+        "instagram_reel": true,
+        "pinterest": true,
+        "threads": true
+      }
+    },
+    {
+      "time": "2026-11-08 02:54 AM",
+      "type": "video_broadcast",
+      "title": "Signed but Steerable: Measuring and Closing the Text-Vector Integrity ",
+      "details": {
+        "youtube": true,
+        "instagram_reel": true,
+        "pinterest": true,
+        "threads": true
+      }
+    }
+  ]
 }

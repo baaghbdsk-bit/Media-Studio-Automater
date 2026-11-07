@@ -1,3 +1,5 @@
+import os
+import base64
 """
 
 Autonomous Threads Browser Automater for NeuBench.
@@ -50,6 +52,22 @@ class ThreadsAutomater:
         self.user_data_dir = config.BASE_DIR / "threads_session"
         self.last_outcome_unknown = False
         self.last_message = ""
+        self._ensure_cookies()
+
+    def _ensure_cookies(self):
+        """Restores cookies from THREADS_COOKIES_BASE64 or fallback to INSTAGRAM_COOKIES_BASE64."""
+        import base64
+        env_b64 = os.environ.get("THREADS_COOKIES_BASE64") or os.environ.get("INSTAGRAM_COOKIES_BASE64")
+        cookie_file = self.user_data_dir / "cookies.json"
+        if env_b64 and not cookie_file.exists():
+            try:
+                self.user_data_dir.mkdir(parents=True, exist_ok=True)
+                raw = base64.b64decode(env_b64).decode("utf-8")
+                with open(cookie_file, "w", encoding="utf-8") as cf:
+                    cf.write(raw)
+                print("[ThreadsAutomater] Restored Threads session from environment")
+            except Exception as e:
+                print(f"[ThreadsAutomater] Failed to restore cookies: {e}")
 
 
 

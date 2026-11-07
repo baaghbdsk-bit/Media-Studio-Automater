@@ -75,7 +75,7 @@ class VideoGenerator:
                     last_img = Path(scene_images[-1][0]).resolve().as_posix()
                     f.write(f"file '{last_img}'\n")
 
-            total_scene_dur = min(sum(dur for _, dur in scene_images), 180.0) if scene_images else 60.0
+            total_scene_dur = min(sum(dur for _, dur in scene_images), 58.0) if scene_images else 55.0
 
             cmd = [
                 "ffmpeg", "-y",
@@ -332,7 +332,7 @@ class VideoGenerator:
 
             # 2. Match scene durations to synthesized audio length (targeting 60-180s / 1-3 mins)
             audio_dur = self._get_audio_duration(audio_path)
-            total_dur = min(max(audio_dur, 60.0), 180.0)
+            total_dur = min(max(audio_dur, 30.0), 58.0)
             d1 = round(total_dur * 0.25, 1)
             d2 = round(total_dur * 0.30, 1)
             d3 = round(total_dur * 0.30, 1)
