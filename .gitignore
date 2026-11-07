@@ -12,6 +12,9 @@ generated_visuals/videos/
 generated_visuals/*.json
 generated_visuals/*.png
 AI_SERIES/
+output/
+media/
 tools/*.txt
 tools/fix_*.py
 tools/apply_*.py
+tools/test_*.py

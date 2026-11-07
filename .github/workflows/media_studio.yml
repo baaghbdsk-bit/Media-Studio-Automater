@@ -2,11 +2,9 @@ name: Media Studio Cloud Autopilot (YouTube Shorts, Instagram Reels, Pinterest, 
 
 on:
   schedule:
-    # 2 scheduled broadcasts daily at high-engagement global traffic windows:
-    # 1. 11:15 UTC (4:45 PM IST / 6:45 AM EST - Early US East standup & India evening transition)
-    # 2. 15:15 UTC (8:45 PM IST / 10:45 AM EST - Prime US midday & Global tech peak)
-    - cron: '15 11 * * *'
-    - cron: '15 15 * * *'
+    # Autonomous heartbeat every 4 hours (6 runs/day):
+    # Runs the 9:16 Manim Short/Reel broadcast cycle, plus the 16:9 Long Explainer on alternate days.
+    - cron: '0 */4 * * *'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -17,13 +15,16 @@ on:
       action:
         description: 'Action to execute'
         required: false
-        default: 'studio-all'
+        default: 'schedule-autopilot'
         type: choice
         options:
+          - schedule-autopilot
           - studio-all
+          - youtube-explainer
           - youtube
           - instagram-reel
           - pinterest
+          - threads
           - generate-video
 
 concurrency:
@@ -36,7 +37,7 @@ permissions:
 jobs:
   media-studio-autopilot:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
 
     steps:
       - name: Checkout Code
@@ -50,10 +51,10 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: Install System Dependencies (ffmpeg, fonts)
+      - name: Install System Dependencies (ffmpeg, fonts, cairo, pango for Manim)
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg fonts-dejavu-core fonts-liberation
+          sudo apt-get install -y ffmpeg fonts-dejavu-core fonts-liberation libpango1.0-dev libcairo2-dev pkg-config
 
       - name: Upgrade Pip & Install Dependencies
         run: |
@@ -74,7 +75,7 @@ jobs:
           THREADS_COOKIES_BASE64: ${{ secrets.THREADS_COOKIES_BASE64 }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
         run: |
-          ACTION="${{ github.event.inputs.action || 'studio-all' }}"
+          ACTION="${{ github.event.inputs.action || 'schedule-autopilot' }}"
           DRY_RUN_FLAG=""
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
             DRY_RUN_FLAG="--dry-run"

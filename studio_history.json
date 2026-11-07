@@ -4,7 +4,8 @@
     "Quantized FP8 vs Dense Weights for Autonomous Coding Agents",
     "Mixture of Experts (MoE)",
     "Retrieval-Augmented Generation (RAG)",
-    "Signed but Steerable: Measuring and Closing the Text-Vector Integrity "
+    "Signed but Steerable: Measuring and Closing the Text-Vector Integrity ",
+    "StepX-OPD: Rethinking Multi-Teacher On-Policy Distillation in Diffusio"
   ],
   "events": [
     {
@@ -33,6 +34,17 @@
       "time": "2026-11-08 02:54 AM",
       "type": "video_broadcast",
       "title": "Signed but Steerable: Measuring and Closing the Text-Vector Integrity ",
+      "details": {
+        "youtube": true,
+        "instagram_reel": true,
+        "pinterest": true,
+        "threads": true
+      }
+    },
+    {
+      "time": "2026-11-08 03:09 AM",
+      "type": "video_broadcast",
+      "title": "StepX-OPD: Rethinking Multi-Teacher On-Policy Distillation in Diffusio",
       "details": {
         "youtube": true,
         "instagram_reel": true,

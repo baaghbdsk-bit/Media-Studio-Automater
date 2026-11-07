@@ -1,6 +1,7 @@
 """
 Media Studio Automater Engine.
-Autonomous High-Impact Video Studio for YouTube Shorts, Instagram Reels, Pinterest Video Pins, and Threads.
+Autonomous High-Impact Video Studio for YouTube Shorts, Instagram Reels, Pinterest Video Pins, Threads, and YouTube Long Explainers.
+Powered by Manim Community Edition for genuine 3Blue1Brown-style mathematical animations.
 """
 import sys
 import os
@@ -74,14 +75,31 @@ class StudioEngine:
         self.history.setdefault("events", []).append(event)
         self._save_history()
 
+    def is_alternate_day_for_explainer(self) -> bool:
+        """Determines if at least 2 days have passed since the last YouTube Explainer."""
+        try:
+            events = self.history.get("events", [])
+            last_explainer = None
+            for ev in reversed(events):
+                if ev.get("type") == "explainer_video":
+                    last_explainer = ev.get("time", "")
+                    break
+            if last_explainer:
+                last_dt = datetime.strptime(last_explainer, "%Y-%m-%d %I:%M %p")
+                days = (datetime.now() - last_dt).days
+                return days >= 2
+            return True
+        except Exception:
+            return True
+
     def run_studio_all(self) -> Dict[str, bool]:
         """
-        Executes unified video studio production:
+        Executes unified video studio production (9:16 Vertical Manim Short/Reel):
         1. Selects fresh high-signal AI breakthrough topic.
-        2. Renders 50-58s vertical HD 1080x1920 video with neural voiceover & synced captions.
-        3. Broadcasts to YouTube Shorts, Instagram Reels, Pinterest, and Threads.
+        2. Renders 50-58s vertical HD 1080x1920 Manim video with neural voiceover & synced captions.
+        3. Broadcasts to YouTube Shorts, Instagram Reels (with Share to Threads), Pinterest, and Threads.
         """
-        console.print("\n[bold cyan]🚀 Starting Media Studio Broadcast Cycle...[/bold cyan]")
+        console.print("\n[bold cyan]🚀 Starting Media Studio Broadcast Cycle (Manim 9:16)...[/bold cyan]")
         start_time = time.time()
         results = {"youtube": False, "instagram_reel": False, "pinterest": False, "threads": False}
 
@@ -91,8 +109,8 @@ class StudioEngine:
         pro_tip = topic.get("pro_tip", "")
         console.print(f"[bold magenta]🎬 Studio Topic Selected: {title}[/bold magenta]")
 
-        # 1. Render Video (for YouTube Shorts, Instagram Reels, Pinterest, & Threads)
-        console.print("[cyan]⏳ Synthesizing 50-58s high-production vertical video...[/cyan]")
+        # 1. Render Manim Short Video (<= 58s)
+        console.print("[cyan]⏳ Synthesizing 50-58s Manim mathematical animation...[/cyan]")
         vid_gen = VideoGenerator()
         v_res = vid_gen.generate_dynamic_short(topic, dry_run=self.dry_run)
         video_path = Path(v_res.get("video_path") or "")
@@ -143,7 +161,7 @@ class StudioEngine:
                 console.print(f"[yellow][DRY RUN] Would publish Instagram Reel: {title} (with Share to Threads)[/yellow]")
                 results["instagram_reel"] = True
             elif not ig.is_session_available():
-                console.print("[yellow]⚠️ Instagram not authenticated. Set INSTAGRAM_COOKIES_BASE64 or check instagram_session/cookies.json.[/yellow]")
+                console.print("[yellow]⚠️ Instagram not authenticated. Set INSTAGRAM_COOKIES_BASE64.[/yellow]")
             elif video_path.exists():
                 console.print(f"[bold magenta]🎥 Publishing 9:16 Reel to Instagram (@neubench) & Threads...[/bold magenta]")
                 r_ok, r_msg = ig.post_reel(str(video_path), reel_caption)
@@ -165,7 +183,7 @@ class StudioEngine:
                 console.print(f"[yellow][DRY RUN] Would publish Pinterest Video Pin: {title}[/yellow]")
                 results["pinterest"] = True
             elif not pin.is_session_available():
-                console.print("[yellow]⚠️ Pinterest not authenticated. Set PINTEREST_COOKIES_BASE64 or check pinterest_session/cookies.json.[/yellow]")
+                console.print("[yellow]⚠️ Pinterest not authenticated. Set PINTEREST_COOKIES_BASE64.[/yellow]")
             elif video_path.exists():
                 console.print(f"[bold magenta]📌 Publishing Video Pin to Pinterest: {title[:50]}...[/bold magenta]")
                 p_ok, p_msg = pin.create_pin(
@@ -218,6 +236,84 @@ class StudioEngine:
         duration = round(time.time() - start_time, 1)
         console.print(f"\n[bold green]🏁 Studio Broadcast Complete in {duration}s! Results: {results}[/bold green]\n")
         return results
+
+    def publish_youtube_explainer(self) -> bool:
+        """
+        Renders and publishes a full 16:9 Landscape Manim Long Explainer Video (3-5 mins) to YouTube.
+        Includes chapter timestamps, technical derivations, and benchmark comparisons.
+        """
+        console.print("\n[bold magenta]🎬 Starting YouTube Long Explainer Production (16:9 Manim)...[/bold magenta]")
+        topic = self.get_fresh_topic()
+        title = topic.get("title", "Frontier AI Architecture Deep-Dive")
+        summary = topic.get("summary", "")
+        pro_tip = topic.get("pro_tip", "")
+        console.print(f"[bold cyan]Explainer Topic: {title}[/bold cyan]")
+
+        vid_gen = VideoGenerator()
+        v_res = vid_gen.generate_dynamic_explainer(topic, dry_run=self.dry_run)
+        vpath = Path(v_res.get("video_path") or "")
+        srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
+        chapters = v_res.get("chapters", [
+            "00:00 Introduction & The Scaling Dilemma",
+            "01:10 Mathematical Formulation & Architecture",
+            "02:40 Production Benchmarks on NeuBench"
+        ])
+
+        if self.dry_run:
+            console.print(f"[yellow][DRY RUN] Would publish 16:9 YouTube Explainer: {title}[/yellow]")
+            return True
+
+        yt = YouTubeAutomater()
+        if not yt.is_authenticated:
+            console.print("[yellow]⚠️ YouTube not authenticated. Check YOUTUBE_TOKEN_BASE64.[/yellow]")
+            return False
+
+        chapters_text = "\n".join(chapters)
+        desc = (
+            f"⚡ Comprehensive Technical Breakdown: {title}\n\n"
+            f"{summary}\n\n"
+            f"📌 Timestamps & Chapters:\n{chapters_text}\n\n"
+            f"💡 Production Engineering Rule:\n{pro_tip}\n\n"
+            "📊 Compare live token economics & latency across 260+ models on NeuBench:\n"
+            "https://app.neubench.workers.dev\n\n"
+            "#AI #DeepLearning #MachineLearning #SystemArchitecture #Python #Algorithms"
+        )
+
+        res = yt.upload_short(
+            video_path=str(vpath),
+            title=f"{title}: Complete Technical Deep-Dive"[:95],
+            description=desc,
+            srt_path=str(srt_path) if srt_path and srt_path.exists() else None
+        )
+
+        if res:
+            console.print(f"[bold green]✅ YouTube Long Explainer live: {res.get('url', '')}[/bold green]")
+            self.record_topic(title)
+            self.record_event("explainer_video", title, {"url": res.get("url")})
+            return True
+        return False
+
+    def schedule_autopilot(self) -> Dict[str, Any]:
+        """
+        Primary 4-hour cron scheduler method:
+        1. Checks if it is an alternate day for YouTube Explainer. If so, produces 16:9 explainer.
+        2. Executes unified 9:16 Shorts/Reels/Pins/Threads Manim broadcast.
+        """
+        report = {"explainer_run": False, "broadcast_results": {}}
+        console.print("\n[bold cyan]⏰ 4-Hour Autopilot Heartbeat Triggered...[/bold cyan]")
+
+        # Check alternate day condition for YouTube Long Explainer
+        if self.is_alternate_day_for_explainer():
+            console.print("[bold magenta]📅 Alternate day detected: Running 16:9 YouTube Explainer pipeline...[/bold magenta]")
+            ok_exp = self.publish_youtube_explainer()
+            report["explainer_run"] = ok_exp
+        else:
+            console.print("[yellow]⏳ Not an alternate day for explainer - skipping long video slot.[/yellow]")
+
+        # Run 9:16 Manim Short / Reel broadcast across all platforms
+        b_res = self.run_studio_all()
+        report["broadcast_results"] = b_res
+        return report
 
     def publish_youtube(self) -> bool:
         topic = self.get_fresh_topic()

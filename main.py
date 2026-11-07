@@ -72,9 +72,12 @@ def main():
             "youtube",
             "instagram-reel",
             "pinterest",
+            "threads",
+            "youtube-explainer",
             "generate-video",
             "ig-diagnose",
             "metrics",
+            "schedule-autopilot",
             "schedule-reels-shorts",
             "schedule-explainer",
             "schedule-today"
@@ -121,6 +124,18 @@ def main():
         from scripts import ig_diagnose
         exit_code = ig_diagnose.main()
         console.print(f"[bold green]IG Diagnostic completed (exit code {exit_code})[/bold green]")
+
+    elif args.action == "youtube-explainer":
+        console.print(f"[bold magenta]🎬 Publishing 16:9 YouTube Long Explainer (Dry-run: {args.dry_run})...[/bold magenta]")
+        engine.publish_youtube_explainer()
+
+    elif args.action == "threads":
+        console.print(f"[bold magenta]🧵 Publishing to Threads (Dry-run: {args.dry_run})...[/bold magenta]")
+        engine.publish_threads()
+
+    elif args.action == "schedule-autopilot":
+        console.print(f"[bold cyan]⏰ Running 4-Hour Autopilot Cycle (Dry-run: {args.dry_run})...[/bold cyan]")
+        engine.schedule_autopilot()
 
     elif args.action == "schedule-reels-shorts":
         console.print(f"[bold cyan]⏰ Running scheduled Reels/Shorts...[/bold cyan]")
