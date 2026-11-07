@@ -3,19 +3,14 @@ import sys
 import subprocess
 from pathlib import Path
 
-# Auto-switch to virtual environment Python if invoked via global python
+# Auto-switch to local virtual environment Python if present
 _BASE_DIR = Path(__file__).resolve().parent.parent
-_CANDIDATE_VENVS = [
-    _BASE_DIR / "venv" / "Scripts" / "python.exe",
-    Path(r"E:\X-Post-Automater\venv\Scripts\python.exe"),
-    _BASE_DIR.parent / "venv" / "Scripts" / "python.exe",
-]
-for _candidate in _CANDIDATE_VENVS:
-    if _candidate.exists() and Path(sys.executable).resolve() != _candidate.resolve():
-        try:
-            sys.exit(subprocess.call([str(_candidate)] + sys.argv))
-        except Exception:
-            pass
+_LOCAL_VENV = _BASE_DIR / "venv" / "Scripts" / "python.exe"
+if _LOCAL_VENV.exists() and Path(sys.executable).resolve() != _LOCAL_VENV.resolve():
+    try:
+        sys.exit(subprocess.call([str(_LOCAL_VENV)] + sys.argv))
+    except Exception:
+        pass
 
 # Ensure UTF-8 on Windows
 if sys.platform == "win32":
