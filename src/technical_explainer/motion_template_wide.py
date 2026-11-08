@@ -212,6 +212,7 @@ function cubicPoint(p0,p1,p2,p3,t){
 
 let activeGroup = null;
 let activeKind = null;
+let activeScene = null;
 let lastSceneIndex = -1;
 
 function setTheme(kind){
@@ -230,8 +231,19 @@ function resetGroup(grp){
   grp.querySelectorAll('.anim').forEach(el => { el.style.opacity = 0; el.style.transform='scale(.94)'; });
 }
 
+function applyLabels(labels){
+  if(!activeGroup) return;
+  const map = labels || {};
+  activeGroup.querySelectorAll('[data-l]').forEach(el => {
+    const value = map[el.dataset.l];
+    el.textContent = (value !== undefined && value !== null && String(value).length)
+      ? String(value) : (el.dataset.default || '');
+  });
+}
+
 function activateScene(index){
   const sc = SCENES[index];
+  activeScene = sc;
   const kind = (sc.active_layer in THEME) ? sc.active_layer : 'ecosystem';
   if(index === lastSceneIndex) return;
   lastSceneIndex = index;
@@ -241,6 +253,7 @@ function activateScene(index){
   stage.querySelectorAll('.scene-grp').forEach(g => g.classList.remove('active'));
   activeGroup = stage.querySelector('.scene-grp[data-kind="'+kind+'"]');
   if(activeGroup){ activeGroup.classList.add('active'); resetGroup(activeGroup); }
+  applyLabels(sc.viz_labels || {});
 
   actEl.textContent = sc.act_tag || 'ACT';
   titleEl.textContent = sc.title || '';
@@ -359,8 +372,16 @@ function animateContinuous(kind, p, t){
     });
     const counter = g.querySelector('#drain-counter');
     if(counter){
-      const val = Math.floor(easeOut(clamp01(p*1.15)) * 566);
-      counter.textContent = '$' + val + 'M';
+      const cfg = (activeScene && activeScene.viz_counter) || null;
+      if(cfg && cfg.target !== undefined && cfg.target !== null){
+        const target = Number(cfg.target) || 0;
+        const dec = Number(cfg.decimals) || 0;
+        const val = easeOut(clamp01(p*1.15)) * target;
+        counter.textContent = (cfg.prefix || '') + val.toFixed(dec) + (cfg.suffix || '');
+      } else {
+        const text = (activeScene && activeScene.viz_labels && activeScene.viz_labels.drain_counter_text) || 'IMPACT';
+        counter.textContent = text;
+      }
     }
   }
 
@@ -401,6 +422,7 @@ window.renderFrame = function(frameIndex, timeSeconds){
   return true;
 };
 
+document.querySelectorAll('[data-l]').forEach(el => { el.dataset.default = el.textContent; });
 setTheme('ecosystem');
 activateScene(0);
 window.renderFrame(0, 0);

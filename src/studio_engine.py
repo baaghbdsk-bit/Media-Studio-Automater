@@ -10,7 +10,7 @@ import time
 import hashlib
 from pathlib import Path
 from typing import Optional, Dict, Any, List, Tuple
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from rich.console import Console
 
 import config
@@ -32,21 +32,51 @@ if sys.platform == "win32":
 console = Console()
 
 class StudioEngine:
+    YOUTUBE_DAILY_UNITS = 9000
+    YOUTUBE_UPLOAD_UNITS = 2000
+
     def __init__(self, dry_run: bool = False):
         self.dry_run = dry_run
         self.hunter = TrendHunter()
         self.ai = AIGenerator()
         self.history_file = config.BASE_DIR / "studio_history.json"
         self.history = self._load_history()
+        self._migrate_history()
 
     def _load_history(self) -> Dict[str, Any]:
         if self.history_file.exists():
             try:
                 with open(self.history_file, "r", encoding="utf-8") as f:
-                    return json.load(f)
+                    data = json.load(f)
+                    if isinstance(data, dict):
+                        return data
             except Exception:
                 pass
-        return {"posted_topics": [], "events": []}
+        return {"posted_topics": [], "topic_log": [], "events": []}
+
+    def _migrate_history(self):
+        """Seed the timestamped topic log from the legacy posted_topics list.
+
+        Legacy entries get a migration timestamp so they block repeats for one
+        month and then age out instead of blocking the topic forever.
+        """
+        log = self.history.get("topic_log")
+        if not isinstance(log, list):
+            log = []
+        now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        known = set()
+        for entry in log:
+            if not isinstance(entry, dict):
+                continue
+            title = str(entry.get("title") or "")
+            known.add(title)
+            if title and not entry.get("time"):
+                entry["time"] = now_iso
+        for title in self.history.get("posted_topics", []):
+            if title and title not in known:
+                log.append({"title": title, "series": "", "time": now_iso, "legacy": True})
+                known.add(title)
+        self.history["topic_log"] = log[-600:]
 
     def _save_history(self):
         try:
@@ -55,14 +85,72 @@ class StudioEngine:
         except Exception as e:
             console.print(f"[dim]History save note: {e}[/dim]")
 
-    def get_fresh_topic(self) -> Dict[str, Any]:
-        used = self.history.get("posted_topics", [])
-        topic = self.hunter.get_dynamic_ai_topic(used_topics=used)
-        return topic
+    def _recent_entries(self) -> List[Dict[str, Any]]:
+        from src import topic_memory
 
-    def record_topic(self, title: str):
-        if title not in self.history.setdefault("posted_topics", []):
-            self.history["posted_topics"].append(title)
+        log = [e for e in self.history.get("topic_log", []) if isinstance(e, dict)]
+        if not log:
+            return [{"title": t, "series": "", "time": ""}
+                    for t in self.history.get("posted_topics", []) if t]
+        return topic_memory.recent(log)
+
+    def get_fresh_topic(self, audience: str = "beginner",
+                        pillar: str = "foundations",
+                        long_form: bool = False) -> Dict[str, Any]:
+        """Pick a topic that has not appeared in the last 30 days."""
+        from src import topic_memory
+
+        entries = self._recent_entries()
+        used = topic_memory.recent_titles(entries)
+        if not used:
+            used = list(self.history.get("posted_topics", []))
+        exclude_series = topic_memory.recent_series(entries)
+
+        for attempt in range(3):
+            topic = self.hunter.get_dynamic_ai_topic(
+                used_topics=used,
+                audience=audience,
+                pillar=pillar,
+                exclude_series=exclude_series,
+                long_form=long_form,
+            )
+            if not topic_memory.is_duplicate(topic, entries):
+                return topic
+            title = topic.get("title", "")
+            console.print(
+                f"[yellow]Duplicate topic rejected ({attempt + 1}/3): {title}[/yellow]")
+            if title and title not in used:
+                used.append(title)
+
+        # Deterministic last resort: the curriculum bank will still avoid titles.
+        return self.hunter.get_dynamic_ai_topic(
+            used_topics=used,
+            audience=audience,
+            pillar=pillar,
+            exclude_series=exclude_series,
+            long_form=long_form,
+        )
+
+    def record_topic(self, title: str, series: str = "", audience: str = "",
+                     pillar: str = "", long_form: bool = False):
+        if not title:
+            return
+        entry = {
+            "title": title,
+            "series": series,
+            "audience": audience,
+            "pillar": pillar,
+            "long_form": bool(long_form),
+            "time": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        }
+        log = self.history.setdefault("topic_log", [])
+        log.append(entry)
+        self.history["topic_log"] = log[-600:]
+
+        posted = self.history.setdefault("posted_topics", [])
+        if title not in posted:
+            posted.append(title)
+        self.history["posted_topics"] = posted[-300:]
         self._save_history()
 
     def record_event(self, event_type: str, title: str, details: Dict[str, Any]):
@@ -72,7 +160,9 @@ class StudioEngine:
             "title": title,
             "details": details
         }
-        self.history.setdefault("events", []).append(event)
+        events = self.history.setdefault("events", [])
+        events.append(event)
+        self.history["events"] = events[-500:]
         self._save_history()
 
     def is_alternate_day_for_explainer(self) -> bool:
@@ -86,11 +176,49 @@ class StudioEngine:
                     break
             if last_explainer:
                 last_dt = datetime.strptime(last_explainer, "%Y-%m-%d %I:%M %p")
-                days = (datetime.now() - last_dt).days
+                days = (self._ist_now().date() - last_dt.date()).days
                 return days >= 2
             return True
         except Exception:
             return True
+
+    @staticmethod
+    def _ist_now() -> datetime:
+        return datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)
+
+    def _slot_context(self, long_form: bool = False):
+        """Deterministic audience/pillar rotation for the current IST slot."""
+        now = self._ist_now()
+        if long_form:
+            pillars = ("engineering", "ai_systems", "career")
+            audiences = ("advanced", "intermediate", "advanced")
+            idx = now.toordinal() % 3
+            return audiences[idx], pillars[idx]
+        if now.hour < 10:
+            return "beginner", "foundations"
+        if now.hour < 14:
+            return "intermediate", "engineering"
+        if now.hour < 18:
+            return "beginner", "ai_systems"
+        return "advanced", "security"
+
+    def _is_evening_short_slot(self) -> bool:
+        return 18 <= self._ist_now().hour < 21
+
+    def _youtube_units_used(self) -> int:
+        today = self._ist_now().date().isoformat()
+        return int((self.history.get("youtube_units") or {}).get(today, 0))
+
+    def _youtube_budget_left(self) -> int:
+        return self.YOUTUBE_DAILY_UNITS - self._youtube_units_used()
+
+    def _record_youtube_upload(self):
+        today = self._ist_now().date().isoformat()
+        units = self.history.setdefault("youtube_units", {})
+        units[today] = int(units.get(today, 0)) + self.YOUTUBE_UPLOAD_UNITS
+        cutoff = (self._ist_now().date() - timedelta(days=7)).isoformat()
+        self.history["youtube_units"] = {d: v for d, v in units.items() if d >= cutoff}
+        self._save_history()
 
     def run_studio_all(self, topic: Optional[Dict[str, Any]] = None) -> Dict[str, bool]:
         """
@@ -140,6 +268,10 @@ class StudioEngine:
                 results["youtube"] = True
             elif not yt.is_authenticated:
                 console.print("[yellow]⚠️ YouTube not authenticated. Check YOUTUBE_TOKEN_BASE64 or run 'python scripts/login_youtube.py'.[/yellow]")
+            elif self._youtube_budget_left() < self.YOUTUBE_UPLOAD_UNITS:
+                console.print(
+                    "[yellow]🛡️ YouTube quota guard: daily budget exhausted, "
+                    "skipping the short upload.[/yellow]")
             elif video_path.exists():
                 console.print(f"[bold magenta]🎬 Uploading Short to YouTube: {yt_title}...[/bold magenta]")
                 res = yt.upload_short(
@@ -151,6 +283,7 @@ class StudioEngine:
                 if res:
                     console.print(f"[bold green]✅ YouTube Short live: {res.get('url', '')}[/bold green]")
                     results["youtube"] = True
+                    self._record_youtube_upload()
             else:
                 console.print("[yellow]⚠️ YouTube Short skipped: video rendering failed.[/yellow]")
         except Exception as ex:
@@ -237,9 +370,14 @@ class StudioEngine:
         except Exception as ex:
             console.print(f"[dim]Threads broadcast note: {ex}[/dim]")
 
-        # Record success
-        if any(results.values()):
-            self.record_topic(title)
+        # Record success (never mutate state during a dry run)
+        if any(results.values()) and not self.dry_run:
+            self.record_topic(
+                title,
+                series=str(topic.get("series") or ""),
+                audience=str(topic.get("audience") or ""),
+                pillar=str(topic.get("pillar") or ""),
+            )
             self.record_event("video_broadcast", title, results)
 
         duration = round(time.time() - start_time, 1)
@@ -304,6 +442,12 @@ class StudioEngine:
             "#AI #DeepLearning #MachineLearning #SystemArchitecture #Python #Algorithms"
         )
 
+        if self._youtube_budget_left() < self.YOUTUBE_UPLOAD_UNITS:
+            console.print(
+                "[yellow]🛡️ YouTube quota guard: daily budget exhausted, "
+                "skipping the long-form upload.[/yellow]")
+            return False
+
         res = yt.upload_short(
             video_path=str(vpath),
             title=f"{title}: Complete Technical Deep-Dive"[:95],
@@ -313,36 +457,62 @@ class StudioEngine:
 
         if res:
             console.print(f"[bold green]✅ YouTube Long Explainer live: {res.get('url', '')}[/bold green]")
-            self.record_topic(title)
+            self._record_youtube_upload()
+            self.record_topic(
+                title,
+                series=str(topic.get("series") or ""),
+                audience=str(topic.get("audience") or ""),
+                pillar=str(topic.get("pillar") or ""),
+                long_form=True,
+            )
             self.record_event("explainer_video", title, {"url": res.get("url")})
             return True
         return False
 
     def schedule_autopilot(self) -> Dict[str, Any]:
         """
-        Primary 4-hour cron scheduler method:
-        1. Selects exactly ONE fresh, non-duplicate topic.
+        Scheduled short-form method (08:30 / 12:30 / 17:30 / 19:30 IST):
+        1. Selects exactly ONE fresh, non-duplicate topic for this slot.
         2. Produces and publishes the 9:16 Short/Reel/Pin/Thread broadcast.
-        3. Permanently records the topic so the next cycle chooses a new topic.
+        3. Permanently records the topic so the next cycle chooses a new one.
 
-        The 16:9 long-form video is handled by its own 7:30 pm IST slot
-        (``run_long_explainer_slot``) so the two productions never compete
-        for the same CI run.
+        The 16:9 long-form video runs in its own 21:30 IST slot
+        (``run_long_explainer_slot``). On long-form days the 19:30 short is
+        skipped so the daily YouTube API quota can absorb the long upload.
         """
-        report = {"broadcast_results": {}}
-        console.print("\n[bold cyan]⏰ 4-Hour Autopilot Heartbeat Triggered...[/bold cyan]")
+        report: Dict[str, Any] = {"broadcast_results": {}}
+        console.print("\n[bold cyan]⏰ Scheduled Autopilot Heartbeat Triggered...[/bold cyan]")
 
-        # 1. Select ONE single fresh topic for this cycle
-        topic = self.get_fresh_topic()
+        # Quota guard: on long-form days the 19:30 short is skipped so that
+        # 3 shorts (6,000 units) + 1 long upload (2,000 units) stay well below
+        # the 10,000 unit/day YouTube API ceiling.
+        if self._is_evening_short_slot() and self.is_alternate_day_for_explainer():
+            console.print(
+                "[yellow]🛡️ 19:30 IST short skipped: quota reserved for tonight's "
+                "21:30 IST long-form upload.[/yellow]"
+            )
+            if not self.dry_run:
+                self.record_event(
+                    "slot_skipped", "quota_reserved_for_long_form",
+                    {"slot": "19:30 IST"},
+                )
+            return {
+                "broadcast_results": {},
+                "skipped": "quota_reserved_for_long_form",
+            }
+
+        # 1. Select ONE fresh topic levelled for this slot's audience/pillar
+        audience, pillar = self._slot_context()
+        topic = self.get_fresh_topic(audience=audience, pillar=pillar)
         title = topic.get("title", "AI Architecture Breakthrough")
-        console.print(f"[bold magenta]🎬 Studio Unified Cycle Topic: {title}[/bold magenta]")
+        console.print(
+            f"[bold magenta]🎬 {audience}/{pillar} topic: {title}[/bold magenta]")
 
         # 2. Run the 9:16 short-form broadcast (YouTube Shorts, Reels, Pinterest, Threads)
         b_res = self.run_studio_all(topic=topic)
         report["broadcast_results"] = b_res
-
-        # 3. Permanently record topic so it is NEVER duplicated in subsequent runs
-        self.record_topic(title)
+        report["audience"] = audience
+        report["pillar"] = pillar
         return report
 
     def run_long_explainer_slot(self) -> Dict[str, Any]:
@@ -356,9 +526,10 @@ class StudioEngine:
             return {"published": False, "reason": "not_alternate_day"}
 
         console.print("[bold magenta]✅ Alternate day confirmed - producing 16:9 long-form explainer...[/bold magenta]")
-        topic = self.get_fresh_topic()
+        audience, pillar = self._slot_context(long_form=True)
+        topic = self.get_fresh_topic(audience=audience, pillar=pillar, long_form=True)
         ok = self.publish_youtube_explainer(topic=topic)
-        return {"published": bool(ok)}
+        return {"published": bool(ok), "audience": audience, "pillar": pillar}
 
     def publish_youtube(self, topic: Optional[Dict[str, Any]] = None) -> bool:
         if not topic:

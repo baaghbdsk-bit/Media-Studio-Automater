@@ -55,7 +55,7 @@ def _font_faces() -> str:
 _SCENE_GROUPS = r"""
 <!-- ===================== ECOSYSTEM ===================== -->
 <g class="scene-grp" data-kind="ecosystem" transform="translate(0,90)">
-  <text x="540" y="112" class="t-label" text-anchor="middle">DUAL-CHAIN ARCHITECTURE</text>
+  <text x="540" y="112" class="t-label" text-anchor="middle" data-l="eco_label">DUAL-CHAIN ARCHITECTURE</text>
   <path class="beam-glow" d="M330 500 C 430 400, 650 400, 750 500"/>
   <path class="beam-core" d="M330 500 C 430 400, 650 400, 750 500"/>
   <circle class="eco-packet" r="9" fill="#fbbf24"/>
@@ -64,54 +64,54 @@ _SCENE_GROUPS = r"""
     <g class="eco-ring"><circle r="122" class="ring-stroke"/><circle r="156" class="ring-stroke faint"/></g>
     <circle r="92" class="node-fill glow"/>
     <circle r="70" class="hub-inner"/>
-    <text y="20" class="t-hub" text-anchor="middle">B</text>
+    <text y="20" class="t-hub" text-anchor="middle" data-l="eco_left_badge">B</text>
   </g>
-  <text x="300" y="712" class="t-title" text-anchor="middle">BEACON CHAIN</text>
-  <text x="300" y="748" class="t-fine" text-anchor="middle">GOVERNANCE LAYER</text>
+  <text x="300" y="712" class="t-title" text-anchor="middle" data-l="eco_left">BEACON CHAIN</text>
+  <text x="300" y="748" class="t-fine" text-anchor="middle" data-l="eco_left_fine">GOVERNANCE LAYER</text>
   <g transform="translate(780,500)">
     <g class="eco-ring2"><circle r="122" class="ring-stroke"/><circle r="156" class="ring-stroke faint"/></g>
     <circle r="92" class="node-fill glow"/>
     <circle r="70" class="hub-inner"/>
-    <text y="20" class="t-hub" text-anchor="middle">C</text>
+    <text y="20" class="t-hub" text-anchor="middle" data-l="eco_right_badge">C</text>
   </g>
-  <text x="780" y="712" class="t-title" text-anchor="middle">SMART CHAIN</text>
-  <text x="780" y="748" class="t-fine" text-anchor="middle">EVM EXECUTION</text>
+  <text x="780" y="712" class="t-title" text-anchor="middle" data-l="eco_right">SMART CHAIN</text>
+  <text x="780" y="748" class="t-fine" text-anchor="middle" data-l="eco_right_fine">EVM EXECUTION</text>
   <g class="anim" data-d="0.15">
     <rect x="430" y="292" width="220" height="48" rx="24" class="chip"/>
-    <text x="540" y="323" class="t-chip" text-anchor="middle">BSC TOKEN HUB</text>
+    <text x="540" y="323" class="t-chip" text-anchor="middle" data-l="eco_chip">BSC TOKEN HUB</text>
   </g>
 </g>
 
 <!-- ===================== BRIDGE FLOW ===================== -->
 <g class="scene-grp" data-kind="bridge_flow">
-  <text x="540" y="132" class="t-label" text-anchor="middle">LOCK &#183; VERIFY &#183; MINT</text>
+  <text x="540" y="132" class="t-label" text-anchor="middle" data-l="flow_label">LOCK &#183; VERIFY &#183; MINT</text>
   <g class="anim" data-d="0.00">
     <rect x="85" y="420" width="220" height="170" rx="24" class="node-fill"/>
-    <text x="195" y="498" class="t-title" text-anchor="middle">LOCK</text>
-    <text x="195" y="538" class="t-fine" text-anchor="middle">VAULT &#183; CHAIN A</text>
+    <text x="195" y="498" class="t-title" text-anchor="middle" data-l="flow_1">LOCK</text>
+    <text x="195" y="538" class="t-fine" text-anchor="middle" data-l="flow_1_fine">VAULT &#183; CHAIN A</text>
   </g>
   <g class="anim" data-d="0.12">
     <rect x="430" y="420" width="220" height="170" rx="24" class="node-fill"/>
-    <text x="540" y="498" class="t-title" text-anchor="middle">VERIFY</text>
-    <text x="540" y="538" class="t-fine" text-anchor="middle">MERKLE PROOF</text>
+    <text x="540" y="498" class="t-title" text-anchor="middle" data-l="flow_2">VERIFY</text>
+    <text x="540" y="538" class="t-fine" text-anchor="middle" data-l="flow_2_fine">MERKLE PROOF</text>
   </g>
   <g class="anim" data-d="0.24">
     <rect x="775" y="420" width="220" height="170" rx="24" class="node-fill"/>
-    <text x="885" y="498" class="t-title" text-anchor="middle">MINT</text>
-    <text x="885" y="538" class="t-fine" text-anchor="middle">HUB &#183; CHAIN B</text>
+    <text x="885" y="498" class="t-title" text-anchor="middle" data-l="flow_3">MINT</text>
+    <text x="885" y="538" class="t-fine" text-anchor="middle" data-l="flow_3_fine">HUB &#183; CHAIN B</text>
   </g>
   <path class="flow-arrow" d="M312 505 H420"/>
   <path class="flow-arrow" d="M657 505 H766"/>
   <path class="flow-arrow-head" d="M411 497 L425 505 L411 513"/>
   <path class="flow-arrow-head" d="M757 497 L771 505 L757 513"/>
   <circle class="flow-token" r="11" fill="#fbbf24"/>
-  <text x="540" y="690" class="t-fine" text-anchor="middle">ASSET ROUTED ACROSS THE BRIDGE CONDUIT</text>
+  <text x="540" y="690" class="t-fine" text-anchor="middle" data-l="flow_foot">ASSET ROUTED ACROSS THE BRIDGE CONDUIT</text>
 </g>
 
 <!-- ===================== MERKLE TREE ===================== -->
 <g class="scene-grp" data-kind="merkle_tree" transform="translate(0,52)">
-  <text x="540" y="92" class="t-label" text-anchor="middle">IAVL MERKLE TREE</text>
-  <text x="540" y="128" class="t-fine" text-anchor="middle">CANONICAL ROOT</text>
+  <text x="540" y="92" class="t-label" text-anchor="middle" data-l="tree_label">IAVL MERKLE TREE</text>
+  <text x="540" y="128" class="t-fine" text-anchor="middle" data-l="tree_root">CANONICAL ROOT</text>
   <g class="tree-lines">
     <path d="M540 200 L340 380"/><path d="M540 200 L740 380"/>
     <path d="M340 380 L200 560"/><path d="M340 380 L460 560"/>
@@ -140,8 +140,8 @@ _SCENE_GROUPS = r"""
 
 <!-- ===================== VULNERABILITY ===================== -->
 <g class="scene-grp" data-kind="vulnerability" transform="translate(0,52)">
-  <text x="540" y="92" class="t-label" text-anchor="middle">ARCHITECTURAL FLAW</text>
-  <text x="540" y="128" class="t-fine" text-anchor="middle">INTERMEDIATE BRANCH UNANCHORED</text>
+  <text x="540" y="92" class="t-label" text-anchor="middle" data-l="vuln_label">ARCHITECTURAL FLAW</text>
+  <text x="540" y="128" class="t-fine" text-anchor="middle" data-l="vuln_fine">INTERMEDIATE BRANCH UNANCHORED</text>
   <g class="tree-lines">
     <path d="M540 200 L340 380" class="dim-line"/><path d="M540 200 L740 380"/>
     <path d="M340 380 L200 560" class="dim-line"/><path d="M340 380 L460 560" class="dim-line"/>
@@ -175,8 +175,8 @@ _SCENE_GROUPS = r"""
 
 <!-- ===================== ATTACK ===================== -->
 <g class="scene-grp" data-kind="attack_injection">
-  <text x="540" y="92" class="t-label" text-anchor="middle">FORGED PROOF INJECTION</text>
-  <text x="540" y="128" class="t-fine" text-anchor="middle">LEAF ACCEPTED WITHOUT STATE ANCHOR</text>
+  <text x="540" y="92" class="t-label" text-anchor="middle" data-l="attack_label">FORGED PROOF INJECTION</text>
+  <text x="540" y="128" class="t-fine" text-anchor="middle" data-l="attack_fine">LEAF ACCEPTED WITHOUT STATE ANCHOR</text>
   <g class="tree-lines">
     <path d="M540 200 L340 380" class="dim-line"/><path d="M540 200 L740 380"/>
     <path d="M740 380 L620 560"/><path d="M620 560 L680 760"/>
@@ -196,48 +196,48 @@ _SCENE_GROUPS = r"""
   <g transform="translate(880,560)"><circle r="16" class="node-soft"/></g>
   <rect x="667" y="748" width="26" height="24" rx="6" class="node-bad"/>
   <g transform="translate(880,820)"><g class="forged-node"><path d="M0 -40 L34 0 L0 40 L-34 0 Z" class="forged-fill glow"/></g></g>
-  <text x="880" y="900" class="t-fine" text-anchor="middle">FORGED LEAF</text>
+  <text x="880" y="900" class="t-fine" text-anchor="middle" data-l="attack_bad">FORGED LEAF</text>
   <g transform="translate(540,440)"><g class="anim" data-d="0.45">
     <rect x="-150" y="-40" width="300" height="80" rx="14" class="stamp-box"/>
-    <text y="14" class="stamp-text" text-anchor="middle">VALID &#10003; (FORGED)</text>
+    <text y="14" class="stamp-text" text-anchor="middle" data-l="attack_stamp">VALID &#10003; (FORGED)</text>
   </g></g>
 </g>
 
 <!-- ===================== FUND DRAIN ===================== -->
 <g class="scene-grp" data-kind="fund_drain">
-  <text x="540" y="100" class="t-label" text-anchor="middle">CAPITAL FLIGHT</text>
-  <text x="540" y="240" class="t-num" id="drain-counter" text-anchor="middle">$0M</text>
-  <text x="540" y="286" class="t-fine" id="drain-sub" text-anchor="middle">2,000,000 BNB SIPHONED</text>
+  <text x="540" y="100" class="t-label" text-anchor="middle" data-l="drain_label">CAPITAL FLIGHT</text>
+  <text x="540" y="240" class="t-num" id="drain-counter" text-anchor="middle" data-l="drain_counter">$0M</text>
+  <text x="540" y="286" class="t-fine" id="drain-sub" text-anchor="middle" data-l="drain_sub">2,000,000 BNB SIPHONED</text>
   <g transform="translate(540,500)">
     <polygon points="0,-120 104,-60 104,60 0,120 -104,60 -104,-60" class="node-bad glow"/>
-    <text y="12" class="t-hub2" text-anchor="middle">VAULT</text>
+    <text y="12" class="t-hub2" text-anchor="middle" data-l="drain_hub">VAULT</text>
   </g>
   <path class="drain-line" d="M540 620 L180 800"/>
   <path class="drain-line" d="M540 620 L540 840"/>
   <path class="drain-line" d="M540 620 L900 800"/>
-  <g transform="translate(170,820)"><circle r="46" class="node-soft"/><text y="10" class="t-tiny" text-anchor="middle">VENUS</text></g>
-  <g transform="translate(540,870)"><circle r="46" class="node-soft"/><text y="10" class="t-tiny" text-anchor="middle">UNISWAP</text></g>
-  <g transform="translate(910,820)"><circle r="46" class="node-soft"/><text y="10" class="t-tiny" text-anchor="middle">WALLET</text></g>
+  <g transform="translate(170,820)"><circle r="46" class="node-soft"/><text y="10" class="t-tiny" text-anchor="middle" data-l="drain_a">VENUS</text></g>
+  <g transform="translate(540,870)"><circle r="46" class="node-soft"/><text y="10" class="t-tiny" text-anchor="middle" data-l="drain_b">UNISWAP</text></g>
+  <g transform="translate(910,820)"><circle r="46" class="node-soft"/><text y="10" class="t-tiny" text-anchor="middle" data-l="drain_c">WALLET</text></g>
 </g>
 
 <!-- ===================== PREVENTION ===================== -->
 <g class="scene-grp" data-kind="prevention_shield">
-  <text x="540" y="96" class="t-label" text-anchor="middle">HARDENED ARCHITECTURE</text>
+  <text x="540" y="96" class="t-label" text-anchor="middle" data-l="shield_label">HARDENED ARCHITECTURE</text>
   <g transform="translate(540,470)">
     <g class="shield-ring"><circle r="210" class="ring-stroke"/><circle r="250" class="ring-stroke faint"/></g>
     <path d="M0 -150 L130 -100 L130 40 C130 110 70 150 0 178 C-70 150 -130 110 -130 40 L-130 -100 Z" class="shield-fill glow"/>
     <path d="M-42 -10 L-6 30 L54 -46" class="shield-check"/>
   </g>
-  <text x="540" y="700" class="t-fine" text-anchor="middle">CANONICAL ROOT ENFORCED</text>
+  <text x="540" y="700" class="t-fine" text-anchor="middle" data-l="shield_fine">CANONICAL ROOT ENFORCED</text>
   <g transform="translate(200,330)"><circle r="40" class="node-ok"/><path d="M-18 0 L-4 14 L20 -14" class="gate-check"/></g>
   <g transform="translate(880,330)"><circle r="40" class="node-ok"/><path d="M-18 0 L-4 14 L20 -14" class="gate-check"/></g>
   <g transform="translate(540,870)"><circle r="40" class="node-ok"/><path d="M-18 0 L-4 14 L20 -14" class="gate-check"/></g>
-  <text x="200" y="404" class="t-tiny" text-anchor="middle">VALIDATOR 1</text>
-  <text x="880" y="404" class="t-tiny" text-anchor="middle">VALIDATOR 2</text>
-  <text x="540" y="944" class="t-tiny" text-anchor="middle">VALIDATOR 3</text>
+  <text x="200" y="404" class="t-tiny" text-anchor="middle" data-l="shield_1">VALIDATOR 1</text>
+  <text x="880" y="404" class="t-tiny" text-anchor="middle" data-l="shield_2">VALIDATOR 2</text>
+  <text x="540" y="944" class="t-tiny" text-anchor="middle" data-l="shield_3">VALIDATOR 3</text>
   <g class="anim" data-d="0.25">
     <rect x="410" y="752" width="260" height="46" rx="23" class="chip chip-ok"/>
-    <text x="540" y="783" class="t-chip" text-anchor="middle">3-of-5 QUORUM</text>
+    <text x="540" y="783" class="t-chip" text-anchor="middle" data-l="shield_chip">3-of-5 QUORUM</text>
   </g>
 </g>
 """
@@ -437,6 +437,7 @@ function cubicPoint(p0,p1,p2,p3,t){
 
 let activeGroup = null;
 let activeKind = null;
+let activeScene = null;
 let lastSceneIndex = -1;
 
 function setTheme(kind){
@@ -456,8 +457,19 @@ function resetGroup(grp){
   grp.querySelectorAll('.anim').forEach(el => { el.style.opacity = 0; el.style.transform='scale(.94)'; });
 }
 
+function applyLabels(labels){
+  if(!activeGroup) return;
+  const map = labels || {};
+  activeGroup.querySelectorAll('[data-l]').forEach(el => {
+    const value = map[el.dataset.l];
+    el.textContent = (value !== undefined && value !== null && String(value).length)
+      ? String(value) : (el.dataset.default || '');
+  });
+}
+
 function activateScene(index){
   const sc = SCENES[index];
+  activeScene = sc;
   const kind = (sc.active_layer in THEME) ? sc.active_layer : 'ecosystem';
   if(index === lastSceneIndex) return;
   lastSceneIndex = index;
@@ -467,6 +479,7 @@ function activateScene(index){
   stage.querySelectorAll('.scene-grp').forEach(g => g.classList.remove('active'));
   activeGroup = stage.querySelector('.scene-grp[data-kind="'+kind+'"]');
   if(activeGroup){ activeGroup.classList.add('active'); resetGroup(activeGroup); }
+  applyLabels(sc.viz_labels || {});
 
   actEl.textContent = sc.act_tag || 'ACT';
   titleEl.textContent = sc.title || '';
@@ -587,8 +600,16 @@ function animateContinuous(kind, p, t){
     });
     const counter = g.querySelector('#drain-counter');
     if(counter){
-      const val = Math.floor(easeOut(clamp01(p*1.15)) * 566);
-      counter.textContent = '$' + val + 'M';
+      const cfg = (activeScene && activeScene.viz_counter) || null;
+      if(cfg && cfg.target !== undefined && cfg.target !== null){
+        const target = Number(cfg.target) || 0;
+        const dec = Number(cfg.decimals) || 0;
+        const val = easeOut(clamp01(p*1.15)) * target;
+        counter.textContent = (cfg.prefix || '') + val.toFixed(dec) + (cfg.suffix || '');
+      } else {
+        const text = (activeScene && activeScene.viz_labels && activeScene.viz_labels.drain_counter_text) || 'IMPACT';
+        counter.textContent = text;
+      }
     }
   }
 
@@ -631,6 +652,7 @@ window.renderFrame = function(frameIndex, timeSeconds){
 };
 
 // initial state
+document.querySelectorAll('[data-l]').forEach(el => { el.dataset.default = el.textContent; });
 setTheme('ecosystem');
 activateScene(0);
 window.renderFrame(0, 0);

@@ -15,18 +15,24 @@ class ExplainerStoryboardPlanner:
     def __init__(self):
         pass
 
-    def plan_storyboard(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Generates a 7-act cinematic technical storyboard with deep visual storytelling.
-        """
-        title = topic_data.get("title", "Technical Architecture Breakdown")
-        title_lower = title.lower()
+    LAYERS = (
+        "ecosystem", "bridge_flow", "merkle_tree", "vulnerability",
+        "attack_injection", "fund_drain", "prevention_shield",
+    )
 
-        # Check for crypto bridge hack topic
-        if any(w in title_lower for w in ["bridge", "hack", "exploit", "binance", "bnb", "merkle"]):
+    def plan_storyboard(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Build a 7-act storyboard driven by the topic's own acts.
+
+        The old keyword router sent anything containing "hack" or "merkle" to a
+        hard-coded crypto story.  Templates are now explicit, so a topic about
+        Merkle trees or security is explained with its own narration.
+        """
+        if topic_data.get("template") == "binance_bridge_hack":
             return self._plan_binance_bridge_hack(topic_data)
-        else:
-            return self._plan_generic_systems_explainer(topic_data)
+        acts = topic_data.get("acts")
+        if isinstance(acts, list) and len(acts) >= 5:
+            return self._plan_from_acts(topic_data, acts, long_form=False)
+        return self._plan_generic_systems_explainer(topic_data)
 
     def _plan_binance_bridge_hack(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -218,150 +224,161 @@ class ExplainerStoryboardPlanner:
         }
 
     def _plan_generic_systems_explainer(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Generic fallback for other systems/AI topics with clean 7-act breakdown."""
-        title = topic_data.get("title", "Systems Breakthrough")
-        summary = topic_data.get("summary", "")
-        problem = topic_data.get("problem", "")
-        solution = topic_data.get("solution", "")
-        pro_tip = topic_data.get("pro_tip", "Validate real-world throughput in production.")
+        """Fallback plan built from the topic's own fields (no boilerplate acts)."""
+        from .. import curriculum
 
-        scenes = [
-            {
-                "scene_id": "scene_1_ecosystem",
-                "act_number": 1,
-                "act_tag": "ACT 01 // SYSTEM OVERVIEW",
-                "title": title[:30],
-                "caption": summary[:70],
-                "fraction": 0.14,
-                "camera_pos": [0.0, 2.2, 5.5],
-                "camera_target": [0.0, 1.2, 0.0],
-                "active_layer": "ecosystem",
-                "lighting_mode": "normal_cyan",
-                "hud_badge": "SYSTEM TOPOLOGY",
-                "hud_metric": "Frontier Architecture",
-                "code_snippet": None,
-                "narration_segment": f"Welcome to this technical breakdown of {title}. {summary}"
-            },
-            {
-                "scene_id": "scene_2_normal_flow",
-                "act_number": 2,
-                "act_tag": "ACT 02 // NORMAL PIPELINE",
-                "title": "Baseline Execution Flow",
-                "caption": "How the conventional architecture routes computation and data.",
-                "fraction": 0.14,
+        topic = dict(topic_data)
+        topic.setdefault("audience", "beginner")
+        topic.setdefault("pillar", "foundations")
+        acts = topic.get("acts")
+        if not isinstance(acts, list) or len(acts) < 5:
+            acts = curriculum.acts_from_topic(topic, 7)
+        return self._plan_from_acts(topic, acts, long_form=False)
+
+    def _plan_from_acts(self, topic_data: Dict[str, Any], acts: List[Dict[str, Any]],
+                        long_form: bool = False) -> Dict[str, Any]:
+        from .. import curriculum
+
+        total = 12 if long_form else 7
+        acts = [a for a in (acts or []) if isinstance(a, dict)]
+        if len(acts) < total:
+            filler = curriculum.acts_from_topic(topic_data, total)
+            acts = acts + filler[len(acts):]
+        acts = acts[:total]
+
+        title = topic_data.get("title", "Technology Explained")
+        audience = str(topic_data.get("audience", "beginner")).lower()
+        pillar = str(topic_data.get("pillar", "foundations")).lower()
+        scenes: List[Dict[str, Any]] = []
+
+        for i, act in enumerate(acts):
+            layer = act.get("visual_layer")
+            if layer not in self.LAYERS:
+                layer = self.LAYERS[i % len(self.LAYERS)]
+            narration = str(act.get("narration") or "").strip() or f"Here is the next part of {title}."
+            hud_badge = str(act.get("hud_badge") or "").strip()[:32] or f"PART {i + 1:02d}"
+            hud_metric = str(act.get("hud_metric") or "").strip()[:48]
+            scene_title = str(act.get("title") or "").strip()[:46] or f"Part {i + 1}"
+
+            # Scene-level prosody: a brighter hook, a sober failure act, a
+            # confident fix. The narration builder applies these per clip.
+            if i == 0:
+                rate, pitch, pause_after = "+4%", "+2Hz", 0.5
+            elif layer in ("vulnerability", "attack_injection", "fund_drain"):
+                rate, pitch, pause_after = "+0%", "-2Hz", 0.34
+            elif layer == "prevention_shield":
+                rate, pitch, pause_after = "+4%", "+1Hz", 0.5
+            elif i == total - 1:
+                rate, pitch, pause_after = "+2%", "+0Hz", 0.8
+            else:
+                rate, pitch, pause_after = "+2%", "+0Hz", 0.34
+
+            scenes.append({
+                "scene_id": f"scene_{i + 1}_{layer}",
+                "act_number": i + 1,
+                "act_tag": f"ACT {i + 1:02d} // {hud_badge.upper()}",
+                "title": scene_title,
+                "caption": self._caption_from(narration, 78),
+                "fraction": 1.0 / total,
                 "camera_pos": [0.0, 1.8, 4.4],
-                "camera_target": [0.0, 1.0, 0.0],
-                "active_layer": "bridge_flow",
-                "lighting_mode": "normal_cyan",
-                "hud_badge": "DATA PIPELINE",
-                "hud_metric": "Baseline Latency & Throughput",
-                "code_snippet": None,
-                "narration_segment": "Under conventional operating pipelines, data flows sequentially through memory hierarchies and processing stages before reaching state convergence."
-            },
-            {
-                "scene_id": "scene_3_contract_zoom",
-                "act_number": 3,
-                "act_tag": "ACT 03 // ARCHITECTURE ZOOM",
-                "title": "Internal Engine Core",
-                "caption": "Inspecting the low-level algorithmic structures and access patterns.",
-                "fraction": 0.15,
-                "camera_pos": [0.0, 1.9, 3.8],
                 "camera_target": [0.0, 1.2, 0.0],
-                "active_layer": "merkle_tree",
-                "lighting_mode": "focus_blue",
-                "hud_badge": "INTERNAL ENGINE",
-                "hud_metric": "Kernel Layer Execution",
-                "code_snippet": None,
-                "narration_segment": "Zooming into the core engine reveals how operations are serialized and coordinated across distributed nodes and memory registers."
-            },
-            {
-                "scene_id": "scene_4_vulnerability",
-                "act_number": 4,
-                "act_tag": "ACT 04 // THE CORE BOTTLENECK",
-                "title": "System Failure Mode",
-                "caption": problem[:70],
-                "fraction": 0.15,
-                "camera_pos": [0.25, 1.6, 3.0],
-                "camera_target": [0.1, 1.3, 0.0],
-                "active_layer": "vulnerability",
-                "lighting_mode": "alert_amber",
-                "hud_badge": "CRITICAL BOTTLENECK",
-                "hud_metric": "Contention & State Stall",
-                "code_snippet": None,
-                "narration_segment": f"Here is the core bottleneck: {problem} This creates severe latency penalties that throttle scalability."
-            },
-            {
-                "scene_id": "scene_5_the_attack",
-                "act_number": 5,
-                "act_tag": "ACT 05 // SYSTEM IMPACT",
-                "title": "Failure Under Load",
-                "caption": "Under peak stress, the bottleneck cascades across downstream dependencies.",
-                "fraction": 0.15,
-                "camera_pos": [0.0, 1.4, 3.2],
-                "camera_target": [0.0, 1.25, 0.0],
-                "active_layer": "attack_injection",
-                "lighting_mode": "danger_red",
-                "hud_badge": "STRESS CASSCADE",
-                "hud_metric": "P99 Tail Latency Spike",
-                "code_snippet": None,
-                "narration_segment": "Under peak load or adversarial traffic, intermediate queues saturate, creating resource exhaustion across dependent clusters."
-            },
-            {
-                "scene_id": "scene_6_drain_funds",
-                "act_number": 6,
-                "act_tag": "ACT 06 // THE UNLOCK",
-                "title": "Breakthrough Solution",
-                "caption": solution[:70],
-                "fraction": 0.14,
-                "camera_pos": [0.0, 2.1, 4.8],
-                "camera_target": [0.0, 1.1, 0.0],
-                "active_layer": "fund_drain",
-                "lighting_mode": "focus_blue",
-                "hud_badge": "ARCHITECTURAL UNLOCK",
-                "hud_metric": "Zero-Copy Data Transfer",
-                "code_snippet": None,
-                "narration_segment": f"This breakthrough re-engineers the paradigm: {solution} By eliminating redundant round-trips, throughput scales dramatically."
-            },
-            {
-                "scene_id": "scene_7_prevention",
-                "act_number": 7,
-                "act_tag": "ACT 07 // PRODUCTION RULE",
-                "title": "Engineering Guardrails",
-                "caption": pro_tip[:70],
-                "fraction": 0.13,
-                "camera_pos": [0.0, 1.8, 4.2],
-                "camera_target": [0.0, 1.2, 0.0],
-                "active_layer": "prevention_shield",
-                "lighting_mode": "secure_emerald",
-                "hud_badge": "PRODUCTION RULE",
-                "hud_metric": "Benchmarked on NeuBench Labs",
-                "code_snippet": None,
-                "narration_segment": f"When deploying these architectures in production, keep this critical rule in mind: {pro_tip} To inspect live benchmarks across 260 frontier AI models, explore NeuBench."
-            }
-        ]
+                "active_layer": layer,
+                "lighting_mode": self._lighting_for(layer),
+                "hud_badge": hud_badge.upper(),
+                "hud_metric": hud_metric,
+                "code_snippet": act.get("code_snippet"),
+                "narration_segment": narration,
+                "viz_labels": self._viz_labels(layer, topic_data, act),
+                "viz_counter": act.get("viz_counter"),
+                "rate": rate,
+                "pitch": pitch,
+                "pause_after": pause_after,
+            })
 
-        full_narration = " ".join(sc["narration_segment"] for sc in scenes)
         return {
             "title": title,
-            "category": topic_data.get("category", "SYSTEMS ENGINEERING"),
-            "topic_type": "GENERIC_SYSTEMS",
-            "narration": full_narration,
+            "category": str(topic_data.get("category") or pillar).upper(),
+            "topic_type": "CURRICULUM",
+            "audience": audience,
+            "pillar": pillar,
+            "narration": " ".join(sc["narration_segment"] for sc in scenes),
             "scenes": scenes,
-            "pro_tip": pro_tip
+            "pro_tip": topic_data.get("pro_tip", ""),
+            "long_form": bool(long_form),
         }
+
+    @staticmethod
+    def _caption_from(text: str, limit: int = 78) -> str:
+        text = re.sub(r"\s+", " ", text or "").strip()
+        if not text:
+            return ""
+        first = re.split(r"(?<=[.!?])\s+", text)[0]
+        if len(first) <= limit:
+            return first
+        return first[: limit - 1].rstrip() + "…"
+
+    @staticmethod
+    def _lighting_for(layer: str) -> str:
+        return {
+            "ecosystem": "normal_cyan",
+            "bridge_flow": "normal_cyan",
+            "merkle_tree": "focus_blue",
+            "vulnerability": "alert_amber",
+            "attack_injection": "danger_red",
+            "fund_drain": "alert_amber",
+            "prevention_shield": "secure_emerald",
+        }.get(layer, "normal_cyan")
+
+    @staticmethod
+    def _viz_labels(layer: str, topic: Dict[str, Any], act: Dict[str, Any]) -> Dict[str, str]:
+        badge = (act.get("hud_badge") or act.get("title") or topic.get("title", "")).upper()
+        metric = (act.get("hud_metric") or topic.get("tagline") or "").upper()
+        defaults: Dict[str, Dict[str, str]] = {
+            "ecosystem": {
+                "eco_label": badge, "eco_left": "INPUT", "eco_left_fine": "STAGE ONE",
+                "eco_right": "OUTPUT", "eco_right_fine": "STAGE TWO",
+                "eco_chip": metric, "eco_left_badge": "A", "eco_right_badge": "B",
+            },
+            "bridge_flow": {
+                "flow_label": badge, "flow_1": "STEP 1", "flow_1_fine": "INPUT",
+                "flow_2": "STEP 2", "flow_2_fine": "PROCESS",
+                "flow_3": "STEP 3", "flow_3_fine": "OUTPUT", "flow_foot": metric,
+            },
+            "merkle_tree": {"tree_label": badge, "tree_root": "ROOT"},
+            "vulnerability": {"vuln_label": badge, "vuln_fine": "WEAK LINK"},
+            "attack_injection": {
+                "attack_label": badge, "attack_fine": "UNTREATED INPUT",
+                "attack_bad": "BAD INPUT", "attack_stamp": "ACCEPTED (WRONG)",
+            },
+            "fund_drain": {
+                "drain_label": badge, "drain_counter_text": metric or "IMPACT",
+                "drain_sub": "COST / RISK", "drain_hub": "CORE",
+                "drain_a": "TEAM A", "drain_b": "TEAM B", "drain_c": "USERS",
+            },
+            "prevention_shield": {
+                "shield_label": badge, "shield_fine": "GUARDRAILS ENFORCED",
+                "shield_1": "CHECK 1", "shield_2": "CHECK 2", "shield_3": "CHECK 3",
+                "shield_chip": "SAFE BY DEFAULT",
+            },
+        }
+        labels = dict(defaults.get(layer, {}))
+        overrides = act.get("viz_labels") if isinstance(act.get("viz_labels"), dict) else {}
+        for key, value in overrides.items():
+            if value is not None and str(value).strip():
+                labels[str(key)] = str(value).upper()[:40]
+        return labels
 
     # ================================================================== long
     def plan_long_storyboard(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Builds a 12-act long-form (4-5 minute) storyboard for 16:9 YouTube.
-        Reuses the same seven visual beats but interleaves deeper analysis so the
-        pacing stays varied over a longer runtime.
-        """
-        title = topic_data.get("title", "Technical Architecture Breakdown")
-        title_lower = title.lower()
-        if any(w in title_lower for w in ["bridge", "hack", "exploit", "binance", "bnb", "merkle"]):
+        """Build a 12-act 16:9 storyboard from the topic's own acts."""
+        if topic_data.get("template") == "binance_bridge_hack":
             return self._plan_binance_long(topic_data)
-        return self._plan_generic_long(topic_data)
+        from .. import curriculum
+
+        acts = topic_data.get("acts")
+        if not isinstance(acts, list) or len(acts) < 12:
+            acts = curriculum.acts_from_topic(topic_data, 12)
+        return self._plan_from_acts(topic_data, acts, long_form=True)
 
     @staticmethod
     def _variant(base: Dict[str, Any], **overrides) -> Dict[str, Any]:
@@ -504,146 +521,9 @@ class ExplainerStoryboardPlanner:
         }
 
     def _plan_generic_long(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
-        base = self._plan_generic_systems_explainer(topic_data)
-        s = base["scenes"]
-        title = base["title"]
-        summary = topic_data.get("summary", "")
-        problem = topic_data.get("problem", "")
-        solution = topic_data.get("solution", "")
-        pro_tip = base["pro_tip"]
+        from .. import curriculum
 
-        scenes = [
-            self._variant(s[0]),
-            self._variant(s[1]),
-            self._variant(s[2]),
-            self._variant(
-                s[2],
-                scene_id="scene_4_commitment",
-                act_number=4,
-                act_tag="ACT 04 // STATE COMMITMENT",
-                title="Committing State Safely",
-                caption="Authenticated data structures bind every update to a verifiable root.",
-                hud_badge="STATE INTEGRITY",
-                hud_metric="append -> hash -> commit -> verify",
-                code_snippet=(
-                    "// STATE COMMITMENT\n"
-                    "update = apply(op, state)\n"
-                    "root = commit(update)\n"
-                    "assert(root == expected_root)"
-                ),
-                narration_segment=(
-                    "Reliable systems commit every state transition to an authenticated structure. "
-                    "Each operation produces a new root that downstream services can verify independently. "
-                    "If the commitment does not match, the update is rejected before it can corrupt shared state."
-                ),
-            ),
-            self._variant(s[3]),
-            self._variant(s[4]),
-            self._variant(
-                s[5],
-                scene_id="scene_7_impact",
-                act_number=7,
-                act_tag="ACT 07 // MEASURED IMPACT",
-                title="Quantifying the Cost",
-                caption="Latency, throughput and error budgets reveal the real bottleneck.",
-                hud_badge="IMPACT ANALYSIS",
-                hud_metric="tail latency | throughput | error budget",
-                code_snippet=None,
-                narration_segment=(
-                    "Before optimizing, quantify the cost. "
-                    "Tail latency, sustained throughput, and error budgets expose which stage actually limits the system. "
-                    "Measurements beat intuition, and they turn architectural debates into concrete engineering targets."
-                ),
-            ),
-            self._variant(
-                s[6],
-                scene_id="scene_8_unlock",
-                act_number=8,
-                act_tag="ACT 08 // THE ARCHITECTURAL UNLOCK",
-                title="The Architectural Unlock",
-                caption=solution[:70] if solution else "The design change that removes the bottleneck.",
-                hud_badge="BREAKTHROUGH",
-                hud_metric="decouple -> route -> verify",
-                code_snippet=None,
-                narration_segment=(
-                    f"The unlock is architectural rather than incremental. {solution} "
-                    "By decoupling the critical path and routing work more intelligently, the system removes the structural penalty instead of hiding it."
-                ),
-            ),
-            self._variant(
-                s[1],
-                scene_id="scene_9_pipeline",
-                act_number=9,
-                act_tag="ACT 09 // OPTIMIZED DATA FLOW",
-                title="A Leaner Data Path",
-                caption="Fewer round-trips, tighter queues and predictable latency.",
-                hud_badge="PIPELINE",
-                hud_metric="fewer hops | bounded queues",
-                code_snippet=None,
-                narration_segment=(
-                    "With the new design, data takes a shorter path. "
-                    "Fewer hops mean lower latency, and bounded queues keep behavior predictable under load. "
-                    "The result is a pipeline that scales by design rather than by over-provisioning."
-                ),
-            ),
-            self._variant(
-                s[2],
-                scene_id="scene_10_correctness",
-                act_number=10,
-                act_tag="ACT 10 // CORRECTNESS UNDER LOAD",
-                title="Correctness Under Load",
-                caption="Every optimization must preserve verifiable invariants.",
-                hud_badge="INVARIANTS",
-                hud_metric="verify -> commit -> observe",
-                code_snippet=None,
-                narration_segment=(
-                    "Speed is worthless if correctness drifts. "
-                    "Every optimization must preserve the invariants the system depends on. "
-                    "Verification gates and continuous observation keep the fast path trustworthy under real traffic."
-                ),
-            ),
-            self._variant(
-                s[3],
-                scene_id="scene_11_hardening",
-                act_number=11,
-                act_tag="ACT 11 // HARDENING & GUARDRAILS",
-                title="Designed for Failure",
-                caption="Rate limits, isolation and graceful degradation contain faults.",
-                hud_badge="HARDENING",
-                hud_metric="isolate | limit | degrade",
-                code_snippet=None,
-                narration_segment=(
-                    "Production systems assume components will fail. "
-                    "Isolation, rate limits, and graceful degradation keep a local fault from becoming a global outage. "
-                    "Designing for failure is what makes high availability credible."
-                ),
-            ),
-            self._variant(
-                s[0],
-                scene_id="scene_12_outro",
-                act_number=12,
-                act_tag="ACT 12 // PRODUCTION RULE",
-                title="The Production Rule",
-                caption=pro_tip[:70],
-                hud_badge="PRODUCTION RULE",
-                hud_metric="benchmark real workloads",
-                code_snippet=None,
-                narration_segment=(
-                    f"When deploying {title}, keep one rule in mind: {pro_tip} "
-                    "Validate real-world throughput, latency distributions, and cost under peak concurrency. "
-                    "Explore live benchmarks across 260 frontier models on NeuBench."
-                ),
-            ),
-        ]
-        for i, sc in enumerate(scenes):
-            sc["fraction"] = 1.0 / len(scenes)
-            sc["act_number"] = i + 1
-        return {
-            "title": title,
-            "category": base["category"],
-            "topic_type": base["topic_type"],
-            "narration": " ".join(sc["narration_segment"] for sc in scenes),
-            "scenes": scenes,
-            "pro_tip": pro_tip,
-            "long_form": True,
-        }
+        acts = topic_data.get("acts")
+        if not isinstance(acts, list) or len(acts) < 12:
+            acts = curriculum.acts_from_topic(topic_data, 12)
+        return self._plan_from_acts(topic_data, acts, long_form=True)

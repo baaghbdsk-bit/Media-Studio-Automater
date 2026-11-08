@@ -80,11 +80,14 @@ class TechnicalExplainerStudio:
             "category": storyboard.get("category", "SYSTEMS"),
             "video_path": str(final_mp4),
             "srt_path": render_result.get("srt_path"),
+            "thumbnail_path": render_result.get("thumbnail_path"),
             "audio_path": str(audio_path),
             "duration": render_result.get("duration"),
             "fps": self.fps,
             "frames": render_result.get("frames"),
             "file_size_mb": render_result.get("file_size_mb"),
+            "audience": topic_data.get("audience", "beginner"),
+            "pillar": topic_data.get("pillar", ""),
             "storyboard": storyboard,
             "format": "1080x1920 (9:16 Vertical HD)",
             "visual_identity": "Editorial motion-graphics (cyan / amber / red / emerald)",
@@ -150,11 +153,14 @@ class TechnicalExplainerStudio:
             "category": storyboard.get("category", "SYSTEMS"),
             "video_path": str(final_mp4),
             "srt_path": render_result.get("srt_path"),
+            "thumbnail_path": render_result.get("thumbnail_path"),
             "audio_path": str(audio_path),
             "duration": render_result.get("duration"),
             "fps": self.LONG_FPS,
             "frames": render_result.get("frames"),
             "file_size_mb": render_result.get("file_size_mb"),
+            "audience": topic_data.get("audience", "beginner"),
+            "pillar": topic_data.get("pillar", ""),
             "storyboard": storyboard,
             "format": f"{self.LONG_WIDTH}x{self.LONG_HEIGHT} (16:9 Landscape HD)",
             "visual_identity": "Editorial motion-graphics (cyan / amber / red / emerald)",
@@ -177,22 +183,17 @@ class TechnicalExplainerStudio:
         return f"{seconds // 60:02d}:{seconds % 60:02d}"
 
     def _build_chapters(self, storyboard: Dict[str, Any], duration: float) -> list:
-        """Chapter markers aligned to the actual 12-act scene boundaries."""
+        """Topic-aware chapter markers at roughly quarter points of the acts."""
         scenes = storyboard.get("scenes", [])
         if not scenes:
             return []
-        labels = [
-            "Introduction & Architecture",
-            "Core Mechanism",
-            "The Failure Mode",
-            "Impact & Exploitation",
-            "Hardening & Lessons",
-        ]
-        ends = [3, 4, 7, 9, len(scenes)]
+        group = max(1, len(scenes) // 4)
         chapters = []
-        prev = 0
-        for label, end in zip(labels, ends):
-            start_frac = sum(sc.get("fraction", 0.0) for sc in scenes[:prev])
-            chapters.append(f"{self._format_ts(start_frac * duration)} {label}")
-            prev = end
+        for idx in (0, group, group * 2, group * 3):
+            if idx >= len(scenes):
+                continue
+            start_frac = sum(sc.get("fraction", 0.0) for sc in scenes[:idx])
+            title = " ".join(str(scenes[idx].get("title") or "").split())[:80]
+            title = title or f"Part {len(chapters) + 1}"
+            chapters.append(f"{self._format_ts(start_frac * duration)} {title}")
         return chapters

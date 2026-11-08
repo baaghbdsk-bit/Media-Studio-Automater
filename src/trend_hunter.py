@@ -3,6 +3,7 @@ socket.setdefaulttimeout(10)
 import feedparser
 import requests
 import random
+import json
 import re
 from typing import List, Dict, Any, Optional
 
@@ -617,215 +618,197 @@ class TrendHunter:
         random.shuffle(evergreen_casual)
         return evergreen_casual
 
-    def get_dynamic_ai_topic(self, used_topics: Optional[List[str]] = None) -> Dict[str, Any]:
-        """
-        Picks a random foundational or frontier AI topic (terminology, architecture, concept, or news)
-        with structured components ready for Carousel slides, Shorts voiceover, and Pinterest infographics.
-        """
-        ai_concept_bank = [
-            {
-                "title": "Mixture of Experts (MoE)",
-                "category": "ARCHITECTURE",
-                "tagline": "How Models Get Smarter Without Getting Slower",
-                "summary": "Why activate all 70 billion parameters when you only need 14 billion per token? Mixture of Experts uses dynamic routing to activate specialized sub-networks on demand.",
-                "problem": "Traditional dense LLMs run all weights on every single word, creating massive compute bottlenecks and sluggish latency.",
-                "solution": "MoE introduces a lightweight router network that dynamically sends each token to the top-2 best expert sub-networks.",
-                "key_takeaways": [
-                    "Sparse activation delivers 70B parameter quality at 14B active compute cost.",
-                    "The gating network routes tokens based on semantic context.",
-                    "High VRAM footprint is required to keep all expert weights in memory."
-                ],
-                "pro_tip": "In MoE systems, inference memory bandwidth is the primary bottleneck. Quantizing inactive expert weights to FP8 unlocks massive throughput.",
-                "narration": "Think of a dense AI model like a single doctor trying to solve every medical case alone. Mixture of Experts changes everything: a smart router acts like a triage desk, instantly dispatching each token to specialized expert networks. You get the intelligence of a massive model with the speed and cost of a much smaller one!"
-            },
-            {
-                "title": "FlashAttention Explained",
-                "category": "INFERENCE & HARDWARE",
-                "tagline": "Why Memory Bandwidth Was the Real AI Bottleneck",
-                "summary": "Attention in Transformers is quadratic: doubling the prompt quadruples memory traffic. FlashAttention reorganizes GPU memory access to make attention 3x faster without losing accuracy.",
-                "problem": "GPUs are fast at math (FLOPs) but slow at moving data between high-bandwidth memory (HBM) and tiny on-chip SRAM cache.",
-                "solution": "FlashAttention splits large Q, K, V matrices into small tiles, computing softmax incrementally directly inside fast SRAM cache without writing back to slow HBM.",
-                "key_takeaways": [
-                    "Transforms memory IO from quadratic O(N^2) to linear O(N).",
-                    "Mathematically identical output with zero approximation loss.",
-                    "Enabled 32k to 1M+ context windows on standard GPU hardware."
-                ],
-                "pro_tip": "Always verify FlashAttention-2 or vLLM PagedAttention is enabled in your serving runtime before upgrading GPU hardware.",
-                "narration": "Why did long AI prompts used to crash your GPU? Because of memory traffic! GPUs do math instantly, but moving data back and forth to memory takes forever. FlashAttention fixes this by breaking calculations into bite-sized tiles that fit entirely inside high-speed on-chip cache. Result? 3x faster inference and massive context windows!"
-            },
-            {
-                "title": "Quantization: FP16 vs INT8 vs INT4",
-                "category": "OPTIMIZATION",
-                "tagline": "Running 70B Models on Consumer Hardware",
-                "summary": "Quantization shrinks the numerical precision of neural network weights from 16-bit floating point down to 8-bit or 4-bit integers, reducing memory by up to 75% with minimal accuracy loss.",
-                "problem": "Running uncompressed 70B models requires 140GB+ of VRAM, pricing out indie builders and local hardware.",
-                "solution": "Quantization maps wide 16-bit float ranges into discrete integer buckets using smart scaling factors and outlier preservation.",
-                "key_takeaways": [
-                    "FP16: 2 bytes per weight (Full precision baseline).",
-                    "INT8 (BitsAndBytes): 50% memory cut with virtually zero perplexity drop.",
-                    "INT4 (AWQ/GPTQ): 75% memory cut, fitting a 70B model into two 24GB GPUs."
-                ],
-                "pro_tip": "AWQ (Activation-aware Weight Quantization) protects the 1% most important salient weights, preserving reasoning benchmark scores far better than naive rounding.",
-                "narration": "How do you run a giant 70 billion parameter model on a single GPU? Quantization! Instead of storing every weight as a heavy 16-bit number, we compress them into tiny 4-bit integers. It's like converting an uncompressed WAV audio file into a crystal-clear MP3. You cut memory by 75% while keeping the intelligence intact!"
-            },
-            {
-                "title": "LoRA (Low-Rank Adaptation)",
-                "category": "TRAINING & ADAPTATION",
-                "tagline": "Fine-Tuning Huge Models Without Billions of Weights",
-                "summary": "Instead of updating all billions of model parameters during fine-tuning, LoRA freezes the original weights and injects two tiny low-rank matrix adapters, slashing trainable parameters by 99%.",
-                "problem": "Full fine-tuning of a 70B model requires updating and storing gigabytes of optimizer states, requiring a multi-node GPU cluster.",
-                "solution": "LoRA decomposes the weight update matrix delta-W into two smaller matrices A and B (rank 8 to 64), updating only a fraction of a percent of parameters.",
-                "key_takeaways": [
-                    "Reduces fine-tuning VRAM requirements by over 70%.",
-                    "Allows swapping multiple specialized LoRA adapters on top of one base model at runtime.",
-                    "Zero inference latency overhead when merged directly into base weights."
-                ],
-                "pro_tip": "QLoRA combines 4-bit quantized base models with 16-bit LoRA adapters, allowing you to fine-tune a 70B model on a single desktop RTX 3090/4090 GPU.",
-                "narration": "Fine-tuning a modern AI model used to cost thousands of dollars in cloud GPUs. Enter LoRA: Low-Rank Adaptation. Instead of retraining all 70 billion weights, LoRA freezes the entire base model and only trains a tiny pair of adapter matrices. You get 99% of full fine-tuning performance on a single consumer graphics card!"
-            },
-            {
-                "title": "Retrieval-Augmented Generation (RAG)",
-                "category": "ARCHITECTURE",
-                "tagline": "Giving LLMs an Infinite, Up-to-Date External Brain",
-                "summary": "RAG connects language models to live enterprise knowledge bases by converting documents into vector embeddings and dynamically injecting the most relevant snippets into the prompt.",
-                "problem": "LLMs suffer from knowledge cutoffs, hallucinate confident falsehoods, and have no visibility into private internal databases.",
-                "solution": "RAG converts company docs into vector embeddings. When a question is asked, it retrieves matching context and feeds it directly into the LLM prompt.",
-                "key_takeaways": [
-                    "Eliminates hallucinations by grounding answers in verified source documents.",
-                    "Update enterprise knowledge instantly without expensive model retraining.",
-                    "Provides auditable citations and source links for compliance."
-                ],
-                "pro_tip": "Naive vector search often misses exact keywords. Production systems use Hybrid Search combining BM25 keyword matching with Dense Vector embeddings plus a Cross-Encoder Reranker.",
-                "narration": "Why train a new model every time your company updates a document? That's what RAG solves: Retrieval-Augmented Generation. When a user asks a question, your system searches your private docs, grabs the exact relevant paragraphs, and hands them to the AI as an open-book exam. Zero hallucinations, verified citations, instant updates!"
-            },
-            {
-                "title": "KV Cache Optimization",
-                "category": "INFERENCE",
-                "tagline": "Why Chatbots Slow Down During Long Conversations",
-                "summary": "During autoregressive text generation, the Key-Value (KV) cache stores past token attention states so they don't have to be recomputed for every new token. Managing this cache is the key to low-latency AI.",
-                "problem": "Without KV caching, generating token 1000 requires recomputing attention for tokens 1 through 999, creating an O(N^2) compute explosion.",
-                "solution": "The KV cache stores precomputed Key and Value vectors in GPU memory, turning generation into a blazing fast O(1) step per new token.",
-                "key_takeaways": [
-                    "Saves enormous compute at the cost of high GPU VRAM consumption.",
-                    "Multi-Query Attention (MQA) and Grouped-Query Attention (GQA) reduce KV cache size by 8x.",
-                    "PagedAttention eliminates memory fragmentation by managing KV memory like OS virtual memory."
-                ],
-                "pro_tip": "If your AI endpoint runs out of memory under high concurrency, switch to a model utilizing GQA (Grouped-Query Attention) like Llama 3 or Mistral.",
-                "narration": "Ever wonder why an AI response starts fast but starts eating all your GPU memory? It's the KV Cache! To predict the next word, the model needs to remember every previous word's attention keys. By storing them in high-speed memory, it avoids recalculating the whole conversation. Modern architectures like Grouped-Query Attention make this cache 8 times smaller!"
-            },
-            {
-                "title": "Speculative Decoding",
-                "category": "ACCELERATION",
-                "tagline": "How Draft Models Make Giant LLMs 3x Faster",
-                "summary": "Speculative decoding uses a tiny, lightning-fast 'draft model' to guess the next 4-6 tokens, then lets the large frontier model verify them all in a single forward pass.",
-                "problem": "Frontier LLMs generate tokens strictly one-by-one. Each token requires moving 100GB+ of weights across memory, leaving GPU compute cores underutilized.",
-                "solution": "A small 1B draft model quickly predicts a candidate phrase. The 70B model checks the draft in one parallel batch, accepting correct tokens and correcting mistakes.",
-                "key_takeaways": [
-                    "Achieves 2x to 3x higher token generation speed without any loss of mathematical accuracy.",
-                    "Capitalizes on GPU parallelism: checking 5 tokens takes almost the same time as generating 1.",
-                    "Zero retraining required: works out of the box with matching tokenizer pairs."
-                ],
-                "pro_tip": "Speculative decoding delivers maximum speedups on high-predictability text like code syntax, JSON formats, and structured summaries.",
-                "narration": "What if a small AI could write the draft, and a super-smart AI just proofread it? That's Speculative Decoding! A tiny 1-billion model quickly guesses the next 5 words. The huge 70-billion model reviews all 5 in a single glance. If they're right, they get accepted instantly, making generation up to 3 times faster!"
-            },
-            {
-                "title": "Vector Embeddings & Cosine Similarity",
-                "category": "FOUNDATIONS",
-                "tagline": "How Machines Translate Human Meaning into Geometry",
-                "summary": "Vector embeddings convert raw words, code, and images into dense numerical coordinates in high-dimensional space where concepts with similar semantic meaning sit close together.",
-                "problem": "Computers understand numbers, not the nuanced meaning of human language or synonyms.",
-                "solution": "Embedding models map text into high-dimensional vectors (e.g. 1536 dimensions). Mathematical cosine similarity measures the exact semantic closeness between concepts.",
-                "key_takeaways": [
-                    "Enables semantic search: 'automobile problems' naturally finds 'car repairs'.",
-                    "Captures conceptual relationships: Vector('King') - Vector('Man') + Vector('Woman') ≈ Vector('Queen').",
-                    "Forms the mathematical backbone of RAG, recommendation algorithms, and clustering."
-                ],
-                "pro_tip": "When choosing an embedding model, check the MTEB (Massive Text Embedding Benchmark) leaderboard for top retrieval scores before settling on default models.",
-                "narration": "How does an AI know that 'puppy' and 'dog' mean almost the same thing? Vector Embeddings! An embedding model places every concept onto a multidimensional map. Words with similar meanings cluster together. By calculating the angle between vectors, the AI can instantly search millions of documents by concept rather than exact keywords!"
-            }
-        ]
-        
-        # Check if we can also use fresh news from TrendHunter
-        try:
-            stories = self.get_neubench_stories(limit=3)
-            papers = self.get_huggingface_daily_papers(limit=3)
-            for item in stories + papers:
-                title = item.get("title", "")
-                summary = item.get("summary", "")
-                if title and len(title) > 10:
-                    ai_concept_bank.append({
-                        "title": title[:70],
-                        "category": "FRONTIER AI",
-                        "tagline": "Breaking AI Benchmark & Research",
-                        "summary": summary[:250],
-                        "problem": "Traditional models struggle with real-world latency, cost, and long-horizon reasoning efficiency.",
-                        "solution": summary[:180],
-                        "key_takeaways": [
-                            summary[:100],
-                            "Benchmarked continuously on NeuBench live intelligence leaderboards.",
-                            "Directly impacts production latency and token economics."
-                        ],
-                        "pro_tip": "Track live benchmark scores and token speed across 260+ models on app.neubench.workers.dev.",
-                        "narration": f"Here is the latest breakthrough in artificial intelligence: {title}. {summary[:150]}. Evaluated live across top models on NeuBench!"
-                    })
-        except Exception:
-            pass
+    LAYERS = (
+        "ecosystem", "bridge_flow", "merkle_tree", "vulnerability",
+        "attack_injection", "fund_drain", "prevention_shield",
+    )
 
-        if used_topics:
-            used_set = set(t.lower().strip() for t in used_topics)
-        else:
-            used_set = set()
+    @staticmethod
+    def _build_topic_prompt(audience: str, pillar: str, n_acts: int,
+                            recent: List[str], exclude_series: List[str]) -> str:
+        from src import curriculum
 
-        # Dynamic Gemini topic synthesis with strict anti-duplication
+        style = curriculum.STYLE_GUIDE.get(audience, curriculum.STYLE_GUIDE["beginner"])
+        pillar_label = curriculum.PILLAR_LABELS.get(pillar, pillar.upper())
+        recent_block = "\n".join(f"- {t}" for t in recent[-40:]) or "- (none yet)"
+        series_block = ", ".join(exclude_series) or "none"
+        word_range = "45-65" if n_acts > 7 else "30-45"
+        return (
+            "You are the head of curriculum for a technology channel whose audience "
+            "ranges from school students to working engineers.\n"
+            f"TARGET AUDIENCE: {audience}\n"
+            f"TARGET PILLAR: {pillar_label}\n"
+            f"STYLE: {style}\n\n"
+            "Pick ONE genuinely useful topic that belongs in this pillar and fits the audience. "
+            "It may be evergreen or a recent development, but it must be accurate and explainable.\n\n"
+            "STRICT ANTI-DUPLICATION: do not overlap with any of these recently used topics:\n"
+            f"{recent_block}\n"
+            f"Also avoid these series: {series_block}\n\n"
+            "Return ONLY a raw JSON object with this exact shape:\n"
+            "{\n"
+            '  "title": "precise, clickable title (6-12 words)",\n'
+            '  "canonical_topic": "short canonical name",\n'
+            '  "series": "stable lowercase series key, e.g. caching, rag, merkle-tree",\n'
+            '  "entities": ["named systems, models or concepts"],\n'
+            f'  "category": "{pillar_label}",\n'
+            f'  "audience": "{audience}",\n'
+            f'  "pillar": "{pillar}",\n'
+            '  "hook": "one sentence that makes a 12-year-old and an engineer curious",\n'
+            '  "tagline": "one punchy line",\n'
+            '  "summary": "2-3 sentences explaining the idea",\n'
+            '  "analogy": "one concrete everyday analogy",\n'
+            '  "problem": "1-2 sentences on why the naive approach fails",\n'
+            '  "solution": "1-2 sentences on the mechanism that fixes it",\n'
+            '  "example": "one realistic example",\n'
+            '  "pro_tip": "one actionable rule",\n'
+            '  "takeaway": "one sentence the viewer should remember",\n'
+            f'  "acts": [ exactly {n_acts} objects with this shape ],\n'
+            "}\n\n"
+            "Each act object must be:\n"
+            "{\n"
+            '  "title": "2-5 words",\n'
+            f'  "narration": "{word_range} spoken words, no markdown, no stage directions",\n'
+            '  "visual_layer": "one of: ecosystem, bridge_flow, merkle_tree, vulnerability, attack_injection, fund_drain, prevention_shield",\n'
+            '  "hud_badge": "2-4 uppercase words",\n'
+            '  "hud_metric": "short metric or label",\n'
+            '  "code_snippet": null or a short 2-5 line code/pseudocode block,\n'
+            '  "viz_labels": {"exact keys listed below": "short ALL-CAPS label"},\n'
+            '  "viz_counter": null or {"prefix":"$", "target":566, "suffix":"M", "decimals":0}\n'
+            "}\n\n"
+            "LABEL KEYS (use only the keys that belong to the act's visual_layer):\n"
+            "- ecosystem: eco_label, eco_left, eco_left_fine, eco_right, eco_right_fine, "
+            "eco_chip, eco_left_badge, eco_right_badge\n"
+            "- bridge_flow: flow_label, flow_1, flow_1_fine, flow_2, flow_2_fine, "
+            "flow_3, flow_3_fine, flow_foot\n"
+            "- merkle_tree: tree_label, tree_root\n"
+            "- vulnerability: vuln_label, vuln_fine\n"
+            "- attack_injection: attack_label, attack_fine, attack_bad, attack_stamp\n"
+            "- fund_drain: drain_label, drain_counter_text, drain_sub, drain_hub, "
+            "drain_a, drain_b, drain_c\n"
+            "- prevention_shield: shield_label, shield_fine, shield_1, shield_2, "
+            "shield_3, shield_chip\n\n"
+            "Rules:\n"
+            "- Act 1 is the hook, act 2 the core idea, the middle acts the mechanism and "
+            "failure modes, and the final act the fix and takeaway.\n"
+            "- Vary visual_layer across acts; use fund_drain only for a measurable impact.\n"
+            "- Narration must be natural speech. Never include labels like 'Act 1' or 'Visual:'.\n"
+            "- Do not use the words 'delve', 'landscape', 'game-changer', 'revolutionize'.\n"
+        )
+
+    @classmethod
+    def _validate_topic(cls, data: Dict[str, Any], audience: str, pillar: str,
+                        n_acts: int, used_topics: List[str],
+                        exclude_series: List[str]) -> Optional[Dict[str, Any]]:
+        from src import curriculum, topic_memory
+
+        if not isinstance(data, dict):
+            return None
+        title = str(data.get("title") or "").strip()
+        if len(title) < 8:
+            return None
+
+        series = topic_memory.series_key(title, data.get("entities"), data.get("series"))
+        if series and series in set(exclude_series):
+            return None
+        for old in used_topics:
+            if topic_memory.similarity(title, old) >= topic_memory.DEFAULT_SIMILARITY:
+                return None
+
+        raw_acts = data.get("acts") if isinstance(data.get("acts"), list) else []
+        clean: List[Dict[str, Any]] = []
+        for act in raw_acts:
+            if not isinstance(act, dict):
+                continue
+            narration = str(act.get("narration") or "").strip()
+            if len(narration.split()) < 12:
+                continue
+            layer = act.get("visual_layer")
+            clean.append({
+                "title": str(act.get("title") or "Next")[:70],
+                "narration": narration,
+                "visual_layer": layer if layer in cls.LAYERS else "ecosystem",
+                "hud_badge": str(act.get("hud_badge") or "")[:32],
+                "hud_metric": str(act.get("hud_metric") or "")[:48],
+                "viz_labels": act.get("viz_labels") if isinstance(act.get("viz_labels"), dict) else {},
+                "viz_counter": act.get("viz_counter") if isinstance(act.get("viz_counter"), dict) else None,
+                "code_snippet": act.get("code_snippet") if isinstance(act.get("code_snippet"), str) else None,
+            })
+        if len(clean) < max(5, n_acts - 2):
+            return None
+
+        result: Dict[str, Any] = {
+            "title": title,
+            "canonical_topic": str(data.get("canonical_topic") or title).strip(),
+            "series": series,
+            "entities": data.get("entities") if isinstance(data.get("entities"), list) else [],
+            "category": str(data.get("category") or curriculum.PILLAR_LABELS.get(pillar, pillar)).upper(),
+            "audience": audience,
+            "pillar": pillar,
+            "hook": str(data.get("hook") or "").strip(),
+            "tagline": str(data.get("tagline") or "").strip(),
+            "summary": str(data.get("summary") or "").strip(),
+            "analogy": str(data.get("analogy") or "").strip(),
+            "problem": str(data.get("problem") or "").strip(),
+            "solution": str(data.get("solution") or "").strip(),
+            "example": str(data.get("example") or "").strip(),
+            "pro_tip": str(data.get("pro_tip") or "").strip(),
+            "takeaway": str(data.get("takeaway") or "").strip(),
+            "long_form": n_acts > 7,
+        }
+
+        if len(clean) < n_acts:
+            filler = curriculum.acts_from_topic(result, n_acts)
+            clean.extend(filler[len(clean):])
+        result["acts"] = clean[:n_acts]
+        return result
+
+    def get_dynamic_ai_topic(self, used_topics: Optional[List[str]] = None,
+                             audience: Optional[str] = None,
+                             pillar: Optional[str] = None,
+                             exclude_series: Optional[List[str]] = None,
+                             long_form: bool = False) -> Dict[str, Any]:
+        """Pick a fresh topic levelled for the audience and pillar.
+
+        Gemini writes an act-by-act script when it is available.  The curriculum
+        bank is a deterministic fallback so a rate limit never stops the channel.
+        """
+        used_topics = list(used_topics or [])
+        exclude_series = list(exclude_series or [])
+        audience = audience or "beginner"
+        pillar = pillar or "foundations"
+        n_acts = 12 if long_form else 7
+
         try:
             import config
             if getattr(config, "GEMINI_API_KEY", ""):
                 from google import genai
                 client = genai.Client(api_key=config.GEMINI_API_KEY)
                 model_name = getattr(config, "GEMINI_MODEL", "gemini-3.8-flash")
-                used_sample = list(used_set)[-15:]
-                prompt = (
-                    "Generate 1 cutting-edge, trending AI systems, paper or architecture breakthrough topic "
-                    "(e.g., test-time compute scaling, BitNet 1.58b, diffusion forcing, paged attention, state-space models, FP8 GEMM, etc.). "
-                    f"STRICT REQUIREMENT: DO NOT select or overlap with any of these already used topics: {used_sample}. "
-                    "Respond with ONLY a raw JSON object matching this schema:\n"
-                    "{\n"
-                    '  "title": "Precise Technical Title",\n'
-                    '  "category": "ARCHITECTURE or INFERENCE or SYSTEMS",\n'
-                    '  "tagline": "One punchy hook line",\n'
-                    '  "summary": "2-3 sentences explaining the mechanism",\n'
-                    '  "problem": "1-2 sentences on the hardware/memory bottleneck",\n'
-                    '  "solution": "1-2 sentences on the mathematical unlock",\n'
-                    '  "pro_tip": "1 actionable production engineering rule",\n'
-                    '  "narration": "70-90 words spoken explanation for video"\n'
-                    "}"
-                )
+                prompt = self._build_topic_prompt(audience, pillar, n_acts, used_topics, exclude_series)
                 res = client.models.generate_content(model=model_name, contents=prompt)
-                txt = res.text.strip()
+                txt = (getattr(res, "text", "") or "").strip()
                 if "```json" in txt:
                     txt = txt.split("```json")[1].split("```")[0].strip()
                 elif "```" in txt:
                     txt = txt.split("```")[1].split("```")[0].strip()
-                import json
-                ai_data = json.loads(txt)
-                gen_title = ai_data.get("title", "").strip()
-                if gen_title and gen_title.lower() not in used_set:
-                    gen_words = set(re.findall(r'\w+', gen_title.lower()))
-                    overlap_found = False
-                    for u in used_set:
-                        u_words = set(re.findall(r'\w+', u.lower()))
-                        if len(gen_words & u_words) >= 3 and len(gen_words & u_words) / max(len(gen_words), 1) > 0.5:
-                            overlap_found = True
-                            break
-                    if not overlap_found:
-                        print(f"[TrendHunter] 🤖 Gemini dynamically synthesized fresh topic: {gen_title}")
-                        return ai_data
-        except Exception as e:
-            pass
+                data = json.loads(txt)
+                validated = self._validate_topic(
+                    data, audience, pillar, n_acts, used_topics, exclude_series)
+                if validated:
+                    print(f"[TrendHunter] Gemini wrote a fresh {audience} topic: {validated['title']}")
+                    return validated
+                print("[TrendHunter] Gemini topic rejected by the duplicate or quality guard.")
+        except Exception as exc:
+            print(f"[TrendHunter] Gemini topic generation skipped: {exc}")
 
-        unseen = [item for item in ai_concept_bank if item.get("title", "").lower().strip() not in used_set]
-        if unseen:
-            return random.choice(unseen)
-
-        return random.choice(ai_concept_bank)
-
+        from src import curriculum
+        fallback = curriculum.pick_fallback(
+            audience, pillar, exclude_titles=used_topics,
+            exclude_series=exclude_series, allow_repeat=True,
+        )
+        if fallback:
+            if fallback.get("repeat_fallback"):
+                print("[TrendHunter] No unused bank topic left; repeating a bank topic.")
+            print(f"[TrendHunter] Curriculum fallback: {fallback['title']}")
+            return fallback
+        raise RuntimeError("No topic available for the requested audience")
