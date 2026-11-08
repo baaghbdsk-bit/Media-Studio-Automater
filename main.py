@@ -74,6 +74,7 @@ def main():
             "pinterest",
             "threads",
             "youtube-explainer",
+            "long-explainer",
             "generate-video",
             "ig-diagnose",
             "metrics",
@@ -129,6 +130,10 @@ def main():
         console.print(f"[bold magenta]🎬 Publishing 16:9 YouTube Long Explainer (Dry-run: {args.dry_run})...[/bold magenta]")
         engine.publish_youtube_explainer()
 
+    elif args.action == "long-explainer":
+        console.print(f"[bold magenta]🎬 Running scheduled Long Explainer slot (Dry-run: {args.dry_run})...[/bold magenta]")
+        engine.run_long_explainer_slot()
+
     elif args.action == "threads":
         console.print(f"[bold magenta]🧵 Publishing to Threads (Dry-run: {args.dry_run})...[/bold magenta]")
         engine.publish_threads()
@@ -143,30 +148,7 @@ def main():
 
     elif args.action == "schedule-explainer":
         console.print(f"[bold magenta]⏰ Running scheduled Explainer...[/bold magenta]")
-        import json
-        history_file = _BASE_DIR / "studio_history.json"
-        should_run = True
-        if history_file.exists():
-            with open(history_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            events = data.get("events", [])
-            last_explainer = None
-            for event in reversed(events):
-                if event.get("type") == "explainer_video":
-                    last_explainer = event.get("time", "")
-                    break
-            if last_explainer:
-                from datetime import datetime
-                last_dt = datetime.strptime(last_explainer, "%Y-%m-%d %I:%M %p")
-                today = datetime.now()
-                days_diff = (today - last_dt).days
-                if days_diff < 2:
-                    console.print(f"[yellow]⚠️ Not an alternate day (last was {days_diff} days ago)[/yellow]")
-                    should_run = False
-        if should_run:
-            engine.run_studio_all()
-        else:
-            console.print("[yellow]Skipping explainer - not alternate day[/yellow]")
+        engine.run_long_explainer_slot()
 
     elif args.action == "schedule-today":
         from datetime import datetime

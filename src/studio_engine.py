@@ -110,16 +110,16 @@ class StudioEngine:
         pro_tip = topic.get("pro_tip", "")
         console.print(f"[bold magenta]🎬 Studio Topic Selected: {title}[/bold magenta]")
 
-        # 1. Render 3D Presenter Short Video (1 to 3 mins) with Manim fallback
-        console.print("[cyan]⏳ Synthesizing 3D Animated Presenter video ('Nova')...[/cyan]")
+        # 1. Render Technical Explainer Video (1 to 3 mins) with Manim fallback
+        console.print("[cyan]⏳ Synthesizing Technical Explainer 3D video...[/cyan]")
         try:
-            from src.presenter_3d import Presenter3DStudio
-            p3d = Presenter3DStudio(fps=24)
-            p_res = p3d.generate_presenter_video(topic)
+            from src.technical_explainer import TechnicalExplainerStudio
+            studio = TechnicalExplainerStudio(fps=24)
+            p_res = studio.generate_explainer_video(topic)
             video_path = Path(p_res.get("video_path") or "")
             srt_path = Path(p_res.get("srt_path") or "") if p_res.get("srt_path") else None
         except Exception as p_err:
-            console.print(f"[yellow]⚠️ 3D Presenter note: {p_err}. Falling back to Manim engine...[/yellow]")
+            console.print(f"[yellow]⚠️ Technical Explainer note: {p_err}. Falling back to Manim engine...[/yellow]")
             vid_gen = VideoGenerator()
             v_res = vid_gen.generate_dynamic_short(topic, dry_run=self.dry_run)
             video_path = Path(v_res.get("video_path") or "")
@@ -248,10 +248,11 @@ class StudioEngine:
 
     def publish_youtube_explainer(self, topic: Optional[Dict[str, Any]] = None) -> bool:
         """
-        Renders and publishes a full 16:9 Landscape Manim Long Explainer Video (5-10 mins) to YouTube.
-        Includes chapter timestamps, technical derivations, and benchmark comparisons.
+        Renders and publishes a full 16:9 Landscape long-form explainer to YouTube.
+        Uses the premium motion-graphics engine with a Manim fallback.
+        Includes chapter timestamps derived from the rendered runtime.
         """
-        console.print("\n[bold magenta]🎬 Starting YouTube Long Explainer Production (16:9 Manim 5-10 min)...[/bold magenta]")
+        console.print("\n[bold magenta]🎬 Starting YouTube Long Explainer Production (16:9)...[/bold magenta]")
         if not topic:
             topic = self.get_fresh_topic()
         title = topic.get("title", "Frontier AI Architecture Deep-Dive")
@@ -259,21 +260,33 @@ class StudioEngine:
         pro_tip = topic.get("pro_tip", "")
         console.print(f"[bold cyan]Explainer Topic: {title}[/bold cyan]")
 
-        vid_gen = VideoGenerator()
-        v_res = vid_gen.generate_dynamic_explainer(topic, dry_run=self.dry_run)
-        vpath = Path(v_res.get("video_path") or "")
-        srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
-        chapters = v_res.get("chapters", [
-            "00:00 Introduction & The Scaling Dilemma",
-            "01:45 Formal Mathematical Decomposition",
-            "03:30 Dynamic Tensor Routing & SRAM Tiles",
-            "05:15 Hardware Profiling & Compute Efficiency",
-            "07:00 NeuBench Benchmarks & Production Rules"
-        ])
-
         if self.dry_run:
             console.print(f"[yellow][DRY RUN] Would publish 16:9 YouTube Explainer: {title}[/yellow]")
             return True
+
+        try:
+            from src.technical_explainer import TechnicalExplainerStudio
+            studio = TechnicalExplainerStudio(fps=24)
+            v_res = studio.generate_long_explainer_video(topic)
+            vpath = Path(v_res.get("video_path") or "")
+            srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
+            chapters = v_res.get("chapters", [])
+        except Exception as long_err:
+            console.print(
+                f"[yellow]⚠️ Long-form motion engine note: {long_err}. "
+                "Falling back to Manim engine...[/yellow]"
+            )
+            vid_gen = VideoGenerator()
+            v_res = vid_gen.generate_dynamic_explainer(topic, dry_run=self.dry_run)
+            vpath = Path(v_res.get("video_path") or "")
+            srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
+            chapters = v_res.get("chapters", [
+                "00:00 Introduction & The Scaling Dilemma",
+                "01:45 Formal Mathematical Decomposition",
+                "03:30 Dynamic Tensor Routing & SRAM Tiles",
+                "05:15 Hardware Profiling & Compute Efficiency",
+                "07:00 NeuBench Benchmarks & Production Rules"
+            ])
 
         yt = YouTubeAutomater()
         if not yt.is_authenticated:
@@ -309,11 +322,14 @@ class StudioEngine:
         """
         Primary 4-hour cron scheduler method:
         1. Selects exactly ONE fresh, non-duplicate topic.
-        2. Produces and publishes 9:16 Short/Reel/Pin/Thread (1 to 3 minutes).
-        3. If alternate day, produces and publishes 16:9 Long Explainer (5 to 10 minutes) on the EXACT SAME topic.
-        4. Permanently records the topic so the next cycle chooses a new topic.
+        2. Produces and publishes the 9:16 Short/Reel/Pin/Thread broadcast.
+        3. Permanently records the topic so the next cycle chooses a new topic.
+
+        The 16:9 long-form video is handled by its own 7:30 pm IST slot
+        (``run_long_explainer_slot``) so the two productions never compete
+        for the same CI run.
         """
-        report = {"explainer_run": False, "broadcast_results": {}}
+        report = {"broadcast_results": {}}
         console.print("\n[bold cyan]⏰ 4-Hour Autopilot Heartbeat Triggered...[/bold cyan]")
 
         # 1. Select ONE single fresh topic for this cycle
@@ -321,21 +337,28 @@ class StudioEngine:
         title = topic.get("title", "AI Architecture Breakthrough")
         console.print(f"[bold magenta]🎬 Studio Unified Cycle Topic: {title}[/bold magenta]")
 
-        # 2. Run 9:16 Manim Short / Reel broadcast across YouTube Shorts, Instagram Reels, Pinterest, Threads (1-3 min)
+        # 2. Run the 9:16 short-form broadcast (YouTube Shorts, Reels, Pinterest, Threads)
         b_res = self.run_studio_all(topic=topic)
         report["broadcast_results"] = b_res
 
-        # 3. Check alternate day condition for YouTube Long Explainer on the SAME topic (5-10 min)
-        if self.is_alternate_day_for_explainer():
-            console.print("[bold magenta]📅 Alternate day detected: Running 16:9 YouTube Explainer on the SAME topic...[/bold magenta]")
-            ok_exp = self.publish_youtube_explainer(topic=topic)
-            report["explainer_run"] = ok_exp
-        else:
-            console.print("[yellow]⏳ Not an alternate day for explainer - skipping long video slot.[/yellow]")
-
-        # 4. Permanently record topic so it is NEVER duplicated in subsequent runs
+        # 3. Permanently record topic so it is NEVER duplicated in subsequent runs
         self.record_topic(title)
         return report
+
+    def run_long_explainer_slot(self) -> Dict[str, Any]:
+        """
+        Daily 7:30 pm IST long-form slot.
+        Publishes only on alternate days (>= 2 days since the last explainer).
+        """
+        console.print("\n[bold magenta]📅 Long-Form Explainer Slot Triggered...[/bold magenta]")
+        if not self.is_alternate_day_for_explainer():
+            console.print("[yellow]⏳ Not an alternate day - skipping long video slot.[/yellow]")
+            return {"published": False, "reason": "not_alternate_day"}
+
+        console.print("[bold magenta]✅ Alternate day confirmed - producing 16:9 long-form explainer...[/bold magenta]")
+        topic = self.get_fresh_topic()
+        ok = self.publish_youtube_explainer(topic=topic)
+        return {"published": bool(ok)}
 
     def publish_youtube(self, topic: Optional[Dict[str, Any]] = None) -> bool:
         if not topic:
