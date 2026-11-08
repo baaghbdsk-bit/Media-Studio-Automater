@@ -32,9 +32,9 @@ on:
           - threads
           - generate-video
 
-concurrency:
-  group: 'media-studio-cloud-engine'
-  cancel-in-progress: false
+  concurrency:
+    group: 'media-studio-cloud-engine'
+    cancel-in-progress: true
 
 permissions:
   contents: write
@@ -106,11 +106,9 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add studio_history.json
-          if ! git diff --staged --quiet; then
+          git add -A
+          if ! git diff --cached --quiet; then
             git commit -m "chore(autopilot): sync studio state and published topics [skip ci]"
-            git pull --rebase origin master || true
-            git push origin master
-          else
-            echo "No state changes to commit."
           fi
+          git pull --rebase origin master --autostash || true
+          git push origin master || true

@@ -137,6 +137,7 @@ class TechnicalExplainerStudio:
             width=self.LONG_WIDTH,
             height=self.LONG_HEIGHT,
             orientation="landscape",
+            supersample=1,
         )
         render_result = renderer.render(
             storyboard=storyboard,
