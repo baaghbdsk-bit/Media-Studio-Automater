@@ -8,7 +8,8 @@
     "StepX-OPD: Rethinking Multi-Teacher On-Policy Distillation in Diffusio",
     "Real-World TTFT & Throughput Benchmarks across Major LLM Hosted Endpoi",
     "Tools Need Not Speak in Text: Latent Context Compression for Agents",
-    "Multi-Head Latent Attention: Compressing KV Cache via Low-Rank Joint Compression"
+    "Multi-Head Latent Attention: Compressing KV Cache via Low-Rank Joint Compression",
+    "FlashAttention-3: Asynchronous TMA and Ping-Pong Warpgroup Pipelining"
   ],
   "events": [
     {
@@ -86,6 +87,17 @@
         "instagram_reel": true,
         "pinterest": false,
         "threads": false
+      }
+    },
+    {
+      "time": "2026-11-08 05:52 AM",
+      "type": "video_broadcast",
+      "title": "FlashAttention-3: Asynchronous TMA and Ping-Pong Warpgroup Pipelining",
+      "details": {
+        "youtube": true,
+        "instagram_reel": true,
+        "pinterest": true,
+        "threads": true
       }
     }
   ]
