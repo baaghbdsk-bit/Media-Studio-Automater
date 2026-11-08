@@ -72,8 +72,20 @@ class ThreadsAutomater:
 
 
     def is_session_available(self) -> bool:
-        if (self.user_data_dir / "cookies.json").exists():
-            return True
+        cookie_file = self.user_data_dir / "cookies.json"
+        if cookie_file.exists():
+            try:
+                import json
+                with open(cookie_file, "r", encoding="utf-8") as f:
+                    cookies = json.load(f)
+                    raw_cookies = cookies.get("cookies", cookies) if isinstance(cookies, dict) else cookies
+                    if isinstance(raw_cookies, list):
+                        # Verify we have actual threads.net auth cookies
+                        has_threads = any("threads.net" in c.get("domain", "") for c in raw_cookies)
+                        if has_threads:
+                            return True
+            except Exception:
+                pass
 
         cookie_db = self.user_data_dir / "Default" / "Network" / "Cookies"
 

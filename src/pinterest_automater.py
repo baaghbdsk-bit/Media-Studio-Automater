@@ -115,16 +115,48 @@ class PinterestAutomater:
                     except Exception:
                         file_input.set_input_files(valid_files[0])
                 else:
-                    print(f"[PinterestAutomater] Uploading pin image: {Path(valid_files[0]).name}...")
+                    print(f"[PinterestAutomater] Uploading pin media: {Path(valid_files[0]).name}...")
                     file_input.set_input_files(valid_files[0])
-                page.wait_for_timeout(3000)
+
+                # Wait for media upload & transcoding to finish and form inputs to become enabled
+                print("[PinterestAutomater] Awaiting media upload & form readiness (up to 120s)...")
+                active_title_sel = "#storyboard-selector-title:not([disabled]), input[placeholder*='title' i]:not([disabled]), input[type='text']:not([disabled])"
+                try:
+                    page.wait_for_selector(active_title_sel, timeout=120000, state="visible")
+                except Exception as t_err:
+                    print(f"[PinterestAutomater] Warning on waiting for enabled title field: {t_err}")
+
+                page.wait_for_timeout(2000)
 
                 # 2. Enter Title
                 print(f"[PinterestAutomater] Setting Pin title: {title[:40]}...")
                 title_input = page.locator("#storyboard-selector-title, input[placeholder*='title' i], input[type='text']").first
+                title_input.wait_for(state="visible", timeout=30000)
                 title_input.click()
                 title_input.fill(title[:100])
                 page.wait_for_timeout(1000)
+
+                # 2b. Enter Description if provided
+                if description:
+                    print("[PinterestAutomater] Setting Pin description...")
+                    desc_selectors = [
+                        "#storyboard-selector-description",
+                        "[data-test-id='storyboard-selector-description']",
+                        "div[role='textbox'][aria-label*='description' i]",
+                        "div[role='textbox']",
+                        "textarea[placeholder*='description' i]",
+                        "textarea"
+                    ]
+                    for d_sel in desc_selectors:
+                        try:
+                            d_elem = page.locator(d_sel).first
+                            if d_elem.is_visible(timeout=1500):
+                                d_elem.click()
+                                d_elem.fill(description[:500])
+                                page.wait_for_timeout(800)
+                                break
+                        except Exception:
+                            continue
 
                 # 3. Enter Destination Link
                 print(f"[PinterestAutomater] Setting destination link: {link}...")

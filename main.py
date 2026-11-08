@@ -60,6 +60,73 @@ def display_metrics():
     except Exception as e:
         console.print(f"[red]Error reading metrics: {e}[/red]")
 
+def run_doctor():
+    console.print("\n" + "="*60, style="bold cyan")
+    console.print("🩺 MEDIA STUDIO HEALTH & AUTH DOCTOR", style="bold white on cyan")
+    console.print("="*60, style="bold cyan")
+
+    table = Table(title="Channel Authentication & Pipeline Health")
+    table.add_column("Channel / Component", style="bold cyan", width=22)
+    table.add_column("Status", width=16)
+    table.add_column("Diagnostic Details", style="dim")
+
+    # 1. Gemini AI API
+    try:
+        import config
+        from google import genai
+        if getattr(config, "GEMINI_API_KEY", ""):
+            table.add_row("Gemini AI API", "[green]ONLINE[/green]", "API key configured & ready")
+        else:
+            table.add_row("Gemini AI API", "[red]MISSING[/red]", "GEMINI_API_KEY not set")
+    except Exception as e:
+        table.add_row("Gemini AI API", "[yellow]WARNING[/yellow]", str(e)[:60])
+
+    # 2. YouTube Data API v3
+    try:
+        from src.youtube_automater import YouTubeAutomater
+        yt = YouTubeAutomater()
+        if yt.is_authenticated:
+            table.add_row("YouTube Data API", "[green]AUTHENTICATED[/green]", "Permanent OAuth refresh token active & verified")
+        else:
+            table.add_row("YouTube Data API", "[red]DISCONNECTED[/red]", "Token expired or missing. Run 'python scripts/login_youtube.py'")
+    except Exception as e:
+        table.add_row("YouTube Data API", "[red]ERROR[/red]", str(e)[:60])
+
+    # 3. Instagram Reels
+    try:
+        from src.instagram_automater import InstagramAutomater
+        ig = InstagramAutomater(headless=True)
+        if ig.is_session_available():
+            table.add_row("Instagram (@neubench)", "[green]AUTHENTICATED[/green]", "Valid session cookies loaded")
+        else:
+            table.add_row("Instagram (@neubench)", "[red]DISCONNECTED[/red]", "Session missing. Set INSTAGRAM_COOKIES_BASE64")
+    except Exception as e:
+        table.add_row("Instagram (@neubench)", "[red]ERROR[/red]", str(e)[:60])
+
+    # 4. Pinterest Video Pins
+    try:
+        from src.pinterest_automater import PinterestAutomater
+        pin = PinterestAutomater(headless=True)
+        if pin.is_session_available():
+            table.add_row("Pinterest (@neubench)", "[green]AUTHENTICATED[/green]", "Session cookies loaded & video upload enabled")
+        else:
+            table.add_row("Pinterest (@neubench)", "[red]DISCONNECTED[/red]", "Session missing. Run 'python scripts/login_pinterest.py'")
+    except Exception as e:
+        table.add_row("Pinterest (@neubench)", "[red]ERROR[/red]", str(e)[:60])
+
+    # 5. Threads
+    try:
+        from src.threads_automater import ThreadsAutomater
+        th = ThreadsAutomater(headless=True)
+        if th.is_session_available():
+            table.add_row("Threads", "[green]AUTHENTICATED[/green]", "Dedicated threads.net session active")
+        else:
+            table.add_row("Threads", "[yellow]CROSSPOST[/yellow]", "Using Instagram 'Share to Threads' integration")
+    except Exception as e:
+        table.add_row("Threads", "[dim]ERROR[/dim]", str(e)[:60])
+
+    console.print(table)
+
 def main():
     parser = argparse.ArgumentParser(
         description="Media Studio Automater: High-Impact Video & Visual Publishing Suite for YouTube Shorts, Instagram Reels, and Pinterest"
@@ -78,6 +145,7 @@ def main():
             "generate-video",
             "ig-diagnose",
             "metrics",
+            "doctor",
             "schedule-autopilot",
             "schedule-reels-shorts",
             "schedule-explainer",
@@ -92,6 +160,10 @@ def main():
 
     if args.action == "metrics":
         display_metrics()
+        return
+
+    if args.action == "doctor":
+        run_doctor()
         return
 
     from src.studio_engine import StudioEngine

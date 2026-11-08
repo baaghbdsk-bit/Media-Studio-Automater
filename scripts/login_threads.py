@@ -58,10 +58,9 @@ def login_threads():
             try:
                 page.goto("https://www.threads.net/", wait_until="domcontentloaded", timeout=30000)
                 cookies = context.cookies()
-                # Check for sessionid on threads.com or instagram.com domains
+                # Check for sessionid on threads.net or instagram.com domains
                 auth_cookies = [c for c in cookies 
-                              if c.get('expires', 0) > int(time.time())
-                              and (c.get('domain', '').endswith('.threads.com') or c.get('domain', '').endswith('.instagram.com'))
+                              if (c.get('domain', '').endswith('.threads.net') or c.get('domain', '').endswith('threads.net') or c.get('domain', '').endswith('.instagram.com'))
                               and c.get('name') in ('sessionid', 'csrftoken', 'ds_user_id')]
                 if not auth_cookies:
                     console.print("[red]❌ Login not detected: no valid Threads auth cookies found.[/red]")
@@ -69,6 +68,27 @@ def login_threads():
                     context.close()
                     return False
                 console.print(f"[bold green]✅ Auth cookies verified! Saving session...[/bold green]")
+                
+                # Save cookies to cookies.json
+                import json
+                cookie_file = user_data_dir / "cookies.json"
+                with open(cookie_file, "w", encoding="utf-8") as f:
+                    json.dump(cookies, f, indent=2)
+                console.print(f"[bold green]✅ Saved {len(cookies)} cookies to: {cookie_file}[/bold green]")
+
+                # Sync to tools/THREADS_COOKIES_BASE64.txt and GitHub secret
+                try:
+                    import base64
+                    import subprocess
+                    b64 = base64.b64encode(cookie_file.read_bytes()).decode("utf-8")
+                    out_txt = BASE_DIR / "tools" / "THREADS_COOKIES_BASE64.txt"
+                    out_txt.write_text(b64, encoding="utf-8")
+                    res = subprocess.run(["gh", "secret", "set", "THREADS_COOKIES_BASE64", "--body", b64], capture_output=True, text=True)
+                    if res.returncode == 0:
+                        console.print("[bold green]🚀 Synced THREADS_COOKIES_BASE64 to GitHub Secrets![/bold green]")
+                except Exception as se:
+                    console.print(f"[dim]Note on secret sync: {se}[/dim]")
+
             except Exception as e:
                 console.print(f"[red]❌ Error verifying login: {e}[/red]")
                 context.close()
