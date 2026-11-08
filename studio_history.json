@@ -9,7 +9,8 @@
     "Real-World TTFT & Throughput Benchmarks across Major LLM Hosted Endpoi",
     "Tools Need Not Speak in Text: Latent Context Compression for Agents",
     "Multi-Head Latent Attention: Compressing KV Cache via Low-Rank Joint Compression",
-    "FlashAttention-3: Asynchronous TMA and Ping-Pong Warpgroup Pipelining"
+    "FlashAttention-3: Asynchronous TMA and Ping-Pong Warpgroup Pipelining",
+    "Indirect Prompt Injection: How Untrusted Web Text Hijacks AI Agents"
   ],
   "events": [
     {
@@ -99,6 +100,90 @@
         "pinterest": true,
         "threads": true
       }
+    },
+    {
+      "time": "2026-11-08 10:08 AM",
+      "type": "video_broadcast",
+      "title": "Indirect Prompt Injection: How Untrusted Web Text Hijacks AI Agents",
+      "details": {
+        "youtube": true,
+        "instagram_reel": false,
+        "pinterest": false,
+        "threads": false
+      }
     }
-  ]
+  ],
+  "topic_log": [
+    {
+      "title": "On the Opportunities and Challenges of Prefill-to-Autoregressive Cross",
+      "series": "",
+      "time": "2026-11-08T09:23:47+00:00",
+      "legacy": true
+    },
+    {
+      "title": "Quantized FP8 vs Dense Weights for Autonomous Coding Agents",
+      "series": "",
+      "time": "2026-11-08T09:23:47+00:00",
+      "legacy": true
+    },
+    {
+      "title": "Mixture of Experts (MoE)",
+      "series": "",
+      "time": "2026-11-08T09:23:47+00:00",
+      "legacy": true
+    },
+    {
+      "title": "Retrieval-Augmented Generation (RAG)",
+      "series": "",
+      "time": "2026-11-08T09:23:47+00:00",
+      "legacy": true
+    },
+    {
+      "title": "Signed but Steerable: Measuring and Closing the Text-Vector Integrity ",
+      "series": "",
+      "time": "2026-11-08T09:23:47+00:00",
+      "legacy": true
+    },
+    {
+      "title": "StepX-OPD: Rethinking Multi-Teacher On-Policy Distillation in Diffusio",
+      "series": "",
+      "time": "2026-11-08T09:23:47+00:00",
+      "legacy": true
+    },
+    {
+      "title": "Real-World TTFT & Throughput Benchmarks across Major LLM Hosted Endpoi",
+      "series": "",
+      "time": "2026-11-08T09:23:47+00:00",
+      "legacy": true
+    },
+    {
+      "title": "Tools Need Not Speak in Text: Latent Context Compression for Agents",
+      "series": "",
+      "time": "2026-11-08T09:23:47+00:00",
+      "legacy": true
+    },
+    {
+      "title": "Multi-Head Latent Attention: Compressing KV Cache via Low-Rank Joint Compression",
+      "series": "",
+      "time": "2026-11-08T09:23:47+00:00",
+      "legacy": true
+    },
+    {
+      "title": "FlashAttention-3: Asynchronous TMA and Ping-Pong Warpgroup Pipelining",
+      "series": "",
+      "time": "2026-11-08T09:23:47+00:00",
+      "legacy": true
+    },
+    {
+      "title": "Indirect Prompt Injection: How Untrusted Web Text Hijacks AI Agents",
+      "series": "agent-security",
+      "audience": "beginner",
+      "pillar": "ai_systems",
+      "long_form": false,
+      "time": "2026-11-08T10:08:44+00:00"
+    }
+  ],
+  "youtube_units": {
+    "2026-11-08": 2000
+  }
 }
