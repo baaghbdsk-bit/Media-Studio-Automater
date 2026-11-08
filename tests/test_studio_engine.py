@@ -16,7 +16,7 @@ class StudioEngineTests(unittest.TestCase):
         results = self.engine.run_studio_all()
         self.assertTrue(results.get("youtube"))
         self.assertTrue(results.get("instagram_reel"))
-        self.assertTrue(results.get("instagram_carousel"))
+        self.assertTrue(results.get("threads"))
         self.assertTrue(results.get("pinterest"))
 
 if __name__ == "__main__":
