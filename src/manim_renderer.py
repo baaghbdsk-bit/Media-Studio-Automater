@@ -177,7 +177,9 @@ class EducationalVideo(Scene):
         self.play(Create(visual_{i}), run_time=2.0)
         self.wait({max(segment_duration - 5.0, 2.0)})
         self.play(FadeOut(seg_title_{i}), FadeOut(seg_content_{i}), FadeOut(visual_{i}), run_time=0.5)
+'''
 
+        code += f'''
         conclusion_text = Text("{self._escape_text(conclusion)}", font_size=36, color="#00D4FF")
         conclusion_text.move_to(ORIGIN)
         self.play(Write(conclusion_text), run_time=2.0)
@@ -248,6 +250,8 @@ class EducationalVideo(Scene):
             text = Text(description[:50], font_size=24, color="#FFFFFF")
             text.move_to(card.get_center())
             return VGroup(card, text)
+'''
+        return code
 
     def _escape_text(self, text: str) -> str:
         if not text:
