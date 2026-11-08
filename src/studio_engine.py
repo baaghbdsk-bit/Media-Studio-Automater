@@ -110,12 +110,20 @@ class StudioEngine:
         pro_tip = topic.get("pro_tip", "")
         console.print(f"[bold magenta]🎬 Studio Topic Selected: {title}[/bold magenta]")
 
-        # 1. Render Manim Short Video (1 to 3 mins)
-        console.print("[cyan]⏳ Synthesizing 1-3 minute Manim mathematical animation...[/cyan]")
-        vid_gen = VideoGenerator()
-        v_res = vid_gen.generate_dynamic_short(topic, dry_run=self.dry_run)
-        video_path = Path(v_res.get("video_path") or "")
-        srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
+        # 1. Render 3D Presenter Short Video (1 to 3 mins) with Manim fallback
+        console.print("[cyan]⏳ Synthesizing 3D Animated Presenter video ('Nova')...[/cyan]")
+        try:
+            from src.presenter_3d import Presenter3DStudio
+            p3d = Presenter3DStudio(fps=24)
+            p_res = p3d.generate_presenter_video(topic)
+            video_path = Path(p_res.get("video_path") or "")
+            srt_path = Path(p_res.get("srt_path") or "") if p_res.get("srt_path") else None
+        except Exception as p_err:
+            console.print(f"[yellow]⚠️ 3D Presenter note: {p_err}. Falling back to Manim engine...[/yellow]")
+            vid_gen = VideoGenerator()
+            v_res = vid_gen.generate_dynamic_short(topic, dry_run=self.dry_run)
+            video_path = Path(v_res.get("video_path") or "")
+            srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
 
         # 2. Publish to YouTube Shorts
         try:
