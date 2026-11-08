@@ -241,15 +241,24 @@ class ThreadsAutomater:
                     'div[role="dialog"] div[contenteditable="true"]',
                     'div[contenteditable="true"][role="textbox"]',
                     'div[data-lexical-editor="true"]',
+                    'div[data-lexical-editor="true"] [contenteditable="true"]',
                     'p[data-placeholder]',
                     'div[contenteditable="true"]',
-                    'div[role="textbox"]'
+                    'div[role="textbox"]',
                 ]
                 editor = None
-                for _ in range(15):
+                for _ in range(20):
+                    # Playwright role-based locator (most stable across UI changes)
+                    try:
+                        role_editor = page.get_by_role("textbox").first
+                        if role_editor.count() > 0 and role_editor.is_visible(timeout=1000):
+                            editor = role_editor
+                            break
+                    except Exception:
+                        pass
                     for sel in editor_selectors:
                         ed = page.locator(sel).first
-                        if ed.count() > 0 and ed.is_visible():
+                        if ed.count() > 0 and ed.is_visible(timeout=1000):
                             editor = ed
                             break
                     if editor:
@@ -280,13 +289,20 @@ class ThreadsAutomater:
 
 
                 post_btn = None
+                # Playwright role-based lookup (most stable across UI changes)
+                try:
+                    role_post = page.get_by_role("button", name=re.compile(r"^Post$", re.I)).first
+                    if role_post.count() > 0 and role_post.is_visible(timeout=2000):
+                        post_btn = role_post
+                except Exception:
+                    pass
                 dialog = page.locator('div[role="dialog"]').first
-                if dialog.count() > 0:
+                if dialog.count() > 0 and post_btn is None:
                     exact_btn = dialog.locator('div[role="button"], button').filter(has_text=re.compile(r"^Post$")).first
                     if exact_btn.count() > 0 and exact_btn.is_visible():
                         post_btn = exact_btn
 
-                if not post_btn:
+                if post_btn is None:
                     candidates = page.locator('div[role="button"], button').filter(has_text=re.compile(r"^Post$")).all()
                     for c in candidates:
                         if c.is_visible():
@@ -295,7 +311,7 @@ class ThreadsAutomater:
                                 post_btn = c
                                 break
 
-                if not post_btn:
+                if post_btn is None:
                     return False, "Could not locate 'Post' button on Threads."
 
                 print("[ThreadsAutomater] Clicking 'Post' button...")

@@ -120,21 +120,54 @@ class PinterestAutomater:
 
                 # Wait for media upload & transcoding to finish and form inputs to become enabled
                 print("[PinterestAutomater] Awaiting media upload & form readiness (up to 120s)...")
-                active_title_sel = "#storyboard-selector-title:not([disabled]), input[placeholder*='title' i]:not([disabled]), input[type='text']:not([disabled])"
+                # Wake the page so inputs become interactive
                 try:
-                    page.wait_for_selector(active_title_sel, timeout=120000, state="visible")
-                except Exception as t_err:
-                    print(f"[PinterestAutomater] Warning on waiting for enabled title field: {t_err}")
+                    page.press_blank()
+                except Exception:
+                    pass
+                title_ready = False
+                title_selectors = [
+                    "input[placeholder*='title' i]:not([disabled])",
+                    "#storyboard-selector-title:not([disabled])",
+                    "input[type='text']:not([disabled])",
+                    'div[role="textbox"]:not([disabled])',
+                    "input:not([disabled])",
+                ]
+                for t_sel in title_selectors:
+                    try:
+                        page.wait_for_selector(t_sel, timeout=20000, state="visible")
+                        title_ready = True
+                        break
+                    except Exception:
+                        continue
+                if not title_ready:
+                    print("[PinterestAutomater] Warning: no enabled title field detected; proceeding anyway.")
 
                 page.wait_for_timeout(2000)
 
-                # 2. Enter Title
+                # 2. Enter Title (resilient input discovery)
                 print(f"[PinterestAutomater] Setting Pin title: {title[:40]}...")
-                title_input = page.locator("#storyboard-selector-title, input[placeholder*='title' i], input[type='text']").first
-                title_input.wait_for(state="visible", timeout=30000)
-                title_input.click()
-                title_input.fill(title[:100])
-                page.wait_for_timeout(1000)
+                title_input = None
+                for t_sel in title_selectors:
+                    try:
+                        cand = page.locator(t_sel).first
+                        if cand.count() > 0 and cand.is_visible(timeout=3000):
+                            title_input = cand
+                            break
+                    except Exception:
+                        continue
+                if title_input is None:
+                    # Last resort: first enabled textbox/text input
+                    try:
+                        title_input = page.get_by_role("textbox").first
+                        if title_input.count() == 0 or not title_input.is_visible(timeout=3000):
+                            title_input = page.locator("input[type='text']").first
+                    except Exception:
+                        title_input = None
+                if title_input is not None:
+                    title_input.click()
+                    title_input.fill(title[:100])
+                    page.wait_for_timeout(1000)
 
                 # 2b. Enter Description if provided
                 if description:
@@ -179,17 +212,41 @@ class PinterestAutomater:
                         page.locator("[role='option'], div[role='button']").last.click()
                     page.wait_for_timeout(1500)
 
-                # 5. Publish Pin
+                # 5. Publish Pin (resilient publish button discovery)
                 print("[PinterestAutomater] Clicking Publish button...")
-                publish_btn = page.locator("[data-test-id='storyboard-creation-nav-done'] button, button:has-text('Publish')").first
-                publish_btn.wait_for(state="visible", timeout=10000)
+                publish_selectors = [
+                    "[data-test-id='storyboard-creation-nav-done'] button",
+                    "[data-test-id*='publish']",
+                    "button:has-text('Publish')",
+                    "a:has-text('Publish')",
+                    'button[type="submit"]',
+                    'div[role="button"]:has-text("Publish")',
+                ]
+                publish_btn = None
+                for p_sel in publish_selectors:
+                    try:
+                        cand = page.locator(p_sel).first
+                        if cand.count() > 0 and cand.is_visible(timeout=5000):
+                            publish_btn = cand
+                            break
+                    except Exception:
+                        continue
+                if publish_btn is None:
+                    publish_btn = page.locator("button:has-text('Publish')").first
+                publish_btn.wait_for(state="visible", timeout=15000)
 
-                for _ in range(20):
-                    if not publish_btn.is_disabled():
+                for _ in range(30):
+                    try:
+                        if not publish_btn.is_disabled():
+                            break
+                    except Exception:
                         break
                     page.wait_for_timeout(1000)
 
-                publish_btn.click()
+                try:
+                    publish_btn.click()
+                except Exception:
+                    publish_btn.click(force=True)
                 print("[PinterestAutomater] Clicked Publish. Awaiting network confirmation...")
 
                 # Wait up to 30s for URL change or live pin confirmation

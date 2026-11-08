@@ -46,16 +46,23 @@ class InstagramAutomater:
         return cookie_file.exists()
 
     def _await_share_confirmation(self, page, timeout_ms: int) -> bool:
-        """Return true when Instagram confirms the share or closes the composer."""
+        """Return true when Instagram confirms the share or the composer closes/navigates away."""
         deadline = time.time() + (timeout_ms / 1000)
         phrases = (
             "your post has been shared",
             "your reel has been shared",
             "post shared",
             "reel shared",
+            "shared",
         )
         while time.time() < deadline:
             try:
+                # Instagram redirects to the posted reel/post URL on a successful share
+                url = page.url.lower()
+                if "/reel/" in url:
+                    return True
+                if "/p/" in url and "create" not in url:
+                    return True
                 body = page.locator("body").inner_text(timeout=2000).lower()
                 if any(phrase in body for phrase in phrases):
                     return True
@@ -63,11 +70,7 @@ class InstagramAutomater:
                 pass
             try:
                 dialogs = page.locator('div[role="dialog"]')
-                visible = False
-                for index in range(dialogs.count()):
-                    if dialogs.nth(index).is_visible():
-                        visible = True
-                        break
+                visible = any(dialogs.nth(i).is_visible() for i in range(dialogs.count()))
                 if not visible:
                     return True
             except Exception:
@@ -216,10 +219,27 @@ class InstagramAutomater:
                 except Exception as ex:
                     print(f"[InstagramAutomater] Note on advanced settings toggle: {ex}")
 
-                # 7. Click 'Share' button
+                # 7. Click 'Share' button (robust selectors + force fallback)
                 print("[InstagramAutomater] Clicking Share button...")
-                share_btn = page.locator('div[role="dialog"] div:text-is("Share"), div[role="dialog"] button:has-text("Share")').last
-                share_btn.click()
+                share_selectors = [
+                    'div[role="dialog"] button:has-text("Share")',
+                    'div[role="dialog"] div:text-is("Share")',
+                    'div[role="dialog"] [role="button"]:has-text("Share")',
+                    'button[type="submit"]:has-text("Share")',
+                    'a:has-text("Share")',
+                ]
+                share_btn = None
+                for s in share_selectors:
+                    loc = page.locator(s).last
+                    if loc.count() > 0 and loc.is_visible():
+                        share_btn = loc
+                        break
+                if not share_btn:
+                    share_btn = page.locator('div[role="dialog"] button:has-text("Share")').last
+                try:
+                    share_btn.click()
+                except Exception:
+                    share_btn.click(force=True)
 
                 # 8. Await post confirmation
                 print("[InstagramAutomater] Waiting for upload confirmation...")
@@ -388,10 +408,27 @@ class InstagramAutomater:
                 except Exception as ex:
                     print(f"[InstagramAutomater] Note on Threads toggle: {ex}")
 
-                # 7. Click 'Share' button
+                # 7. Click 'Share' button (robust selectors + force fallback)
                 print("[InstagramAutomater] Clicking Share button...")
-                share_btn = page.locator('div[role="dialog"] div:text-is("Share"), div[role="dialog"] button:has-text("Share")').last
-                share_btn.click()
+                share_selectors = [
+                    'div[role="dialog"] button:has-text("Share")',
+                    'div[role="dialog"] div:text-is("Share")',
+                    'div[role="dialog"] [role="button"]:has-text("Share")',
+                    'button[type="submit"]:has-text("Share")',
+                    'a:has-text("Share")',
+                ]
+                share_btn = None
+                for s in share_selectors:
+                    loc = page.locator(s).last
+                    if loc.count() > 0 and loc.is_visible():
+                        share_btn = loc
+                        break
+                if not share_btn:
+                    share_btn = page.locator('div[role="dialog"] button:has-text("Share")').last
+                try:
+                    share_btn.click()
+                except Exception:
+                    share_btn.click(force=True)
 
                 # 8. Await post confirmation
                 print("[InstagramAutomater] Waiting for Reel upload confirmation...")
