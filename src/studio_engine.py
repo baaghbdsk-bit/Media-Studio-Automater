@@ -36,7 +36,7 @@ class StudioEngine:
     YOUTUBE_UPLOAD_UNITS = 2000
 
     def __init__(self, dry_run: bool = False):
-        self.dry_run = dry_run
+        self.dry_run = dry_run or (os.environ.get("DRY_RUN", "").strip().lower() in ("true", "1"))
         self.hunter = TrendHunter()
         self.ai = AIGenerator()
         self.history_file = config.BASE_DIR / "studio_history.json"

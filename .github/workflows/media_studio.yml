@@ -69,6 +69,16 @@ jobs:
         run: |
           playwright install chromium --with-deps
 
+      - name: Pre-flight Health & Auth Check
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          YOUTUBE_TOKEN_BASE64: ${{ secrets.YOUTUBE_TOKEN_BASE64 }}
+          INSTAGRAM_COOKIES_BASE64: ${{ secrets.INSTAGRAM_COOKIES_BASE64 }}
+          PINTEREST_COOKIES_BASE64: ${{ secrets.PINTEREST_COOKIES_BASE64 }}
+          THREADS_COOKIES_BASE64: ${{ secrets.THREADS_COOKIES_BASE64 }}
+        run: |
+          python main.py doctor
+
       - name: Execute Media Studio Production & Broadcast
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
