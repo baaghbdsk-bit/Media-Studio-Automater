@@ -1,0 +1,31 @@
+name: Media Studio Watchdog & Self-Healing Heartbeat
+
+on:
+  schedule:
+    # Runs every 2 hours at minute :35 (off-peak to guarantee execution)
+    - cron: '35 */2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Execute Watchdog Heartbeat
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/watchdog.py
