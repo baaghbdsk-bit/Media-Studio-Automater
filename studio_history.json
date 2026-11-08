@@ -7,7 +7,8 @@
     "Signed but Steerable: Measuring and Closing the Text-Vector Integrity ",
     "StepX-OPD: Rethinking Multi-Teacher On-Policy Distillation in Diffusio",
     "Real-World TTFT & Throughput Benchmarks across Major LLM Hosted Endpoi",
-    "Tools Need Not Speak in Text: Latent Context Compression for Agents"
+    "Tools Need Not Speak in Text: Latent Context Compression for Agents",
+    "Multi-Head Latent Attention: Compressing KV Cache via Low-Rank Joint Compression"
   ],
   "events": [
     {
@@ -74,6 +75,17 @@
         "instagram_reel": true,
         "pinterest": true,
         "threads": true
+      }
+    },
+    {
+      "time": "2026-11-08 03:55 AM",
+      "type": "video_broadcast",
+      "title": "Multi-Head Latent Attention: Compressing KV Cache via Low-Rank Joint Compression",
+      "details": {
+        "youtube": false,
+        "instagram_reel": true,
+        "pinterest": false,
+        "threads": false
       }
     }
   ]
