@@ -127,6 +127,21 @@ def run_doctor():
 
     console.print(table)
 
+def _run_scheduled_reels_result(results):
+    video_platforms = ("youtube", "instagram_reel", "pinterest")
+    if not any(results.get(platform, False) for platform in video_platforms):
+        console.print("[red]Scheduled video broadcast produced no published video. See the automation log for details.[/red]")
+        raise SystemExit(1)
+
+def _run_scheduled_reels(engine):
+    _run_scheduled_reels_result(engine.run_studio_all())
+
+def _run_scheduled_explainer(engine):
+    result = engine.run_long_explainer_slot()
+    if not result.get("published") and result.get("reason") != "not_alternate_day":
+        console.print("[red]Scheduled explainer did not publish. See the automation log for details.[/red]")
+        raise SystemExit(1)
+
 def main():
     parser = argparse.ArgumentParser(
         description="Media Studio Automater: High-Impact Video & Visual Publishing Suite for YouTube Shorts, Instagram Reels, and Pinterest"
@@ -206,7 +221,7 @@ def main():
 
     elif args.action == "long-explainer":
         console.print(f"[bold magenta]🎬 Running scheduled Long Explainer slot (Dry-run: {args.dry_run})...[/bold magenta]")
-        engine.run_long_explainer_slot()
+        _run_scheduled_explainer(engine)
 
     elif args.action == "threads":
         console.print(f"[bold magenta]🧵 Publishing to Threads (Dry-run: {args.dry_run})...[/bold magenta]")
@@ -214,15 +229,17 @@ def main():
 
     elif args.action == "schedule-autopilot":
         console.print(f"[bold cyan]⏰ Running 4-Hour Autopilot Cycle (Dry-run: {args.dry_run})...[/bold cyan]")
-        engine.schedule_autopilot()
+        report = engine.schedule_autopilot()
+        if not report.get("skipped"):
+            _run_scheduled_reels_result(report.get("broadcast_results", {}))
 
     elif args.action == "schedule-reels-shorts":
         console.print(f"[bold cyan]⏰ Running scheduled Reels/Shorts...[/bold cyan]")
-        engine.run_studio_all()
+        _run_scheduled_reels(engine)
 
     elif args.action == "schedule-explainer":
         console.print(f"[bold magenta]⏰ Running scheduled Explainer...[/bold magenta]")
-        engine.run_long_explainer_slot()
+        _run_scheduled_explainer(engine)
 
     elif args.action == "schedule-today":
         from datetime import datetime
@@ -230,33 +247,10 @@ def main():
         console.print(f"[bold cyan]Current time: {current_time}[/bold cyan]")
         if current_time in ["05:15 PM", "07:15 PM"]:
             console.print(f"[bold green]Running scheduled Reels/Shorts publish...[/bold green]")
-            engine.run_studio_all()
+            _run_scheduled_reels(engine)
         elif current_time == "09:15 PM":
             console.print(f"[bold magenta]Running scheduled Explainer video publish...[/bold magenta]")
-            import json
-            history_file = _BASE_DIR / "studio_history.json"
-            should_run = True
-            if history_file.exists():
-                with open(history_file, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                events = data.get("events", [])
-                last_explainer = None
-                for event in reversed(events):
-                    if event.get("type") == "explainer_video":
-                        last_explainer = event.get("time", "")
-                        break
-                if last_explainer:
-                    from datetime import datetime
-                    last_dt = datetime.strptime(last_explainer, "%Y-%m-%d %I:%M %p")
-                    today = datetime.now()
-                    days_diff = (today - last_dt).days
-                    if days_diff >= 2:
-                        console.print(f"[green]Alternate day confirmed - generating Manim explainer[/green]")
-                    else:
-                        console.print(f"[yellow]Not an alternate day (last was {days_diff} days ago)[/yellow]")
-                        should_run = False
-            if should_run:
-                engine.run_studio_all()
+            _run_scheduled_explainer(engine)
         else:
             console.print(f"[yellow]Not a scheduled time. Current time: {current_time}[/yellow]")
             console.print(f"Scheduled times: 5:15 PM, 7:15 PM (Reels/Shorts), 9:15 PM (Explainer - alternate days)")

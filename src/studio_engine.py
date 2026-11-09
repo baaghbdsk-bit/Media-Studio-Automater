@@ -165,22 +165,25 @@ class StudioEngine:
         self.history["events"] = events[-500:]
         self._save_history()
 
-    def is_alternate_day_for_explainer(self) -> bool:
+    def is_alternate_day_for_explainer(self) -> Optional[bool]:
         """Determines if at least 2 days have passed since the last YouTube Explainer."""
-        try:
-            events = self.history.get("events", [])
-            last_explainer = None
-            for ev in reversed(events):
-                if ev.get("type") == "explainer_video":
-                    last_explainer = ev.get("time", "")
-                    break
-            if last_explainer:
-                last_dt = datetime.strptime(last_explainer, "%Y-%m-%d %I:%M %p")
-                days = (self._ist_now().date() - last_dt.date()).days
-                return days >= 2
-            return True
-        except Exception:
-            return True
+        events = self.history.get("events", [])
+        if not isinstance(events, list):
+            console.print("[red]Explainer schedule skipped: event history is not a list.[/red]")
+            return None
+
+        for event in reversed(events):
+            if not isinstance(event, dict) or event.get("type") != "explainer_video":
+                continue
+            timestamp = event.get("time")
+            try:
+                last_date = datetime.strptime(timestamp, "%Y-%m-%d %I:%M %p").date()
+            except (TypeError, ValueError):
+                console.print("[red]Explainer schedule skipped: latest explainer timestamp is invalid.[/red]")
+                return None
+            days = (self._ist_now().date() - last_date).days
+            return days >= 2
+        return True
 
     @staticmethod
     def _ist_now() -> datetime:
@@ -220,6 +223,19 @@ class StudioEngine:
         self.history["youtube_units"] = {d: v for d, v in units.items() if d >= cutoff}
         self._save_history()
 
+    @staticmethod
+    def _rendered_video_path(render_result: Dict[str, Any], label: str) -> Optional[Path]:
+        raw_path = render_result.get("video_path")
+        if not raw_path:
+            console.print(f"[red]⚠️ {label} skipped: video rendering returned no output file.[/red]")
+            return None
+
+        video_path = Path(raw_path)
+        if not video_path.is_file():
+            console.print(f"[red]⚠️ {label} skipped: rendered video is not a file: {video_path}[/red]")
+            return None
+        return video_path
+
     def run_studio_all(self, topic: Optional[Dict[str, Any]] = None) -> Dict[str, bool]:
         """
         Executes unified video studio production (9:16 Vertical Manim Short/Reel):
@@ -242,7 +258,11 @@ class StudioEngine:
         console.print("[cyan]⏳ Synthesizing Technical Explainer 9:16 video (HyperFrames + Edge-TTS)...[/cyan]")
         vid_gen = VideoGenerator()
         v_res = vid_gen.generate_dynamic_short(topic, dry_run=self.dry_run)
-        video_path = Path(v_res.get("video_path") or "")
+        video_path = self._rendered_video_path(v_res, "Video broadcast")
+        if video_path is None:
+            duration = round(time.time() - start_time, 1)
+            console.print(f"\n[bold red]❌ Studio Broadcast stopped after {duration}s: no rendered video.[/bold red]\n")
+            return results
         srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
 
         # 2. Publish to YouTube Shorts
@@ -264,7 +284,7 @@ class StudioEngine:
                 console.print(
                     "[yellow]🛡️ YouTube quota guard: daily budget exhausted, "
                     "skipping the short upload.[/yellow]")
-            elif video_path.exists():
+            elif video_path.is_file():
                 console.print(f"[bold magenta]🎬 Uploading Short to YouTube: {yt_title}...[/bold magenta]")
                 res = yt.upload_short(
                     video_path=str(video_path),
@@ -296,7 +316,7 @@ class StudioEngine:
                 results["instagram_reel"] = True
             elif not ig.is_session_available():
                 console.print("[yellow]⚠️ Instagram not authenticated. Set INSTAGRAM_COOKIES_BASE64.[/yellow]")
-            elif video_path.exists():
+            elif video_path.is_file():
                 console.print(f"[bold magenta]🎥 Publishing 9:16 Reel to Instagram (@neubench) & Threads...[/bold magenta]")
                 r_ok, r_msg = ig.post_reel(str(video_path), reel_caption)
                 if r_ok:
@@ -318,7 +338,7 @@ class StudioEngine:
                 results["pinterest"] = True
             elif not pin.is_session_available():
                 console.print("[yellow]⚠️ Pinterest not authenticated. Set PINTEREST_COOKIES_BASE64.[/yellow]")
-            elif video_path.exists():
+            elif video_path.is_file():
                 console.print(f"[bold magenta]📌 Publishing Video Pin to Pinterest: {title[:50]}...[/bold magenta]")
                 p_ok, p_msg = pin.create_pin(
                     image_path=str(video_path),
@@ -396,7 +416,9 @@ class StudioEngine:
 
         vid_gen = VideoGenerator()
         v_res = vid_gen.generate_dynamic_explainer(topic, dry_run=self.dry_run)
-        vpath = Path(v_res.get("video_path") or "")
+        vpath = self._rendered_video_path(v_res, "YouTube explainer")
+        if vpath is None:
+            return False
         srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
         chapters = v_res.get("chapters", [
             "00:00 Introduction & Architectural Context",
@@ -501,7 +523,10 @@ class StudioEngine:
         Publishes only on alternate days (>= 2 days since the last explainer).
         """
         console.print("\n[bold magenta]📅 Long-Form Explainer Slot Triggered...[/bold magenta]")
-        if not self.is_alternate_day_for_explainer():
+        alternate_day = self.is_alternate_day_for_explainer()
+        if alternate_day is None:
+            return {"published": False, "reason": "invalid_history"}
+        if not alternate_day:
             console.print("[yellow]⏳ Not an alternate day - skipping long video slot.[/yellow]")
             return {"published": False, "reason": "not_alternate_day"}
 
@@ -517,7 +542,9 @@ class StudioEngine:
         title = topic.get("title", "AI Concept")
         vid_gen = VideoGenerator()
         v_res = vid_gen.generate_dynamic_short(topic, dry_run=self.dry_run)
-        vpath = Path(v_res.get("video_path") or "")
+        vpath = self._rendered_video_path(v_res, "YouTube Short")
+        if vpath is None:
+            return False
         srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
         if self.dry_run:
             console.print(f"[yellow][DRY RUN] Would publish YouTube Short: {title}[/yellow]")
@@ -544,7 +571,9 @@ class StudioEngine:
         title = topic.get("title", "AI Concept")
         vid_gen = VideoGenerator()
         v_res = vid_gen.generate_dynamic_short(topic, dry_run=self.dry_run)
-        vpath = Path(v_res.get("video_path") or "")
+        vpath = self._rendered_video_path(v_res, "Instagram Reel")
+        if vpath is None:
+            return False
         if self.dry_run:
             console.print(f"[yellow][DRY RUN] Would publish Instagram Reel: {title}[/yellow]")
             return True
@@ -564,7 +593,9 @@ class StudioEngine:
         title = topic.get("title", "AI Concept")
         vid_gen = VideoGenerator()
         v_res = vid_gen.generate_dynamic_short(topic, dry_run=self.dry_run)
-        vpath = Path(v_res.get("video_path") or "")
+        vpath = self._rendered_video_path(v_res, "Pinterest video pin")
+        if vpath is None:
+            return False
         if self.dry_run:
             console.print(f"[yellow][DRY RUN] Would publish Pinterest Pin: {title}[/yellow]")
             return True

@@ -4,9 +4,7 @@ Runs continuously and triggers scheduled posts at specific times.
 Works like X automater - keeps running even if you close the terminal.
 """
 import sys
-import os
 import time
-import json
 import schedule
 import subprocess
 from pathlib import Path
@@ -16,6 +14,7 @@ from rich.console import Console
 console = Console()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+LOG_FILE = BASE_DIR / "output" / "automation.log"
 
 REELS_SHORT_TIMES = ["17:15", "19:15"]  # 5:15 PM and 7:15 PM daily
 EXPLAINER_TIME = "21:15"  # 9:15 PM on alternate days
@@ -25,7 +24,6 @@ class AutomationDaemon:
         self.dry_run = dry_run
         self.reels_times_run_today = set()
         self.last_explainer_run = None
-        self.history_file = BASE_DIR / "studio_history.json"
         self._setup_schedule()
 
     def _setup_schedule(self):
@@ -35,26 +33,67 @@ class AutomationDaemon:
         schedule.every().day.at(EXPLAINER_TIME).do(self._run_explainer)
         console.print(f"[green]✅ Scheduled Explainer at {EXPLAINER_TIME} (alternate days)[/green]")
 
-    def _is_alternate_day(self) -> bool:
+    def _run_pipeline(self, action: str, timeout: int) -> bool:
+        now = datetime.now()
+        timestamp = now.strftime("%Y-%m-%d %I:%M:%S %p")
+        label = "Explainer" if action == "schedule-explainer" else "Reels/Shorts"
+        console.print(f"\n[bold cyan]⏰ [{now.strftime('%I:%M %p')}] Running scheduled {label} pipeline...[/bold cyan]")
+        cmd = [sys.executable, str(BASE_DIR / "main.py"), action]
+        if self.dry_run:
+            cmd.append("--dry-run")
+
         try:
-            if self.history_file.exists():
-                with open(self.history_file, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                events = data.get("events", [])
-                last_explainer = None
-                for event in reversed(events):
-                    if event.get("type") == "explainer_video":
-                        last_explainer = event.get("time", "")
-                        break
-                if last_explainer:
-                    last_dt = datetime.strptime(last_explainer, "%Y-%m-%d %I:%M %p")
-                    today = datetime.now()
-                    days_diff = (today.date() - last_dt.date()).days
-                    return days_diff >= 2
-                return True
-        except Exception:
-            return True
-        return True
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                cwd=str(BASE_DIR),
+                timeout=timeout,
+            )
+        except subprocess.TimeoutExpired as exc:
+            output = exc.stdout or ""
+            errors = exc.stderr or ""
+            if isinstance(output, bytes):
+                output = output.decode("utf-8", errors="replace")
+            if isinstance(errors, bytes):
+                errors = errors.decode("utf-8", errors="replace")
+            self._write_run_log(timestamp, action, output, errors, "Timed out")
+            console.print(f"[red]❌ {label} timed out after {timeout} seconds. See {LOG_FILE}[/red]")
+            return False
+        except OSError as exc:
+            self._write_run_log(timestamp, action, "", str(exc), "Could not start")
+            console.print(f"[red]❌ Could not start {label}: {exc}. See {LOG_FILE}[/red]")
+            return False
+
+        status = "Succeeded" if result.returncode == 0 else f"Failed (exit code {result.returncode})"
+        self._write_run_log(timestamp, action, result.stdout, result.stderr, status)
+        if result.returncode == 0:
+            console.print(f"[bold green]✅ {label} completed at {now.strftime('%I:%M %p')}[/bold green]")
+        else:
+            console.print(f"[red]❌ {label} failed with exit code {result.returncode}. See {LOG_FILE}[/red]")
+        if result.stdout:
+            console.print(result.stdout[-500:] if len(result.stdout) > 500 else result.stdout)
+        if result.stderr:
+            console.print(f"[red]{result.stderr[-500:]}[/red]")
+        return result.returncode == 0
+
+    @staticmethod
+    def _write_run_log(timestamp: str, action: str, stdout: str, stderr: str, status: str):
+        try:
+            LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+            with LOG_FILE.open("a", encoding="utf-8") as log:
+                log.write(f"\n[{timestamp}] {action}: {status}\n")
+                if stdout:
+                    log.write(stdout)
+                    if not stdout.endswith("\n"):
+                        log.write("\n")
+                if stderr:
+                    log.write("[stderr]\n")
+                    log.write(stderr)
+                    if not stderr.endswith("\n"):
+                        log.write("\n")
+        except OSError as exc:
+            console.print(f"[red]❌ Could not write automation log {LOG_FILE}: {exc}[/red]")
 
     def _run_reels_shorts(self):
         now_str = datetime.now().strftime("%H:%M")
@@ -66,42 +105,13 @@ class AutomationDaemon:
             self.reels_times_run_today.clear()
         self._reels_day = today
         self.reels_times_run_today.add(now_str)
-        now = datetime.now().strftime("%I:%M %p")
-        console.print(f"\n[bold cyan]⏰ [{now}] Running scheduled Reels/Shorts pipeline...[/bold cyan]")
-        cmd = [sys.executable, str(BASE_DIR / "main.py"), "schedule-reels-shorts"]
-        if self.dry_run:
-            cmd.append("--dry-run")
-        try:
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(BASE_DIR), timeout=600)
-            console.print(f"[bold green]✅ Reels/Shorts completed at {now}[/bold green]")
-            if result.stdout:
-                console.print(result.stdout[-500:] if len(result.stdout) > 500 else result.stdout)
-        except subprocess.TimeoutExpired:
-            console.print("[red]❌ Reels/Shorts timed out[/red]")
-        except Exception as e:
-            console.print(f"[red]❌ Reels/Shorts error: {e}[/red]")
+        self._run_pipeline("schedule-reels-shorts", 600)
 
     def _run_explainer(self):
-        now = datetime.now().strftime("%I:%M %p")
         today = datetime.now().strftime("%Y-%m-%d")
         if self.last_explainer_run == today:
             return
-        if not self._is_alternate_day():
-            console.print(f"[yellow]⚠️ [{now}] Not an alternate day - skipping explainer[/yellow]")
-            return
-        console.print(f"\n[bold magenta]⏰ [{now}] Running scheduled Explainer pipeline...[/bold magenta]")
-        cmd = [sys.executable, str(BASE_DIR / "main.py"), "schedule-explainer"]
-        if self.dry_run:
-            cmd.append("--dry-run")
-        try:
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(BASE_DIR), timeout=900)
-            console.print(f"[bold green]✅ Explainer completed at {now}[/bold green]")
-            if result.stdout:
-                console.print(result.stdout[-500:] if len(result.stdout) > 500 else result.stdout)
-        except subprocess.TimeoutExpired:
-            console.print("[red]❌ Explainer timed out[/red]")
-        except Exception as e:
-            console.print(f"[red]❌ Explainer error: {e}[/red]")
+        self._run_pipeline("schedule-explainer", 900)
         self.last_explainer_run = today
 
     def run(self):
@@ -124,8 +134,18 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description="Media Studio Automation Daemon")
     parser.add_argument("--dry-run", action="store_true", help="Run in simulation mode")
+    parser.add_argument(
+        "action",
+        nargs="?",
+        choices=("schedule-reels-shorts", "schedule-explainer"),
+        help="Run one scheduled pipeline and exit instead of starting the daemon",
+    )
     args = parser.parse_args()
     daemon = AutomationDaemon(dry_run=args.dry_run)
+    if args.action == "schedule-reels-shorts":
+        sys.exit(0 if daemon._run_pipeline(args.action, 600) else 1)
+    if args.action == "schedule-explainer":
+        sys.exit(0 if daemon._run_pipeline(args.action, 900) else 1)
     daemon.run()
 
 if __name__ == "__main__":
