@@ -43,19 +43,24 @@ class VideoGenerator:
         self.ffmpeg_bin = shutil.which("ffmpeg") or r"C:\Users\vivek\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-9.0.2-full_build\bin\ffmpeg.exe"
         self.ffprobe_bin = shutil.which("ffprobe") or r"C:\Users\vivek\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-9.0.2-full_build\bin\ffprobe.exe"
         
-        # Locate local HyperFrames binary
-        local_hf = self.base_dir / "node_modules" / ".bin" / "hyperframes.cmd"
+        # Locate local HyperFrames binary (cross-platform Windows & Linux)
+        local_hf_cmd = self.base_dir / "node_modules" / ".bin" / "hyperframes.cmd"
+        local_hf_sh = self.base_dir / "node_modules" / ".bin" / "hyperframes"
         global_hf = shutil.which("hyperframes")
         fallback_hf = Path(r"E:\Projects\yt auto\ai-explainer-studio\node_modules\.bin\hyperframes.cmd")
-        
-        if local_hf.exists():
-            self.hyperframes_bin = str(local_hf)
+
+        if local_hf_cmd.exists():
+            self.hyperframes_cmd = [str(local_hf_cmd)]
+        elif local_hf_sh.exists():
+            self.hyperframes_cmd = [str(local_hf_sh)]
         elif global_hf:
-            self.hyperframes_bin = global_hf
+            self.hyperframes_cmd = [global_hf]
         elif fallback_hf.exists():
-            self.hyperframes_bin = str(fallback_hf)
+            self.hyperframes_cmd = [str(fallback_hf)]
         else:
-            self.hyperframes_bin = "npx hyperframes"
+            npx_bin = shutil.which("npx") or "npx"
+            self.hyperframes_cmd = [npx_bin, "hyperframes"]
+        self.hyperframes_bin = self.hyperframes_cmd[0]
 
     def _get_audio_duration(self, audio_path: str) -> float:
         """Determines duration in seconds of the synthesized audio file."""
@@ -163,8 +168,8 @@ class VideoGenerator:
 
     def _render_hyperframes(self, comp_dir: Path, output_mp4: str) -> bool:
         """Renders composition directory using HyperFrames."""
-        cmd = [
-            self.hyperframes_bin, "render",
+        cmd = self.hyperframes_cmd + [
+            "render",
             str(comp_dir),
             "-o", str(output_mp4),
             "-q", "standard"
