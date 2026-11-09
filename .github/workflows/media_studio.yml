@@ -93,7 +93,7 @@ jobs:
       - name: Execute Media Studio Production & Broadcast
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL: 'gemini-3.8-flash'
+          GEMINI_MODEL: 'gemini-3.5-flash'
           YOUTUBE_TOKEN_BASE64: ${{ secrets.YOUTUBE_TOKEN_BASE64 }}
           INSTAGRAM_COOKIES_BASE64: ${{ secrets.INSTAGRAM_COOKIES_BASE64 }}
           PINTEREST_COOKIES_BASE64: ${{ secrets.PINTEREST_COOKIES_BASE64 }}

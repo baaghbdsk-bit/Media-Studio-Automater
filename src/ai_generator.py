@@ -150,9 +150,10 @@ def _clamp_text(value: object, limit: int, strip_urls: bool = True) -> str:
 
 
 FALLBACK_MODELS = [
-    config.GEMINI_MODEL,
+    getattr(config, "GEMINI_MODEL", "gemini-3.5-flash"),
     "gemini-3.5-flash-lite",
-    "gemini-flash-latest"
+    "gemini-flash-lite-latest",
+    "gemini-3.1-flash-lite",
 ]
 
 class AIGenerator:

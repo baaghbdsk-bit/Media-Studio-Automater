@@ -787,23 +787,34 @@ class TrendHunter:
             if getattr(config, "GEMINI_API_KEY", ""):
                 from google import genai
                 client = genai.Client(api_key=config.GEMINI_API_KEY)
-                model_name = getattr(config, "GEMINI_MODEL", "gemini-3.8-flash")
+                primary_model = getattr(config, "GEMINI_MODEL", "gemini-3.5-flash")
+                candidate_models = [primary_model, "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.1-flash-lite"]
+                models_to_try = []
+                for m in candidate_models:
+                    if m and m not in models_to_try:
+                        models_to_try.append(m)
+
                 prompt = self._build_topic_prompt(audience, pillar, n_acts, used_topics, exclude_series)
-                res = client.models.generate_content(model=model_name, contents=prompt)
-                txt = (getattr(res, "text", "") or "").strip()
-                if "```json" in txt:
-                    txt = txt.split("```json")[1].split("```")[0].strip()
-                elif "```" in txt:
-                    txt = txt.split("```")[1].split("```")[0].strip()
-                data = json.loads(txt)
-                validated = self._validate_topic(
-                    data, audience, pillar, n_acts, used_topics, exclude_series)
-                if validated:
-                    print(f"[TrendHunter] Gemini wrote a fresh {audience} topic: {validated['title']}")
-                    return validated
-                print("[TrendHunter] Gemini topic rejected by the duplicate or quality guard.")
+                for model_name in models_to_try:
+                    try:
+                        res = client.models.generate_content(model=model_name, contents=prompt)
+                        txt = (getattr(res, "text", "") or "").strip()
+                        if "```json" in txt:
+                            txt = txt.split("```json")[1].split("```")[0].strip()
+                        elif "```" in txt:
+                            txt = txt.split("```")[1].split("```")[0].strip()
+                        data = json.loads(txt)
+                        validated = self._validate_topic(
+                            data, audience, pillar, n_acts, used_topics, exclude_series)
+                        if validated:
+                            print(f"[TrendHunter] Gemini ({model_name}) wrote a fresh {audience} topic: {validated['title']}")
+                            return validated
+                        print(f"[TrendHunter] Gemini ({model_name}) topic rejected by the duplicate or quality guard.")
+                    except Exception as model_exc:
+                        print(f"[TrendHunter] Gemini ({model_name}) skipped: {model_exc}")
+                        continue
         except Exception as exc:
-            print(f"[TrendHunter] Gemini topic generation skipped: {exc}")
+            print(f"[TrendHunter] Gemini topic generation error: {exc}")
 
         from src import curriculum
         fallback = curriculum.pick_fallback(

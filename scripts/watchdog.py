@@ -1,8 +1,8 @@
 """
 Media Studio Self-Healing Watchdog.
 Runs every 2 hours to verify that daily scheduled broadcasts are on track.
-If GitHub Actions dropped a scheduled cron run, the watchdog automatically
-detects the gap and triggers a catch-up broadcast.
+If GitHub Actions dropped a scheduled cron run, or a run hung, the watchdog
+automatically detects the gap, self-heals stuck runs, and triggers a catch-up broadcast.
 """
 import sys
 import json
@@ -23,21 +23,59 @@ def ist_now() -> datetime:
 def is_run_in_progress() -> bool:
     try:
         res = subprocess.run(
-            ["gh", "run", "list", "--workflow", "media_studio.yml", "-L", "5", "--json", "status"],
+            ["gh", "run", "list", "--workflow", "media_studio.yml", "-L", "5", "--json", "databaseId,status,createdAt"],
             capture_output=True,
             text=True
         )
         if res.returncode == 0:
             runs = json.loads(res.stdout)
+            now_utc = datetime.now(timezone.utc)
             for r in runs:
                 if r.get("status") in ("in_progress", "queued", "waiting"):
+                    # Check age: if queued or running for > 45 minutes, auto-heal/cancel the stuck run
+                    created_at = r.get("createdAt")
+                    if created_at:
+                        try:
+                            dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                            age_mins = (now_utc - dt).total_seconds() / 60.0
+                            if age_mins > 45:
+                                run_id = r.get("databaseId")
+                                print(f"[Watchdog] ⚠️ Run #{run_id} has been hung for {age_mins:.0f}m. Auto-cancelling stuck run...")
+                                subprocess.run(["gh", "run", "cancel", str(run_id)], capture_output=True)
+                                continue
+                        except Exception:
+                            pass
                     return True
     except Exception as e:
         print(f"[Watchdog] Warning checking active runs: {e}")
     return False
 
 def get_last_successful_run_time():
-    # 1. Check GitHub Action runs
+    # 1. Primary: Check studio_history.json for actual published video timestamps
+    history_file = Path(__file__).resolve().parent.parent / "studio_history.json"
+    if history_file.exists():
+        try:
+            with open(history_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            log = data.get("topic_log", [])
+            for entry in reversed(log):
+                t_str = entry.get("time")
+                if t_str and "T" in t_str:
+                    return datetime.fromisoformat(t_str.replace("Z", "+00:00"))
+            # Check events for published items
+            events = data.get("events", [])
+            for ev in reversed(events):
+                if ev.get("type") in ("video_broadcast", "explainer_video"):
+                    details = ev.get("details", {})
+                    if any(details.get(p) for p in ("youtube", "instagram_reel", "pinterest")):
+                        t_str = ev.get("time")
+                        if t_str:
+                            dt_ist = datetime.strptime(t_str, "%Y-%m-%d %I:%M %p")
+                            return dt_ist.replace(tzinfo=timezone(timedelta(hours=5, minutes=30))).astimezone(timezone.utc)
+        except Exception as e:
+            print(f"[Watchdog] Warning reading studio_history.json: {e}")
+
+    # 2. Secondary fallback: check GitHub Action runs
     try:
         res = subprocess.run(
             ["gh", "run", "list", "--workflow", "media_studio.yml", "--status", "success", "-L", "1", "--json", "createdAt"],
@@ -52,19 +90,6 @@ def get_last_successful_run_time():
     except Exception as e:
         print(f"[Watchdog] Warning checking last successful run: {e}")
 
-    # 2. Fallback to studio_history.json topic_log
-    history_file = Path(__file__).resolve().parent.parent / "studio_history.json"
-    if history_file.exists():
-        try:
-            with open(history_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            log = data.get("topic_log", [])
-            for entry in reversed(log):
-                t_str = entry.get("time")
-                if t_str and "T" in t_str:
-                    return datetime.fromisoformat(t_str)
-        except Exception:
-            pass
     return None
 
 def check_and_heal():
@@ -84,7 +109,7 @@ def check_and_heal():
     if last_run_utc:
         last_run_ist = last_run_utc + timedelta(hours=5, minutes=30)
         hours_since = (now_utc - last_run_utc).total_seconds() / 3600.0
-        print(f"[Watchdog] Last successful broadcast: {last_run_ist.strftime('%Y-%m-%d %I:%M %p')} IST ({hours_since:.1f} hours ago)")
+        print(f"[Watchdog] Last verified published video: {last_run_ist.strftime('%Y-%m-%d %I:%M %p')} IST ({hours_since:.1f} hours ago)")
     else:
         hours_since = 999.0
         print("[Watchdog] No previous successful broadcast found.")
