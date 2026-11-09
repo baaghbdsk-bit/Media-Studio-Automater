@@ -1,0 +1,27 @@
+{
+  "name": "media-studio-automater",
+  "version": "1.0.0",
+  "description": "Autonomous high-production visual and video studio engine for **YouTube Shorts**, **Instagram Reels**, **Instagram Carousels**, and **Pinterest**.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/baaghbdsk-bit/Media-Studio-Automater.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/baaghbdsk-bit/Media-Studio-Automater/issues"
+  },
+  "homepage": "https://github.com/baaghbdsk-bit/Media-Studio-Automater#readme",
+  "dependencies": {
+    "hyperframes": "^0.9.26"
+  }
+}

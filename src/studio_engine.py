@@ -238,20 +238,12 @@ class StudioEngine:
         pro_tip = topic.get("pro_tip", "")
         console.print(f"[bold magenta]🎬 Studio Topic Selected: {title}[/bold magenta]")
 
-        # 1. Render Technical Explainer Video (1 to 3 mins) with Manim fallback
-        console.print("[cyan]⏳ Synthesizing Technical Explainer 3D video...[/cyan]")
-        try:
-            from src.technical_explainer import TechnicalExplainerStudio
-            studio = TechnicalExplainerStudio(fps=24)
-            p_res = studio.generate_explainer_video(topic)
-            video_path = Path(p_res.get("video_path") or "")
-            srt_path = Path(p_res.get("srt_path") or "") if p_res.get("srt_path") else None
-        except Exception as p_err:
-            console.print(f"[yellow]⚠️ Technical Explainer note: {p_err}. Falling back to Manim engine...[/yellow]")
-            vid_gen = VideoGenerator()
-            v_res = vid_gen.generate_dynamic_short(topic, dry_run=self.dry_run)
-            video_path = Path(v_res.get("video_path") or "")
-            srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
+        # 1. Render Technical Explainer Video (9:16 Shorts/Reel) with Cinematic Engine
+        console.print("[cyan]⏳ Synthesizing Technical Explainer 9:16 video (HyperFrames + Edge-TTS)...[/cyan]")
+        vid_gen = VideoGenerator()
+        v_res = vid_gen.generate_dynamic_short(topic, dry_run=self.dry_run)
+        video_path = Path(v_res.get("video_path") or "")
+        srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
 
         # 2. Publish to YouTube Shorts
         try:
@@ -402,29 +394,17 @@ class StudioEngine:
             console.print(f"[yellow][DRY RUN] Would publish 16:9 YouTube Explainer: {title}[/yellow]")
             return True
 
-        try:
-            from src.technical_explainer import TechnicalExplainerStudio
-            studio = TechnicalExplainerStudio(fps=24)
-            v_res = studio.generate_long_explainer_video(topic)
-            vpath = Path(v_res.get("video_path") or "")
-            srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
-            chapters = v_res.get("chapters", [])
-        except Exception as long_err:
-            console.print(
-                f"[yellow]⚠️ Long-form motion engine note: {long_err}. "
-                "Falling back to Manim engine...[/yellow]"
-            )
-            vid_gen = VideoGenerator()
-            v_res = vid_gen.generate_dynamic_explainer(topic, dry_run=self.dry_run)
-            vpath = Path(v_res.get("video_path") or "")
-            srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
-            chapters = v_res.get("chapters", [
-                "00:00 Introduction & The Scaling Dilemma",
-                "01:45 Formal Mathematical Decomposition",
-                "03:30 Dynamic Tensor Routing & SRAM Tiles",
-                "05:15 Hardware Profiling & Compute Efficiency",
-                "07:00 NeuBench Benchmarks & Production Rules"
-            ])
+        vid_gen = VideoGenerator()
+        v_res = vid_gen.generate_dynamic_explainer(topic, dry_run=self.dry_run)
+        vpath = Path(v_res.get("video_path") or "")
+        srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
+        chapters = v_res.get("chapters", [
+            "00:00 Introduction & Architectural Context",
+            "01:45 Formal Mathematical Decomposition",
+            "03:30 Dynamic Tensor Routing & Memory Hierarchy",
+            "05:15 Hardware Profiling & Compute Efficiency",
+            "07:00 Production Rules & Benchmarks"
+        ])
 
         yt = YouTubeAutomater()
         if not yt.is_authenticated:
