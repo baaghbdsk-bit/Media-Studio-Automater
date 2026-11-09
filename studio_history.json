@@ -11,7 +11,8 @@
     "Multi-Head Latent Attention: Compressing KV Cache via Low-Rank Joint Compression",
     "FlashAttention-3: Asynchronous TMA and Ping-Pong Warpgroup Pipelining",
     "Indirect Prompt Injection: How Untrusted Web Text Hijacks AI Agents",
-    "Speculative Decoding: How Tiny AI Models Speed Up Giant Chatbots"
+    "Speculative Decoding: How Tiny AI Models Speed Up Giant Chatbots",
+    "How Gradient Inversion Reconstructs Raw Training Data from Model Updates"
   ],
   "events": [
     {
@@ -131,6 +132,17 @@
       "details": {
         "slot": "19:30 IST"
       }
+    },
+    {
+      "time": "2026-11-09 12:56 PM",
+      "type": "video_broadcast",
+      "title": "How Gradient Inversion Reconstructs Raw Training Data from Model Updates",
+      "details": {
+        "youtube": true,
+        "instagram_reel": false,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -209,9 +221,18 @@
       "pillar": "ai_systems",
       "long_form": false,
       "time": "2026-11-08T11:01:20+00:00"
+    },
+    {
+      "title": "How Gradient Inversion Reconstructs Raw Training Data from Model Updates",
+      "series": "federated-learning-security",
+      "audience": "advanced",
+      "pillar": "security",
+      "long_form": false,
+      "time": "2026-11-09T12:56:33+00:00"
     }
   ],
   "youtube_units": {
-    "2026-11-08": 4000
+    "2026-11-08": 4000,
+    "2026-11-09": 2000
   }
 }
