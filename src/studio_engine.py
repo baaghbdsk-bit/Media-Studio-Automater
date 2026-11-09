@@ -485,10 +485,13 @@ class StudioEngine:
         report: Dict[str, Any] = {"broadcast_results": {}}
         console.print("\n[bold cyan]⏰ Scheduled Autopilot Heartbeat Triggered...[/bold cyan]")
 
-        # Quota guard: on long-form days the 19:30 short is skipped so that
-        # 3 shorts (6,000 units) + 1 long upload (2,000 units) stay well below
-        # the 10,000 unit/day YouTube API ceiling.
-        if self._is_evening_short_slot() and self.is_alternate_day_for_explainer():
+        # Quota guard: on long-form days the evening short is skipped ONLY IF
+        # remaining daily budget is insufficient for both this short and tonight's long form.
+        if (
+            self._is_evening_short_slot()
+            and self.is_alternate_day_for_explainer()
+            and (self._youtube_budget_left() < (self.YOUTUBE_UPLOAD_UNITS * 2))
+        ):
             console.print(
                 "[yellow]🛡️ 19:30 IST short skipped: quota reserved for tonight's "
                 "21:30 IST long-form upload.[/yellow]"
