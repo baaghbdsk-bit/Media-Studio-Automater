@@ -54,6 +54,8 @@ class InstagramAutomater:
             "post shared",
             "reel shared",
             "shared",
+            "view post",
+            "view reel",
         )
         while time.time() < deadline:
             try:
@@ -430,9 +432,18 @@ class InstagramAutomater:
                 except Exception:
                     share_btn.click(force=True)
 
-                # 8. Await post confirmation
-                print("[InstagramAutomater] Waiting for Reel upload confirmation...")
-                if not self._await_share_confirmation(page, 60000):
+                # Handle potential "Video posts are now shared as reels" intermediate confirmation
+                try:
+                    reels_modal = page.locator('div[role="dialog"] button:has-text("OK"), div[role="dialog"] button:has-text("Continue")').first
+                    if reels_modal.is_visible(timeout=2500):
+                        reels_modal.click()
+                        page.wait_for_timeout(1000)
+                except Exception:
+                    pass
+
+                # 8. Await post confirmation (up to 120s for video transcoding & upload)
+                print("[InstagramAutomater] Waiting for Reel upload confirmation (up to 120s)...")
+                if not self._await_share_confirmation(page, 120000):
                     self.last_outcome_unknown = True
                     self.last_message = "Instagram Reel submission was not confirmed; retry blocked."
                     return False, self.last_message

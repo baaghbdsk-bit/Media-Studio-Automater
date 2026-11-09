@@ -202,37 +202,37 @@ class VideoGenerator:
         takeaway = str(topic_data.get("takeaway") or "").strip()
         example = str(topic_data.get("example") or "").strip()
 
-        # 1. Curious Hook (Anchor) - zero technical jargon
+        # 1. Curious Everyday Context & Hook (Anchor) - zero technical jargon, child-friendly
         if not hook:
-            hook = f"Have you ever wondered what actually makes {title} work without melting the computer?"
+            hook = f"Have you ever wondered how computers actually do {title} without getting completely confused?"
 
         # 2. Everyday Metaphor (Relatable Physical World)
         if not analogy:
-            analogy = f"Think of it like a smart triage desk: instead of having 100 specialists all examine one patient, a quick assessment sends you directly to the exact two doctors you need."
+            analogy = f"Think of it like building with toy blocks: instead of dumping the whole box at once, you find the right pieces and snap them together step by step."
 
-        # 3. Tangible Problem (Detailed Why-It-Breaks)
+        # 3. Tangible Problem (Detailed Why-It-Breaks in simple human terms)
         if not problem:
-            problem = f"Without this, systems get completely overwhelmed. Every single task forces every component to fire at once, wasting massive electricity and grinding everything to a halt."
+            problem = f"Before this existed, computers had to guess everything word-by-word. It was like a slow reader who forgets the beginning of a sentence before reaching the end!"
 
-        # 4. Technical Unlock (The Solution)
+        # 4. Technical Unlock (The Solution in simple terms)
         if not solution:
-            solution = f"That is why engineers created {title}. It routes information dynamically through specialized pipelines, activating only the relevant parts on demand."
+            solution = f"That is why scientists created {title}. It gives the computer magic glasses to look at the whole picture at once, connecting all the pieces instantly."
 
         # 5. Core Takeaway (The 'Aha!' Rule)
         if not takeaway:
-            takeaway = f"You get the capability of a massive system with the speed and efficiency of a tiny one."
+            takeaway = f"Now you know: smart connections make things fast and clear."
 
         if not pro_tip:
-            pro_tip = f"Always benchmark real latency under load rather than relying on theoretical peaks."
+            pro_tip = f"Remember: the best technology always solves a simple human problem."
 
-        # Spoken narration designed for natural speech (120-140 words, ~55-60 seconds)
+        # Spoken narration designed for natural child-friendly speech (120-140 words, ~55-60 seconds)
         narration = (
             f"{hook} "
-            f"{analogy} "
-            f"Here is the detailed problem: {problem} "
-            f"This is where {title} changes the game: {solution} "
-            f"The core takeaway? {takeaway} {pro_tip} "
-            f"Stay curious, and follow for more tech breakdowns."
+            f"Here is the simple way to think about it: {analogy} "
+            f"Before this existed, {problem} "
+            f"That is why {title} was invented: {solution} "
+            f"So the big takeaway? {takeaway} {pro_tip} "
+            f"Stay curious, and follow for more simple tech breakdowns!"
         )
 
         return {

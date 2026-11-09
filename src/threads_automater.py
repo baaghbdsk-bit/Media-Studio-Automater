@@ -182,11 +182,20 @@ class ThreadsAutomater:
 
                 page.goto("https://www.threads.net/", wait_until="domcontentloaded", timeout=40000)
 
-                page.wait_for_timeout(6000)
+                page.wait_for_timeout(5000)
                 if "login" in page.url.lower():
                     return False, "Threads session expired or requires login."
 
-
+                # Dismiss cookie dialog if present
+                try:
+                    for c_sel in ['button:has-text("Allow all cookies")', 'button:has-text("Accept all")', 'button:has-text("Decline optional cookies")', 'div[role="button"]:has-text("Allow")']:
+                        cb = page.locator(c_sel).first
+                        if cb.is_visible(timeout=1500):
+                            cb.click()
+                            page.wait_for_timeout(1000)
+                            break
+                except Exception:
+                    pass
 
                 # Open composer with robust multi-selector fallback
                 trigger = None

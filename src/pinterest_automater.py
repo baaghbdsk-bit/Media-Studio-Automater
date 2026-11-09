@@ -127,11 +127,13 @@ class PinterestAutomater:
                     pass
                 title_ready = False
                 title_selectors = [
-                    "input[placeholder*='title' i]:not([disabled])",
                     "#storyboard-selector-title:not([disabled])",
+                    "[data-test-id='storyboard-selector-title']",
+                    "input[placeholder*='title' i]:not([type='checkbox']):not([type='file'])",
                     "input[type='text']:not([disabled])",
+                    "textarea[placeholder*='title' i]",
+                    'div[role="textbox"][aria-label*="title" i]',
                     'div[role="textbox"]:not([disabled])',
-                    "input:not([disabled])",
                 ]
                 for t_sel in title_selectors:
                     try:
@@ -152,16 +154,20 @@ class PinterestAutomater:
                     try:
                         cand = page.locator(t_sel).first
                         if cand.count() > 0 and cand.is_visible(timeout=3000):
-                            title_input = cand
-                            break
+                            i_type = (cand.get_attribute("type") or "").lower()
+                            if i_type not in ("checkbox", "radio", "file", "hidden"):
+                                title_input = cand
+                                break
                     except Exception:
                         continue
                 if title_input is None:
-                    # Last resort: first enabled textbox/text input
                     try:
-                        title_input = page.get_by_role("textbox").first
-                        if title_input.count() == 0 or not title_input.is_visible(timeout=3000):
-                            title_input = page.locator("input[type='text']").first
+                        for cand in page.locator("input[type='text'], textarea, [role='textbox']").all():
+                            if cand.is_visible():
+                                i_type = (cand.get_attribute("type") or "").lower()
+                                if i_type not in ("checkbox", "radio", "file", "hidden"):
+                                    title_input = cand
+                                    break
                     except Exception:
                         title_input = None
                 if title_input is not None:

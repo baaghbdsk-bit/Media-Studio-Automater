@@ -192,18 +192,18 @@ class StudioEngine:
     def _slot_context(self, long_form: bool = False):
         """Deterministic audience/pillar rotation for the current IST slot."""
         now = self._ist_now()
+        # All slots adopt the Child-Friendly / ELI5 philosophy
         if long_form:
-            pillars = ("engineering", "ai_systems", "career")
-            audiences = ("advanced", "intermediate", "advanced")
+            pillars = ("foundations", "ai_systems", "engineering")
             idx = now.toordinal() % 3
-            return audiences[idx], pillars[idx]
+            return "beginner", pillars[idx]
         if now.hour < 10:
             return "beginner", "foundations"
         if now.hour < 14:
-            return "intermediate", "engineering"
-        if now.hour < 18:
             return "beginner", "ai_systems"
-        return "advanced", "security"
+        if now.hour < 18:
+            return "beginner", "foundations"
+        return "beginner", "ai_systems"
 
     def _is_evening_short_slot(self) -> bool:
         return 18 <= self._ist_now().hour < 21
