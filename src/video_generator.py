@@ -186,17 +186,74 @@ class VideoGenerator:
             print(f"[VideoGenerator] HyperFrames execution note: {ex}")
         return False
 
+    def _compose_beginner_friendly_story(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Builds a 5-Act Beginner-Empathetic Explainer Story following the
+        Anchor -> Metaphor -> Bottleneck -> Unlock -> Takeaway (AMM) Framework.
+        Ensures anyone with zero technical background immediately grasps the core concept.
+        """
+        title = str(topic_data.get("title") or "Modern Computing Breakthrough").strip()
+        hook = str(topic_data.get("hook") or "").strip()
+        analogy = str(topic_data.get("analogy") or "").strip()
+        problem = str(topic_data.get("problem") or "").strip()
+        solution = str(topic_data.get("solution") or "").strip()
+        summary = str(topic_data.get("summary") or "").strip()
+        pro_tip = str(topic_data.get("pro_tip") or "").strip()
+        takeaway = str(topic_data.get("takeaway") or "").strip()
+        example = str(topic_data.get("example") or "").strip()
+
+        # 1. Curious Hook (Anchor) - zero technical jargon
+        if not hook:
+            hook = f"Have you ever wondered what actually makes {title} work without melting the computer?"
+
+        # 2. Everyday Metaphor (Relatable Physical World)
+        if not analogy:
+            analogy = f"Think of it like a smart triage desk: instead of having 100 specialists all examine one patient, a quick assessment sends you directly to the exact two doctors you need."
+
+        # 3. Tangible Problem (Detailed Why-It-Breaks)
+        if not problem:
+            problem = f"Without this, systems get completely overwhelmed. Every single task forces every component to fire at once, wasting massive electricity and grinding everything to a halt."
+
+        # 4. Technical Unlock (The Solution)
+        if not solution:
+            solution = f"That is why engineers created {title}. It routes information dynamically through specialized pipelines, activating only the relevant parts on demand."
+
+        # 5. Core Takeaway (The 'Aha!' Rule)
+        if not takeaway:
+            takeaway = f"You get the capability of a massive system with the speed and efficiency of a tiny one."
+
+        if not pro_tip:
+            pro_tip = f"Always benchmark real latency under load rather than relying on theoretical peaks."
+
+        # Spoken narration designed for natural speech (120-140 words, ~55-60 seconds)
+        narration = (
+            f"{hook} "
+            f"{analogy} "
+            f"Here is the detailed problem: {problem} "
+            f"This is where {title} changes the game: {solution} "
+            f"The core takeaway? {takeaway} {pro_tip} "
+            f"Stay curious, and follow for more tech breakdowns."
+        )
+
+        return {
+            "title": title,
+            "hook": hook,
+            "analogy": analogy,
+            "problem": problem,
+            "solution": solution,
+            "takeaway": takeaway,
+            "pro_tip": pro_tip,
+            "narration": narration
+        }
+
     def generate_dynamic_short(self, topic_data: Dict[str, Any], dry_run: bool = False) -> Dict[str, Optional[str]]:
         """
         Renders a full-production 9:16 Vertical (1080x1920) Cinematic Animation Short/Reel.
         Duration: 60 seconds.
+        Follows the Beginner-Friendly AMM Framework.
         """
-        title = topic_data.get("title", "AI Architecture Breakthrough")
-        summary = topic_data.get("summary", "Understanding modern artificial intelligence systems.")
-        problem = topic_data.get("problem", "Traditional architectures stall on memory bandwidth.")
-        solution = topic_data.get("solution", "Dynamic routing and memory optimization accelerate throughput.")
-        pro_tip = topic_data.get("pro_tip", "Always benchmark real latency on live multi-tenant workloads.")
-
+        story = self._compose_beginner_friendly_story(topic_data)
+        title = story["title"]
         slug = re.sub(r'[^a-zA-Z0-9]+', '_', title.lower()).strip('_')[:35]
         work_dir = self.output_dir / f"short_{slug}"
         work_dir.mkdir(parents=True, exist_ok=True)
@@ -214,29 +271,34 @@ class VideoGenerator:
                 "audio_path": audio_path
             }
 
-        narration_text = (
-            f"When an AI computes, {summary} "
-            f"Under legacy implementations, {problem} "
-            f"The breakthrough: {solution} "
-            f"Production rule: {pro_tip} "
-            f"Explore interactive benchmarks at app.neubench.workers.dev."
-        )
+        narration_text = story["narration"]
 
         try:
-            print(f"[VideoGenerator] 🎙️ Synthesizing multi-track master audio for '{title[:35]}'...")
+            print(f"[VideoGenerator] 🎙️ Synthesizing beginner-friendly voiceover for '{title[:35]}'...")
             total_dur = self._synthesize_voice_and_audio_suite(narration_text, audio_path, duration_target=60.0)
 
-            # Generate Subtitles
+            # Generate Subtitles for 5 Acts
+            act_dur = total_dur / 5.0
             sub_scenes = [
-                {"duration": total_dur * 0.22, "caption": f"{title}"},
-                {"duration": total_dur * 0.25, "caption": "The Core Hardware Bottleneck"},
-                {"duration": total_dur * 0.35, "caption": "The Architectural Unlock"},
-                {"duration": total_dur * 0.18, "caption": "Production Rule & NeuBench"}
+                {"duration": act_dur, "caption": f"{title}: The Big Question"},
+                {"duration": act_dur, "caption": "Real-World Metaphor"},
+                {"duration": act_dur, "caption": "The Hidden Bottleneck"},
+                {"duration": act_dur, "caption": "The Architectural Unlock"},
+                {"duration": act_dur, "caption": "Key Takeaway & Rule"}
             ]
             self._generate_srt_file(sub_scenes, srt_path)
 
-            # Build 9:16 Vertical HyperFrames Composition
-            comp_html = self._build_vertical_short_html(title, summary, problem, solution, pro_tip, total_dur)
+            # Build 9:16 Vertical HyperFrames Composition (5 Acts)
+            comp_html = self._build_vertical_short_html(
+                title=story["title"],
+                hook=story["hook"],
+                analogy=story["analogy"],
+                problem=story["problem"],
+                solution=story["solution"],
+                takeaway=story["takeaway"],
+                pro_tip=story["pro_tip"],
+                duration=total_dur
+            )
             index_path = work_dir / "index.html"
             with open(index_path, "w", encoding="utf-8") as f:
                 f.write(comp_html)
@@ -261,13 +323,10 @@ class VideoGenerator:
     def generate_dynamic_explainer(self, topic_data: Dict[str, Any], dry_run: bool = False) -> Dict[str, Optional[str]]:
         """
         Renders a full 16:9 Landscape (1920x1080) Documentary Explainer Video.
+        Follows the Beginner-Friendly AMM Framework with 5 Chapters.
         """
-        title = topic_data.get("title", "Frontier AI Architecture")
-        summary = topic_data.get("summary", "Complete engineering breakdown of frontier AI architectures.")
-        problem = topic_data.get("problem", "Memory bandwidth and parameter scaling bottlenecks.")
-        solution = topic_data.get("solution", "Mathematical formulation and architectural decomposition.")
-        pro_tip = topic_data.get("pro_tip", "Production rules for scaling and deployment.")
-
+        story = self._compose_beginner_friendly_story(topic_data)
+        title = story["title"]
         slug = re.sub(r'[^a-zA-Z0-9]+', '_', title.lower()).strip('_')[:35]
         work_dir = self.output_dir / f"explainer_{slug}"
         work_dir.mkdir(parents=True, exist_ok=True)
@@ -277,11 +336,11 @@ class VideoGenerator:
         srt_path = str(work_dir / f"explainer_subtitles_{slug}.srt")
 
         chapters = [
-            "00:00 Chapter 01: The Core Compute Dilemma",
-            "00:12 Chapter 02: Architectural Decomposition",
-            "00:24 Chapter 03: High-Dimensional Geometry",
-            "00:36 Chapter 04: Multi-Head Dynamic Routing",
-            "00:48 Chapter 05: Empirical Benchmarks & Production Rules"
+            "00:00 Chapter 01: The Curious Hook & Dilemma",
+            "00:12 Chapter 02: The Real-World Metaphor",
+            "00:24 Chapter 03: The Hidden Bottleneck",
+            "00:36 Chapter 04: The Architectural Unlock",
+            "00:48 Chapter 05: Core Takeaways & Benchmarks"
         ]
 
         if dry_run:
@@ -294,22 +353,23 @@ class VideoGenerator:
                 "chapters": chapters
             }
 
-        narration_text = (
-            f"When an artificial intelligence computes, it has never seen a single word. {summary} "
-            f"Chapter one: The hardware wall. {problem} "
-            f"Chapter two: Architectural solution. {solution} "
-            f"Chapter three: High-dimensional manifolds where direction equals meaning. "
-            f"Chapter four: Context resonance dynamically resolving ambiguity. "
-            f"Chapter five: Production rules. {pro_tip} "
-            f"Explore interactive benchmarks across frontier models at app.neubench.workers.dev."
-        )
+        narration_text = story["narration"]
 
         try:
             print(f"[VideoGenerator] 🎙️ Synthesizing Long-Form Explainer audio for '{title[:35]}'...")
             total_dur = self._synthesize_voice_and_audio_suite(narration_text, audio_path, duration_target=60.0)
 
-            # Build 16:9 Widescreen HyperFrames Composition
-            comp_html = self._build_widescreen_explainer_html(title, summary, problem, solution, pro_tip, total_dur)
+            # Build 16:9 Widescreen HyperFrames Composition (5 Chapters)
+            comp_html = self._build_widescreen_explainer_html(
+                title=story["title"],
+                hook=story["hook"],
+                analogy=story["analogy"],
+                problem=story["problem"],
+                solution=story["solution"],
+                takeaway=story["takeaway"],
+                pro_tip=story["pro_tip"],
+                duration=total_dur
+            )
             index_path = work_dir / "index.html"
             with open(index_path, "w", encoding="utf-8") as f:
                 f.write(comp_html)
@@ -333,8 +393,9 @@ class VideoGenerator:
             "chapters": chapters
         }
 
-    def _build_vertical_short_html(self, title: str, summary: str, problem: str, solution: str, pro_tip: str, duration: float) -> str:
-        """Generates full 9:16 Vertical (1080x1920) HyperFrames composition."""
+    def _build_vertical_short_html(self, title: str, hook: str, analogy: str, problem: str, solution: str, takeaway: str, pro_tip: str, duration: float) -> str:
+        """Generates full 9:16 Vertical (1080x1920) HyperFrames composition with 5 beginner-friendly scenes."""
+        act_dur = duration / 5.0
         return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -345,7 +406,7 @@ class VideoGenerator:
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
     body {{
       margin: 0; padding: 0; background: #020409; color: #f8fafc;
-      font-family: "Inter", sans-serif; overflow: hidden;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden;
     }}
     #root {{
       width: 1080px; height: 1920px; position: relative; overflow: hidden; background: #020409;
@@ -368,13 +429,13 @@ class VideoGenerator:
     }}
     .badge {{
       display: inline-flex; align-items: center; gap: 10px;
-      padding: 10px 24px; border-radius: 999px;
+      padding: 12px 28px; border-radius: 999px;
       background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.4);
       color: #38bdf8; font-size: 20px; font-weight: 700; letter-spacing: 0.14em;
       text-transform: uppercase; margin-bottom: 30px;
     }}
     .hero-title {{
-      font-size: 64px; font-weight: 900; line-height: 1.15; margin-bottom: 24px;
+      font-size: 58px; font-weight: 900; line-height: 1.15; margin-bottom: 24px;
       background: linear-gradient(135deg, #ffffff 40%, #cbd5e1 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }}
@@ -383,12 +444,12 @@ class VideoGenerator:
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }}
     .card {{
-      width: 100%; max-width: 900px; padding: 48px 40px; border-radius: 28px;
-      background: rgba(9, 14, 26, 0.85); border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 30px 80px rgba(0,0,0,0.7); text-align: left; margin-top: 30px;
+      width: 100%; max-width: 920px; padding: 44px 40px; border-radius: 28px;
+      background: rgba(9, 14, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.7); text-align: left; margin-top: 24px;
     }}
-    .card-title {{ font-size: 32px; font-weight: 800; color: #38bdf8; margin-bottom: 16px; }}
-    .card-body {{ font-size: 24px; color: #cbd5e1; line-height: 1.5; }}
+    .card-title {{ font-size: 28px; font-weight: 800; color: #38bdf8; margin-bottom: 16px; }}
+    .card-body {{ font-size: 24px; color: #cbd5e1; line-height: 1.55; }}
   </style>
 </head>
 <body>
@@ -396,30 +457,53 @@ class VideoGenerator:
     <audio id="narration" src="narration_master.wav" data-start="0" data-duration="{duration:.1f}" data-volume="1"></audio>
     <div class="bg-canvas clip" data-start="0" data-duration="{duration:.1f}"></div>
 
-    <div id="scene1" class="scene clip" data-start="0" data-duration="20" data-track-index="0">
-      <div class="badge"><span style="width:8px; height:8px; border-radius:50%; background:#38bdf8;"></span> ARCHITECTURE SHORT</div>
+    <!-- Act 1: The Curious Hook -->
+    <div id="scene1" class="scene clip" data-start="0" data-duration="{act_dur:.1f}" data-track-index="0">
+      <div class="badge"><span style="width:8px; height:8px; border-radius:50%; background:#38bdf8;"></span> THE BIG QUESTION</div>
       <h1 class="hero-title">{title}</h1>
       <div class="card">
-        <div class="card-title">Core Dilemma</div>
+        <div class="card-title">Ever Wondered?</div>
+        <div class="card-body">{hook}</div>
+      </div>
+    </div>
+
+    <!-- Act 2: Everyday Metaphor -->
+    <div id="scene2" class="scene clip" data-start="{act_dur:.1f}" data-duration="{act_dur:.1f}" data-track-index="0">
+      <div class="badge" style="border-color:#38bdf8; color:#38bdf8;">REAL-WORLD METAPHOR</div>
+      <h2 class="hero-title">Think Of It <span>Like This</span></h2>
+      <div class="card" style="border-color: rgba(56, 189, 248, 0.4);">
+        <div class="card-title" style="color:#38bdf8;">The Intuition</div>
+        <div class="card-body">{analogy}</div>
+      </div>
+    </div>
+
+    <!-- Act 3: Detailed Bottleneck -->
+    <div id="scene3" class="scene clip" data-start="{act_dur*2:.1f}" data-duration="{act_dur:.1f}" data-track-index="0">
+      <div class="badge" style="border-color:#f43f5e; color:#f43f5e;">THE HIDDEN PROBLEM</div>
+      <h2 class="hero-title">Why Naive Systems <span>Fail</span></h2>
+      <div class="card" style="border-color: rgba(244, 63, 94, 0.4);">
+        <div class="card-title" style="color:#f43f5e;">The Bottleneck</div>
         <div class="card-body">{problem}</div>
       </div>
     </div>
 
-    <div id="scene2" class="scene clip" data-start="20" data-duration="20" data-track-index="0">
+    <!-- Act 4: The Technical Unlock -->
+    <div id="scene4" class="scene clip" data-start="{act_dur*3:.1f}" data-duration="{act_dur:.1f}" data-track-index="0">
       <div class="badge" style="border-color:#c084fc; color:#c084fc;">THE BREAKTHROUGH</div>
-      <h2 class="hero-title">Architectural <span>Unlock</span></h2>
+      <h2 class="hero-title">How It <span>Actually Works</span></h2>
       <div class="card" style="border-color: rgba(192, 132, 252, 0.4);">
-        <div class="card-title" style="color:#c084fc;">Solution Formulation</div>
+        <div class="card-title" style="color:#c084fc;">The Mechanism</div>
         <div class="card-body">{solution}</div>
       </div>
     </div>
 
-    <div id="scene3" class="scene clip" data-start="40" data-duration="20" data-track-index="0">
-      <div class="badge" style="border-color:#34d399; color:#34d399;">PRODUCTION RULE</div>
-      <h2 class="hero-title">Deployment <span>Standard</span></h2>
+    <!-- Act 5: The 'Aha!' Takeaway -->
+    <div id="scene5" class="scene clip" data-start="{act_dur*4:.1f}" data-duration="{act_dur:.1f}" data-track-index="0">
+      <div class="badge" style="border-color:#34d399; color:#34d399;">KEY TAKEAWAY</div>
+      <h2 class="hero-title">What To <span>Remember</span></h2>
       <div class="card" style="border-color: rgba(52, 211, 153, 0.4);">
-        <div class="card-title" style="color:#34d399;">Engineering Standard</div>
-        <div class="card-body">{pro_tip}</div>
+        <div class="card-title" style="color:#34d399;">The Big Idea</div>
+        <div class="card-body">{takeaway}<br><br><span style="color:#38bdf8; font-weight:700;">💡 Rule:</span> {pro_tip}</div>
       </div>
     </div>
   </div>
@@ -427,19 +511,25 @@ class VideoGenerator:
   <script>
     window.__timelines = window.__timelines || {{}};
     const tl = gsap.timeline({{ paused: true }});
-    tl.to("#scene1", {{ opacity: 1, duration: 0.6 }}, 0);
-    tl.to("#scene1", {{ opacity: 0, duration: 0.6 }}, 19.4);
-    tl.fromTo("#scene2", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.6 }}, 20);
-    tl.to("#scene2", {{ opacity: 0, duration: 0.6 }}, 39.4);
-    tl.fromTo("#scene3", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.6 }}, 40);
-    tl.to("#scene3", {{ opacity: 0, duration: 0.6 }}, 59.4);
+    const d = {act_dur:.2f};
+    tl.to("#scene1", {{ opacity: 1, duration: 0.5 }}, 0);
+    tl.to("#scene1", {{ opacity: 0, duration: 0.5 }}, d - 0.5);
+    tl.fromTo("#scene2", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.5 }}, d);
+    tl.to("#scene2", {{ opacity: 0, duration: 0.5 }}, (d * 2) - 0.5);
+    tl.fromTo("#scene3", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.5 }}, d * 2);
+    tl.to("#scene3", {{ opacity: 0, duration: 0.5 }}, (d * 3) - 0.5);
+    tl.fromTo("#scene4", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.5 }}, d * 3);
+    tl.to("#scene4", {{ opacity: 0, duration: 0.5 }}, (d * 4) - 0.5);
+    tl.fromTo("#scene5", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.5 }}, d * 4);
+    tl.to("#scene5", {{ opacity: 0, duration: 0.5 }}, {duration:.1f} - 0.5);
     window.__timelines["main"] = tl;
   </script>
 </body>
 </html>"""
 
-    def _build_widescreen_explainer_html(self, title: str, summary: str, problem: str, solution: str, pro_tip: str, duration: float) -> str:
-        """Generates full 16:9 Landscape (1920x1080) HyperFrames composition."""
+    def _build_widescreen_explainer_html(self, title: str, hook: str, analogy: str, problem: str, solution: str, takeaway: str, pro_tip: str, duration: float) -> str:
+        """Generates full 16:9 Landscape (1920x1080) HyperFrames composition with 5 beginner-friendly chapters."""
+        act_dur = duration / 5.0
         return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -450,7 +540,7 @@ class VideoGenerator:
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
     body {{
       margin: 0; padding: 0; background: #020409; color: #f8fafc;
-      font-family: "Inter", sans-serif; overflow: hidden;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden;
     }}
     #root {{
       width: 1920px; height: 1080px; position: relative; overflow: hidden; background: #020409;
@@ -473,13 +563,13 @@ class VideoGenerator:
     }}
     .chapter-pill {{
       display: inline-flex; align-items: center; gap: 10px;
-      padding: 6px 18px; border-radius: 999px;
+      padding: 8px 22px; border-radius: 999px;
       background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.35);
-      color: #38bdf8; font-size: 13px; font-weight: 700; letter-spacing: 0.14em;
+      color: #38bdf8; font-size: 15px; font-weight: 700; letter-spacing: 0.14em;
       text-transform: uppercase; margin-bottom: 20px;
     }}
     .hero-title {{
-      font-size: 64px; font-weight: 900; letter-spacing: -0.03em; line-height: 1.12; margin-bottom: 18px;
+      font-size: 64px; font-weight: 900; letter-spacing: -0.03em; line-height: 1.12; margin-bottom: 20px;
       background: linear-gradient(135deg, #ffffff 40%, #e2e8f0 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }}
@@ -487,15 +577,16 @@ class VideoGenerator:
       background: linear-gradient(135deg, #38bdf8, #c084fc);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }}
-    .hero-sub {{
-      font-size: 24px; font-weight: 400; color: #94a3b8; max-width: 1200px;
-      line-height: 1.5; margin-bottom: 40px;
-    }}
-    .hero-sub strong {{ color: #ffffff; font-weight: 600; }}
     .stage-card {{
-      width: 100%; max-width: 1400px; padding: 40px 48px; border-radius: 24px;
-      background: rgba(9, 14, 26, 0.85); border: 1px solid rgba(255, 255, 255, 0.12);
+      width: 100%; max-width: 1300px; padding: 40px 48px; border-radius: 24px;
+      background: rgba(9, 14, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12);
       box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7); text-align: left;
+    }}
+    .stage-card-title {{
+      font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px;
+    }}
+    .stage-card-body {{
+      font-size: 25px; color: #cbd5e1; line-height: 1.55;
     }}
   </style>
 </head>
@@ -504,33 +595,53 @@ class VideoGenerator:
     <audio id="narration" src="narration_master.wav" data-start="0" data-duration="{duration:.1f}" data-volume="1"></audio>
     <div class="bg-canvas clip" data-start="0" data-duration="{duration:.1f}"></div>
 
-    <div id="scene1" class="scene clip" data-start="0" data-duration="20" data-track-index="0">
-      <div class="chapter-pill">CHAPTER 01 &bull; SCALING DILEMMA</div>
+    <!-- Chapter 1: The Curious Hook -->
+    <div id="scene1" class="scene clip" data-start="0" data-duration="{act_dur:.1f}" data-track-index="0">
+      <div class="chapter-pill">CHAPTER 01 &bull; THE BIG QUESTION</div>
       <h1 class="hero-title">{title}</h1>
-      <p class="hero-sub">{summary}</p>
       <div class="stage-card">
-        <div style="font-size:18px; font-weight:700; color:#38bdf8; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:12px;">The Core Bottleneck</div>
-        <div style="font-size:24px; color:#cbd5e1; line-height:1.5;">{problem}</div>
+        <div class="stage-card-title" style="color:#38bdf8;">Curious Dilemma</div>
+        <div class="stage-card-body">{hook}</div>
       </div>
     </div>
 
-    <div id="scene2" class="scene clip" data-start="20" data-duration="20" data-track-index="0">
-      <div class="chapter-pill" style="border-color:#c084fc; color:#c084fc;">CHAPTER 02 &bull; ARCHITECTURAL UNLOCK</div>
-      <h2 class="hero-title">Architectural <span>Solution</span></h2>
-      <p class="hero-sub">Dynamic tensor routing decouples memory latency from parameter capacity.</p>
+    <!-- Chapter 2: Real-World Metaphor -->
+    <div id="scene2" class="scene clip" data-start="{act_dur:.1f}" data-duration="{act_dur:.1f}" data-track-index="0">
+      <div class="chapter-pill" style="border-color:#38bdf8; color:#38bdf8;">CHAPTER 02 &bull; THE EVERYDAY METAPHOR</div>
+      <h2 class="hero-title">Think Of It <span>Like This</span></h2>
+      <div class="stage-card" style="border-color: rgba(56, 189, 248, 0.4);">
+        <div class="stage-card-title" style="color:#38bdf8;">Intuitive Analogy</div>
+        <div class="stage-card-body">{analogy}</div>
+      </div>
+    </div>
+
+    <!-- Chapter 3: The Bottleneck -->
+    <div id="scene3" class="scene clip" data-start="{act_dur*2:.1f}" data-duration="{act_dur:.1f}" data-track-index="0">
+      <div class="chapter-pill" style="border-color:#f43f5e; color:#f43f5e;">CHAPTER 03 &bull; THE DETAILED PROBLEM</div>
+      <h2 class="hero-title">Why Traditional Systems <span>Stall</span></h2>
+      <div class="stage-card" style="border-color: rgba(244, 63, 94, 0.4);">
+        <div class="stage-card-title" style="color:#f43f5e;">The Bottleneck</div>
+        <div class="stage-card-body">{problem}</div>
+      </div>
+    </div>
+
+    <!-- Chapter 4: The Unlock -->
+    <div id="scene4" class="scene clip" data-start="{act_dur*3:.1f}" data-duration="{act_dur:.1f}" data-track-index="0">
+      <div class="chapter-pill" style="border-color:#c084fc; color:#c084fc;">CHAPTER 04 &bull; THE ARCHITECTURAL UNLOCK</div>
+      <h2 class="hero-title">How It <span>Actually Works</span></h2>
       <div class="stage-card" style="border-color: rgba(192, 132, 252, 0.4);">
-        <div style="font-size:18px; font-weight:700; color:#c084fc; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:12px;">Decomposition Formulation</div>
-        <div style="font-size:24px; color:#cbd5e1; line-height:1.5;">{solution}</div>
+        <div class="stage-card-title" style="color:#c084fc;">The Mechanism</div>
+        <div class="stage-card-body">{solution}</div>
       </div>
     </div>
 
-    <div id="scene3" class="scene clip" data-start="40" data-duration="20" data-track-index="0">
-      <div class="chapter-pill" style="border-color:#34d399; color:#34d399;">CHAPTER 03 &bull; PRODUCTION STANDARDS</div>
-      <h2 class="hero-title">Production <span>Deployment Playbook</span></h2>
-      <p class="hero-sub">Live latency and cost validation across state-of-the-art architectures.</p>
+    <!-- Chapter 5: Takeaway -->
+    <div id="scene5" class="scene clip" data-start="{act_dur*4:.1f}" data-duration="{act_dur:.1f}" data-track-index="0">
+      <div class="chapter-pill" style="border-color:#34d399; color:#34d399;">CHAPTER 05 &bull; PRODUCTION STANDARDS</div>
+      <h2 class="hero-title">Key <span>Takeaways & Benchmarks</span></h2>
       <div class="stage-card" style="border-color: rgba(52, 211, 153, 0.4);">
-        <div style="font-size:18px; font-weight:700; color:#34d399; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:12px;">Production Rule</div>
-        <div style="font-size:24px; color:#cbd5e1; line-height:1.5;">{pro_tip}</div>
+        <div class="stage-card-title" style="color:#34d399;">Production Takeaway</div>
+        <div class="stage-card-body">{takeaway}<br><br><span style="color:#38bdf8; font-weight:700;">💡 Engineering Standard:</span> {pro_tip}</div>
       </div>
     </div>
   </div>
@@ -538,12 +649,17 @@ class VideoGenerator:
   <script>
     window.__timelines = window.__timelines || {{}};
     const tl = gsap.timeline({{ paused: true }});
-    tl.to("#scene1", {{ opacity: 1, duration: 0.6 }}, 0);
-    tl.to("#scene1", {{ opacity: 0, duration: 0.6 }}, 19.4);
-    tl.fromTo("#scene2", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.6 }}, 20);
-    tl.to("#scene2", {{ opacity: 0, duration: 0.6 }}, 39.4);
-    tl.fromTo("#scene3", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.6 }}, 40);
-    tl.to("#scene3", {{ opacity: 0, duration: 0.6 }}, 59.4);
+    const d = {act_dur:.2f};
+    tl.to("#scene1", {{ opacity: 1, duration: 0.5 }}, 0);
+    tl.to("#scene1", {{ opacity: 0, duration: 0.5 }}, d - 0.5);
+    tl.fromTo("#scene2", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.5 }}, d);
+    tl.to("#scene2", {{ opacity: 0, duration: 0.5 }}, (d * 2) - 0.5);
+    tl.fromTo("#scene3", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.5 }}, d * 2);
+    tl.to("#scene3", {{ opacity: 0, duration: 0.5 }}, (d * 3) - 0.5);
+    tl.fromTo("#scene4", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.5 }}, d * 3);
+    tl.to("#scene4", {{ opacity: 0, duration: 0.5 }}, (d * 4) - 0.5);
+    tl.fromTo("#scene5", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.5 }}, d * 4);
+    tl.to("#scene5", {{ opacity: 0, duration: 0.5 }}, {duration:.1f} - 0.5);
     window.__timelines["main"] = tl;
   </script>
 </body>

@@ -172,7 +172,8 @@ def main():
 
     if args.action in ("studio-all", "post-all"):
         console.print(f"[bold cyan]🚀 Triggering Studio Broadcast Cycle (Dry-run: {args.dry_run})...[/bold cyan]")
-        engine.run_studio_all()
+        custom_topic = {"title": args.topic} if args.topic else None
+        engine.run_studio_all(topic=custom_topic)
 
     elif args.action == "youtube":
         console.print(f"[bold cyan]🎬 Publishing YouTube Short (Dry-run: {args.dry_run})...[/bold cyan]")
@@ -200,7 +201,8 @@ def main():
 
     elif args.action == "youtube-explainer":
         console.print(f"[bold magenta]🎬 Publishing 16:9 YouTube Long Explainer (Dry-run: {args.dry_run})...[/bold magenta]")
-        engine.publish_youtube_explainer()
+        custom_topic = {"title": args.topic} if args.topic else None
+        engine.publish_youtube_explainer(topic=custom_topic)
 
     elif args.action == "long-explainer":
         console.print(f"[bold magenta]🎬 Running scheduled Long Explainer slot (Dry-run: {args.dry_run})...[/bold magenta]")
