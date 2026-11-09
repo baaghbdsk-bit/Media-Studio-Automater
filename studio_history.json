@@ -123,6 +123,14 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-09 12:46 PM",
+      "type": "slot_skipped",
+      "title": "quota_reserved_for_long_form",
+      "details": {
+        "slot": "19:30 IST"
+      }
     }
   ],
   "topic_log": [
