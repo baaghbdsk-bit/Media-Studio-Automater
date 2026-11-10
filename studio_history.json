@@ -14,7 +14,8 @@
     "Speculative Decoding: How Tiny AI Models Speed Up Giant Chatbots",
     "How Gradient Inversion Reconstructs Raw Training Data from Model Updates",
     "How AI Uses Secret Map Coordinates to Understand Word Meanings",
-    "How Gold Stars and Dog Treats Teach AI to Behave"
+    "How Gold Stars and Dog Treats Teach AI to Behave",
+    "How Computers Break Human Words into Little Toy Blocks"
   ],
   "events": [
     {
@@ -164,6 +165,17 @@
       "details": {
         "url": "https://youtube.com/shorts/iljyD_rMNZw"
       }
+    },
+    {
+      "time": "2026-11-10 04:30 AM",
+      "type": "video_broadcast",
+      "title": "How Computers Break Human Words into Little Toy Blocks",
+      "details": {
+        "youtube": true,
+        "instagram_reel": true,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -266,11 +278,19 @@
       "pillar": "ai_systems",
       "long_form": true,
       "time": "2026-11-10T00:17:26+00:00"
+    },
+    {
+      "title": "How Computers Break Human Words into Little Toy Blocks",
+      "series": "tokenization",
+      "audience": "beginner",
+      "pillar": "foundations",
+      "long_form": false,
+      "time": "2026-11-10T04:30:53+00:00"
     }
   ],
   "youtube_units": {
     "2026-11-08": 4000,
     "2026-11-09": 2000,
-    "2026-11-10": 4000
+    "2026-11-10": 6000
   }
 }
