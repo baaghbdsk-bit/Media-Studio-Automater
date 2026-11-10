@@ -17,7 +17,8 @@
     "How Gold Stars and Dog Treats Teach AI to Behave",
     "How Computers Break Human Words into Little Toy Blocks",
     "How Computers Use Backpropagation to Learn from Their Mistakes",
-    "Why AI Brains Use a Sketchpad Instead of Memory"
+    "Why AI Brains Use a Sketchpad Instead of Memory",
+    "How Neural Networks Use Activation Functions to Make Smart Decisions"
   ],
   "events": [
     {
@@ -200,6 +201,17 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-10 07:48 PM",
+      "type": "video_broadcast",
+      "title": "How Neural Networks Use Activation Functions to Make Smart Decisions",
+      "details": {
+        "youtube": true,
+        "instagram_reel": true,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -326,11 +338,20 @@
       "pillar": "ai_systems",
       "long_form": false,
       "time": "2026-11-10T13:04:53+00:00"
+    },
+    {
+      "title": "How Neural Networks Use Activation Functions to Make Smart Decisions",
+      "series": "neural-decision-making",
+      "audience": "beginner",
+      "pillar": "foundations",
+      "long_form": false,
+      "time": "2026-11-10T19:48:23+00:00"
     }
   ],
   "youtube_units": {
     "2026-11-08": 4000,
     "2026-11-09": 2000,
-    "2026-11-10": 8000
+    "2026-11-10": 8000,
+    "2026-11-11": 2000
   }
 }
