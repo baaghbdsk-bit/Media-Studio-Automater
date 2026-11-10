@@ -13,7 +13,8 @@
     "Indirect Prompt Injection: How Untrusted Web Text Hijacks AI Agents",
     "Speculative Decoding: How Tiny AI Models Speed Up Giant Chatbots",
     "How Gradient Inversion Reconstructs Raw Training Data from Model Updates",
-    "How AI Uses Secret Map Coordinates to Understand Word Meanings"
+    "How AI Uses Secret Map Coordinates to Understand Word Meanings",
+    "How Gold Stars and Dog Treats Teach AI to Behave"
   ],
   "events": [
     {
@@ -155,6 +156,14 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-10 12:17 AM",
+      "type": "explainer_video",
+      "title": "How Gold Stars and Dog Treats Teach AI to Behave",
+      "details": {
+        "url": "https://youtube.com/shorts/iljyD_rMNZw"
+      }
     }
   ],
   "topic_log": [
@@ -249,11 +258,19 @@
       "pillar": "foundations",
       "long_form": false,
       "time": "2026-11-09T22:25:06+00:00"
+    },
+    {
+      "title": "How Gold Stars and Dog Treats Teach AI to Behave",
+      "series": "ai-alignment",
+      "audience": "beginner",
+      "pillar": "ai_systems",
+      "long_form": true,
+      "time": "2026-11-10T00:17:26+00:00"
     }
   ],
   "youtube_units": {
     "2026-11-08": 4000,
     "2026-11-09": 2000,
-    "2026-11-10": 2000
+    "2026-11-10": 4000
   }
 }
