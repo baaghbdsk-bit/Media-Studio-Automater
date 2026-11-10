@@ -16,7 +16,8 @@
     "How AI Uses Secret Map Coordinates to Understand Word Meanings",
     "How Gold Stars and Dog Treats Teach AI to Behave",
     "How Computers Break Human Words into Little Toy Blocks",
-    "How Computers Use Backpropagation to Learn from Their Mistakes"
+    "How Computers Use Backpropagation to Learn from Their Mistakes",
+    "Why AI Brains Use a Sketchpad Instead of Memory"
   ],
   "events": [
     {
@@ -188,6 +189,17 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-10 01:04 PM",
+      "type": "video_broadcast",
+      "title": "Why AI Brains Use a Sketchpad Instead of Memory",
+      "details": {
+        "youtube": false,
+        "instagram_reel": true,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -306,6 +318,14 @@
       "pillar": "foundations",
       "long_form": false,
       "time": "2026-11-10T11:10:25+00:00"
+    },
+    {
+      "title": "Why AI Brains Use a Sketchpad Instead of Memory",
+      "series": "ai-reasoning",
+      "audience": "beginner",
+      "pillar": "ai_systems",
+      "long_form": false,
+      "time": "2026-11-10T13:04:53+00:00"
     }
   ],
   "youtube_units": {
