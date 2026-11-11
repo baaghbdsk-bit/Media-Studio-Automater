@@ -21,7 +21,8 @@
     "How Neural Networks Use Activation Functions to Make Smart Decisions",
     "How Memorizing Answers Makes AI Fail on Real Tests",
     "How AI Sees Pictures by Looking Through a Magic Window",
-    "How AI Reads Whole Sentences at Once Using Attention"
+    "How AI Reads Whole Sentences at Once Using Attention",
+    "How AI Brains Use Highway Shortcuts to Avoid Getting Lost"
   ],
   "events": [
     {
@@ -248,6 +249,14 @@
         "pinterest": true,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-11 10:42 PM",
+      "type": "explainer_video",
+      "title": "How AI Brains Use Highway Shortcuts to Avoid Getting Lost",
+      "details": {
+        "url": "https://youtube.com/shorts/kxUZ5FzOFWE"
+      }
     }
   ],
   "topic_log": [
@@ -406,6 +415,14 @@
       "pillar": "foundations",
       "long_form": false,
       "time": "2026-11-11T19:37:44+00:00"
+    },
+    {
+      "title": "How AI Brains Use Highway Shortcuts to Avoid Getting Lost",
+      "series": "skip-connections",
+      "audience": "beginner",
+      "pillar": "foundations",
+      "long_form": true,
+      "time": "2026-11-11T22:42:57+00:00"
     }
   ],
   "youtube_units": {
@@ -413,6 +430,6 @@
     "2026-11-09": 2000,
     "2026-11-10": 8000,
     "2026-11-11": 6000,
-    "2026-11-12": 2000
+    "2026-11-12": 4000
   }
 }
