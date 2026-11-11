@@ -19,7 +19,8 @@
     "How Computers Use Backpropagation to Learn from Their Mistakes",
     "Why AI Brains Use a Sketchpad Instead of Memory",
     "How Neural Networks Use Activation Functions to Make Smart Decisions",
-    "How Memorizing Answers Makes AI Fail on Real Tests"
+    "How Memorizing Answers Makes AI Fail on Real Tests",
+    "How AI Sees Pictures by Looking Through a Magic Window"
   ],
   "events": [
     {
@@ -224,6 +225,17 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-11 10:56 AM",
+      "type": "video_broadcast",
+      "title": "How AI Sees Pictures by Looking Through a Magic Window",
+      "details": {
+        "youtube": true,
+        "instagram_reel": true,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -366,12 +378,20 @@
       "pillar": "foundations",
       "long_form": false,
       "time": "2026-11-11T09:55:21+00:00"
+    },
+    {
+      "title": "How AI Sees Pictures by Looking Through a Magic Window",
+      "series": "computer-vision",
+      "audience": "beginner",
+      "pillar": "foundations",
+      "long_form": false,
+      "time": "2026-11-11T10:56:12+00:00"
     }
   ],
   "youtube_units": {
     "2026-11-08": 4000,
     "2026-11-09": 2000,
     "2026-11-10": 8000,
-    "2026-11-11": 4000
+    "2026-11-11": 6000
   }
 }
