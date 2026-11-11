@@ -18,7 +18,8 @@
     "How Computers Break Human Words into Little Toy Blocks",
     "How Computers Use Backpropagation to Learn from Their Mistakes",
     "Why AI Brains Use a Sketchpad Instead of Memory",
-    "How Neural Networks Use Activation Functions to Make Smart Decisions"
+    "How Neural Networks Use Activation Functions to Make Smart Decisions",
+    "How Memorizing Answers Makes AI Fail on Real Tests"
   ],
   "events": [
     {
@@ -212,6 +213,17 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-11 09:55 AM",
+      "type": "video_broadcast",
+      "title": "How Memorizing Answers Makes AI Fail on Real Tests",
+      "details": {
+        "youtube": true,
+        "instagram_reel": true,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -346,12 +358,20 @@
       "pillar": "foundations",
       "long_form": false,
       "time": "2026-11-10T19:48:23+00:00"
+    },
+    {
+      "title": "How Memorizing Answers Makes AI Fail on Real Tests",
+      "series": "model-generalization",
+      "audience": "beginner",
+      "pillar": "foundations",
+      "long_form": false,
+      "time": "2026-11-11T09:55:21+00:00"
     }
   ],
   "youtube_units": {
     "2026-11-08": 4000,
     "2026-11-09": 2000,
     "2026-11-10": 8000,
-    "2026-11-11": 2000
+    "2026-11-11": 4000
   }
 }
