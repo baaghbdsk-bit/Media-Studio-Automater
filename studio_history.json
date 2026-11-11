@@ -20,7 +20,8 @@
     "Why AI Brains Use a Sketchpad Instead of Memory",
     "How Neural Networks Use Activation Functions to Make Smart Decisions",
     "How Memorizing Answers Makes AI Fail on Real Tests",
-    "How AI Sees Pictures by Looking Through a Magic Window"
+    "How AI Sees Pictures by Looking Through a Magic Window",
+    "How AI Reads Whole Sentences at Once Using Attention"
   ],
   "events": [
     {
@@ -236,6 +237,17 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-11 07:37 PM",
+      "type": "video_broadcast",
+      "title": "How AI Reads Whole Sentences at Once Using Attention",
+      "details": {
+        "youtube": true,
+        "instagram_reel": true,
+        "pinterest": true,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -386,12 +398,21 @@
       "pillar": "foundations",
       "long_form": false,
       "time": "2026-11-11T10:56:12+00:00"
+    },
+    {
+      "title": "How AI Reads Whole Sentences at Once Using Attention",
+      "series": "transformer-attention",
+      "audience": "beginner",
+      "pillar": "foundations",
+      "long_form": false,
+      "time": "2026-11-11T19:37:44+00:00"
     }
   ],
   "youtube_units": {
     "2026-11-08": 4000,
     "2026-11-09": 2000,
     "2026-11-10": 8000,
-    "2026-11-11": 6000
+    "2026-11-11": 6000,
+    "2026-11-12": 2000
   }
 }
