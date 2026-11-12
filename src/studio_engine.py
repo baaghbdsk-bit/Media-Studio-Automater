@@ -212,6 +212,19 @@ class StudioEngine:
     def _youtube_uploads_today(self) -> int:
         return self._youtube_units_used() // self.YOUTUBE_UPLOAD_UNITS
 
+    def _broadcasts_today(self) -> int:
+        today = self._ist_now().date().isoformat()
+        counts = self.history.setdefault("broadcast_counts", {})
+        return int(counts.get(today, 0))
+
+    def _record_broadcast(self):
+        today = self._ist_now().date().isoformat()
+        counts = self.history.setdefault("broadcast_counts", {})
+        counts[today] = int(counts.get(today, 0)) + 1
+        cutoff = (self._ist_now().date() - timedelta(days=7)).isoformat()
+        self.history["broadcast_counts"] = {d: v for d, v in counts.items() if d >= cutoff}
+        self._save_history()
+
     def _record_youtube_upload(self):
         today = self._ist_now().date().isoformat()
         units = self.history.setdefault("youtube_units", {})
@@ -248,6 +261,15 @@ class StudioEngine:
         console.print("\n[bold cyan]🚀 Starting Media Studio Broadcast Cycle (Manim 9:16)...[/bold cyan]")
         start_time = time.time()
         results = {"youtube": False, "instagram_reel": False, "pinterest": False, "threads": False}
+
+        if not self.dry_run:
+            daily_cap = int(config.CAPS_PER_PLATFORM.get("youtube_shorts", 2))
+            if self._broadcasts_today() >= daily_cap:
+                console.print(
+                    f"[yellow]Daily broadcast cap reached ({daily_cap}/day); "
+                    "skipping this cycle on all platforms.[/yellow]"
+                )
+                return results
 
         if not topic:
             topic = self.get_fresh_topic()
@@ -398,6 +420,7 @@ class StudioEngine:
                 pillar=str(topic.get("pillar") or ""),
             )
             self.record_event("video_broadcast", title, results)
+            self._record_broadcast()
 
         duration = round(time.time() - start_time, 1)
         console.print(f"\n[bold green]🏁 Studio Broadcast Complete in {duration}s! Results: {results}[/bold green]\n")
