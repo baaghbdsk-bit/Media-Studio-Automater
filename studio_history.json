@@ -24,7 +24,8 @@
     "How AI Reads Whole Sentences at Once Using Attention",
     "How AI Brains Use Highway Shortcuts to Avoid Getting Lost",
     "Nvidia Board Prepares to Oust CEO Jensen Huang As Soon As Wednesday",
-    "Who Could Replace Jensen Huang Atop Nvidia Right Now?"
+    "Who Could Replace Jensen Huang Atop Nvidia Right Now?",
+    "Google Deploys Gemini 4 Hydrogen to Fix Complex Search Queries"
   ],
   "events": [
     {
@@ -281,6 +282,17 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-12 08:00 PM",
+      "type": "video_broadcast",
+      "title": "Google Deploys Gemini 4 Hydrogen to Fix Complex Search Queries",
+      "details": {
+        "youtube": true,
+        "instagram_reel": true,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -463,6 +475,14 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-12T11:06:47+00:00"
+    },
+    {
+      "title": "Google Deploys Gemini 4 Hydrogen to Fix Complex Search Queries",
+      "series": "gemini-4-hydrogen-search",
+      "audience": "beginner",
+      "pillar": "NEWS",
+      "long_form": false,
+      "time": "2026-11-12T20:00:42+00:00"
     }
   ],
   "youtube_units": {
@@ -470,9 +490,11 @@
     "2026-11-09": 2000,
     "2026-11-10": 8000,
     "2026-11-11": 6000,
-    "2026-11-12": 8000
+    "2026-11-12": 8000,
+    "2026-11-13": 2000
   },
   "broadcast_counts": {
-    "2026-11-12": 2
+    "2026-11-12": 2,
+    "2026-11-13": 1
   }
 }
