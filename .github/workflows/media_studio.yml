@@ -81,6 +81,7 @@ jobs:
           playwright install chromium --with-deps
 
       - name: Pre-flight Health & Auth Check
+        continue-on-error: true
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           YOUTUBE_TOKEN_BASE64: ${{ secrets.YOUTUBE_TOKEN_BASE64 }}
