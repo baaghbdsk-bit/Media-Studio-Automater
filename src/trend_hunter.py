@@ -658,6 +658,7 @@ class TrendHunter:
                 "TONE: confident, conversational, slightly urgent. Use contractions. Short sentences. No academic jargon.\n"
                 "SAFETY: avoid unverified personal allegations, sexual content, crime accusations, and legal speculation about named individuals. Focus on products, models, companies, benchmarks, and business impact.\n\n"
                 f"TARGET PILLAR: {pillar_label}\n\n"
+                "SERIES KEY: use a unique lowercase slug for this specific story (e.g. nvidia-ceo-ouster). Never use a generic key like ai-news, because the deduplication guard treats a reused series as a duplicate.\n\n"
                 "Pick ONE timely story from the news context above. Use ONLY facts supported by the context. Do not invent, extrapolate, or add claims that are not in the context.\n\n"
             )
         else:
@@ -829,6 +830,53 @@ class TrendHunter:
         result["acts"] = clean[:n_acts]
         return result
 
+    def _fallback_news_topic(self, news_context: Optional[List[Dict[str, Any]]],
+                             used_topics: List[str]) -> Optional[Dict[str, Any]]:
+        """Build a safe news topic from the top grounded headline when Gemini is unavailable."""
+        from src import topic_memory
+
+        for item in (news_context or []):
+            raw_title = str(item.get("title") or "").strip()
+            summary = str(item.get("summary") or "").strip()
+            if not raw_title or self._has_news_risk(json.dumps(item)):
+                continue
+            title = re.sub(
+                r"\s*[-|–—]\s*(TechCrunch|Hacker News|The Verge|Reuters|Bloomberg|CNBC|Ars Technica|Wired).*$",
+                "", raw_title, flags=re.IGNORECASE,
+            ).strip() or raw_title
+            words = title.split()
+            if len(words) > 12:
+                title = " ".join(words[:12]).rstrip(",;:") + "."
+            if len(title) < 8:
+                continue
+            if any(
+                topic_memory.similarity(title, old) >= topic_memory.DEFAULT_SIMILARITY
+                for old in used_topics
+            ):
+                continue
+            body = summary or f"{title}. Here is what we know so far."
+            return {
+                "title": title,
+                "canonical_topic": title,
+                "series": "",
+                "entities": [],
+                "category": "AI NEWS",
+                "audience": "beginner",
+                "pillar": "NEWS",
+                "hook": title,
+                "tagline": "Here is what changed.",
+                "summary": body,
+                "analogy": body,
+                "problem": "The details are still developing, and the stakes are high for everyone building with AI.",
+                "solution": "Here is what we know so far, and what to watch next.",
+                "example": "",
+                "pro_tip": "Follow for AI news that actually matters.",
+                "takeaway": "The story is moving fast, so watch for the next update.",
+                "long_form": False,
+                "acts": [],
+            }
+        return None
+
     def get_dynamic_ai_topic(self, used_topics: Optional[List[str]] = None,
                              audience: Optional[str] = None,
                              pillar: Optional[str] = None,
@@ -842,8 +890,18 @@ class TrendHunter:
         used_topics = list(used_topics or [])
         exclude_series = list(exclude_series or [])
         audience = audience or "beginner"
-        pillar = pillar or "foundations"
+        pillar = pillar or "NEWS"
         n_acts = 12 if long_form else 7
+
+        news_context = None
+        if str(pillar).upper() == "NEWS":
+            try:
+                news_context = [
+                    item for item in self.get_linkedin_topics(pillar="NEWS")
+                    if not self._has_news_risk(json.dumps(item))
+                ]
+            except Exception as news_exc:
+                print(f"[TrendHunter] News context fetch skipped: {news_exc}")
 
         try:
             import config
@@ -857,21 +915,12 @@ class TrendHunter:
                     ),
                 )
                 primary_model = getattr(config, "GEMINI_MODEL", "gemini-3.5-flash")
-                candidate_models = [primary_model, "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.1-flash-lite"]
+                candidate_models = [primary_model, "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"]
                 models_to_try = []
                 for m in candidate_models:
                     if m and m not in models_to_try:
                         models_to_try.append(m)
 
-                news_context = None
-                if str(pillar).upper() == "NEWS":
-                    try:
-                        news_context = [
-                            item for item in self.get_linkedin_topics(pillar="NEWS")
-                            if not self._has_news_risk(json.dumps(item))
-                        ]
-                    except Exception as news_exc:
-                        print(f"[TrendHunter] News context fetch skipped: {news_exc}")
                 prompt = self._build_topic_prompt(
                     audience, pillar, n_acts, used_topics, exclude_series,
                     news_context=news_context,
@@ -884,7 +933,10 @@ class TrendHunter:
                             txt = txt.split("```json")[1].split("```")[0].strip()
                         elif "```" in txt:
                             txt = txt.split("```")[1].split("```")[0].strip()
-                        data = json.loads(txt)
+                        try:
+                            data = json.loads(txt)
+                        except json.JSONDecodeError:
+                            data = json.loads(re.sub(r",\s*([}\]])", r"\1", txt))
                         if news_context and not self._is_grounded(data.get("title", ""), news_context):
                             print(f"[TrendHunter] Gemini ({model_name}) topic rejected: not grounded in current news context.")
                             continue
@@ -902,6 +954,16 @@ class TrendHunter:
                         continue
         except Exception as exc:
             print(f"[TrendHunter] Gemini topic generation error: {exc}")
+
+        if str(pillar).upper() == "NEWS":
+            fallback_news = self._fallback_news_topic(news_context, used_topics)
+            if fallback_news:
+                print(f"[TrendHunter] Deterministic news fallback: {fallback_news['title']}")
+                return fallback_news
+            raise RuntimeError(
+                "NEWS pillar requested but no grounded news story is available; "
+                "skipping this slot instead of publishing an off-format explainer."
+            )
 
         from src import curriculum
         fallback = curriculum.pick_fallback(
