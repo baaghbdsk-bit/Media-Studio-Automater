@@ -262,15 +262,6 @@ class StudioEngine:
         start_time = time.time()
         results = {"youtube": False, "instagram_reel": False, "pinterest": False, "threads": False}
 
-        if not self.dry_run:
-            daily_cap = int(config.CAPS_PER_PLATFORM.get("youtube_shorts", 2))
-            if self._broadcasts_today() >= daily_cap:
-                console.print(
-                    f"[yellow]Daily broadcast cap reached ({daily_cap}/day); "
-                    "skipping this cycle on all platforms.[/yellow]"
-                )
-                return results
-
         if not topic:
             topic = self.get_fresh_topic()
         title = topic.get("title", "AI Architecture Breakthrough")
@@ -305,10 +296,6 @@ class StudioEngine:
                 results["youtube"] = True
             elif not yt.is_authenticated:
                 console.print("[yellow]�s��,? YouTube not authenticated. Check YOUTUBE_TOKEN_BASE64 or run 'python scripts/login_youtube.py'.[/yellow]")
-            elif self._youtube_uploads_today() >= int(config.CAPS_PER_PLATFORM.get("youtube_shorts", 2)):
-                console.print(
-                    "[yellow]YouTube daily Short cap reached "
-                    f"({config.CAPS_PER_PLATFORM.get('youtube_shorts', 2)}/day); skipping upload.[/yellow]")
             elif self._youtube_budget_left() < self.YOUTUBE_UPLOAD_UNITS:
                 console.print(
                     "[yellow]🛡️ YouTube quota guard: daily budget exhausted, "
