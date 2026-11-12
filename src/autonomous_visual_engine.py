@@ -71,7 +71,13 @@ def request_ai_visual_spec(topic_or_text: str, summary: str = "", avoid_type: Op
     Uses Gemini to dynamically plan the visual infographic schema based on the actual post content.
     Returns structured data for the chosen visual template.
     """
-    client = genai.Client(api_key=config.GEMINI_API_KEY)
+    client = genai.Client(
+        api_key=config.GEMINI_API_KEY,
+        http_options=genai.types.HttpOptions(
+            timeout=30000,
+            retry_options=genai.types.HttpRetryOptions(attempts=1),
+        ),
+    )
     
     avoid_instruction = ""
     if avoid_type:

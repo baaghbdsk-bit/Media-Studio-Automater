@@ -31,8 +31,8 @@ class VideoGenerator:
     - Synchronized Subtitles (.srt) and chapter markers
     """
 
-    DEFAULT_VOICE = "en-US-ChristopherNeural"
-    DEFAULT_RATE = "+12%"
+    DEFAULT_VOICE = "en-US-AndrewMultilingualNeural"
+    DEFAULT_RATE = "+6%"
 
     def __init__(self):
         self.base_dir = Path(__file__).resolve().parent.parent
@@ -150,7 +150,7 @@ class VideoGenerator:
         # 4. Master Mixdown
         master_filter = (
             "[0]volume=1.0[voc];"
-            "[1]volume=0.22[bed];"
+            "[1]volume=0.12[bed];"
             "[voc][bed]amix=inputs=2:normalize=0,"
             "alimiter=limit=-1.0dB:attack=5:release=50[master]"
         )
@@ -225,20 +225,37 @@ class VideoGenerator:
         if not pro_tip:
             pro_tip = f"Remember: the best technology always solves a simple human problem."
 
-        # Spoken narration designed for natural child-friendly speech (120-140 words, ~55-60 seconds)
-        narration = (
-            f"{hook} "
-            f"Here is the simple way to think about it: {analogy} "
-            f"Before this existed, {problem} "
-            f"That is why {title} was invented: {solution} "
-            f"So the big takeaway? {takeaway} {pro_tip} "
-            f"Stay curious, and follow for more simple tech breakdowns!"
-        )
+        is_news = str(topic_data.get("pillar") or "").upper() == "NEWS"
+        if is_news:
+            segments = [hook, summary, problem, solution, takeaway, pro_tip]
+            body = " ".join(seg.strip() for seg in segments if seg and seg.strip())
+            if not body:
+                body = f"{title}. Here is what actually happened, and why it matters."
+            body_words = body.split()
+            if len(body_words) > 105:
+                body = " ".join(body_words[:105]).rstrip(",;:") + "."
+            if not body.endswith((".", "!", "?")):
+                body += "."
+            narration = body + " Follow for AI news that actually matters."
+        else:
+            narration = (
+                f"{hook} "
+                f"Here is the simple way to think about it: {analogy} "
+                f"Before this existed, {problem} "
+                f"That is why {title} was invented: {solution} "
+                f"So the big takeaway? {takeaway} {pro_tip} "
+                f"Stay curious, and follow for more simple tech breakdowns!"
+            )
+
+            words = narration.split()
+            if len(words) > 115:
+                narration = " ".join(words[:115]).rstrip(",;:") + "."
 
         return {
             "title": title,
             "hook": hook,
             "analogy": analogy,
+            "summary": summary,
             "problem": problem,
             "solution": solution,
             "takeaway": takeaway,
@@ -275,29 +292,29 @@ class VideoGenerator:
 
         try:
             print(f"[VideoGenerator] 🎙️ Synthesizing beginner-friendly voiceover for '{title[:35]}'...")
-            total_dur = self._synthesize_voice_and_audio_suite(narration_text, audio_path, duration_target=60.0)
+            total_dur = self._synthesize_voice_and_audio_suite(narration_text, audio_path, duration_target=48.0)
 
             # Generate Subtitles for 5 Acts
             act_dur = total_dur / 5.0
-            sub_scenes = [
-                {"duration": act_dur, "caption": f"{title}: The Big Question"},
-                {"duration": act_dur, "caption": "Real-World Metaphor"},
-                {"duration": act_dur, "caption": "The Hidden Bottleneck"},
-                {"duration": act_dur, "caption": "The Architectural Unlock"},
-                {"duration": act_dur, "caption": "Key Takeaway & Rule"}
-            ]
+            is_news = str(topic_data.get("pillar") or "").upper() == "NEWS"
+            if is_news:
+                captions = [f"{title}: Breaking", "What Happened", "Why It Matters", "The Reaction", "What's Next"]
+            else:
+                captions = [f"{title}: The Big Question", "Real-World Metaphor", "The Hidden Bottleneck", "The Architectural Unlock", "Key Takeaway & Rule"]
+            sub_scenes = [{"duration": act_dur, "caption": c} for c in captions]
             self._generate_srt_file(sub_scenes, srt_path)
 
             # Build 9:16 Vertical HyperFrames Composition (5 Acts)
             comp_html = self._build_vertical_short_html(
                 title=story["title"],
                 hook=story["hook"],
-                analogy=story["analogy"],
+                analogy=story.get("summary") if is_news else story["analogy"],
                 problem=story["problem"],
                 solution=story["solution"],
                 takeaway=story["takeaway"],
                 pro_tip=story["pro_tip"],
-                duration=total_dur
+                duration=total_dur,
+                mode="news" if is_news else "concept"
             )
             index_path = work_dir / "index.html"
             with open(index_path, "w", encoding="utf-8") as f:
@@ -393,9 +410,17 @@ class VideoGenerator:
             "chapters": chapters
         }
 
-    def _build_vertical_short_html(self, title: str, hook: str, analogy: str, problem: str, solution: str, takeaway: str, pro_tip: str, duration: float) -> str:
+    def _build_vertical_short_html(self, title: str, hook: str, analogy: str, problem: str, solution: str, takeaway: str, pro_tip: str, duration: float, mode: str = "concept") -> str:
         """Generates full 9:16 Vertical (1080x1920) HyperFrames composition with 5 beginner-friendly scenes."""
         act_dur = duration / 5.0
+        if mode == "news":
+            badge_1, badge_2, badge_3, badge_4, badge_5 = "BREAKING", "WHAT HAPPENED", "WHY IT MATTERS", "THE REACTION", "WHAT'S NEXT"
+            head_2, head_3, head_4, head_5 = "The <span>Story</span>", "The <span>Stakes</span>", "The <span>Fallout</span>", "The <span>Bottom Line</span>"
+            card_1, card_2, card_3, card_4, card_5 = "The Headline", "The Details", "The Risk", "The Response", "Why It Matters"
+        else:
+            badge_1, badge_2, badge_3, badge_4, badge_5 = "THE BIG QUESTION", "REAL-WORLD METAPHOR", "THE HIDDEN PROBLEM", "THE BREAKTHROUGH", "KEY TAKEAWAY"
+            head_2, head_3, head_4, head_5 = "Think Of It <span>Like This</span>", "Why Naive Systems <span>Fail</span>", "How It <span>Actually Works</span>", "What To <span>Remember</span>"
+            card_1, card_2, card_3, card_4, card_5 = "Ever Wondered?", "The Intuition", "The Bottleneck", "The Mechanism", "The Big Idea"
         return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -459,50 +484,50 @@ class VideoGenerator:
 
     <!-- Act 1: The Curious Hook -->
     <div id="scene1" class="scene clip" data-start="0" data-duration="{act_dur:.1f}" data-track-index="0">
-      <div class="badge"><span style="width:8px; height:8px; border-radius:50%; background:#38bdf8;"></span> THE BIG QUESTION</div>
+      <div class="badge"><span style="width:8px; height:8px; border-radius:50%; background:#38bdf8;"></span> {badge_1}</div>
       <h1 class="hero-title">{title}</h1>
       <div class="card">
-        <div class="card-title">Ever Wondered?</div>
+        <div class="card-title">{card_1}</div>
         <div class="card-body">{hook}</div>
       </div>
     </div>
 
     <!-- Act 2: Everyday Metaphor -->
     <div id="scene2" class="scene clip" data-start="{act_dur:.1f}" data-duration="{act_dur:.1f}" data-track-index="0">
-      <div class="badge" style="border-color:#38bdf8; color:#38bdf8;">REAL-WORLD METAPHOR</div>
-      <h2 class="hero-title">Think Of It <span>Like This</span></h2>
+      <div class="badge" style="border-color:#38bdf8; color:#38bdf8;">{badge_2}</div>
+      <h2 class="hero-title">{head_2}</h2>
       <div class="card" style="border-color: rgba(56, 189, 248, 0.4);">
-        <div class="card-title" style="color:#38bdf8;">The Intuition</div>
+        <div class="card-title" style="color:#38bdf8;">{card_2}</div>
         <div class="card-body">{analogy}</div>
       </div>
     </div>
 
     <!-- Act 3: Detailed Bottleneck -->
     <div id="scene3" class="scene clip" data-start="{act_dur*2:.1f}" data-duration="{act_dur:.1f}" data-track-index="0">
-      <div class="badge" style="border-color:#f43f5e; color:#f43f5e;">THE HIDDEN PROBLEM</div>
-      <h2 class="hero-title">Why Naive Systems <span>Fail</span></h2>
+      <div class="badge" style="border-color:#f43f5e; color:#f43f5e;">{badge_3}</div>
+      <h2 class="hero-title">{head_3}</h2>
       <div class="card" style="border-color: rgba(244, 63, 94, 0.4);">
-        <div class="card-title" style="color:#f43f5e;">The Bottleneck</div>
+        <div class="card-title" style="color:#f43f5e;">{card_3}</div>
         <div class="card-body">{problem}</div>
       </div>
     </div>
 
     <!-- Act 4: The Technical Unlock -->
     <div id="scene4" class="scene clip" data-start="{act_dur*3:.1f}" data-duration="{act_dur:.1f}" data-track-index="0">
-      <div class="badge" style="border-color:#c084fc; color:#c084fc;">THE BREAKTHROUGH</div>
-      <h2 class="hero-title">How It <span>Actually Works</span></h2>
+      <div class="badge" style="border-color:#c084fc; color:#c084fc;">{badge_4}</div>
+      <h2 class="hero-title">{head_4}</h2>
       <div class="card" style="border-color: rgba(192, 132, 252, 0.4);">
-        <div class="card-title" style="color:#c084fc;">The Mechanism</div>
+        <div class="card-title" style="color:#c084fc;">{card_4}</div>
         <div class="card-body">{solution}</div>
       </div>
     </div>
 
     <!-- Act 5: The 'Aha!' Takeaway -->
     <div id="scene5" class="scene clip" data-start="{act_dur*4:.1f}" data-duration="{act_dur:.1f}" data-track-index="0">
-      <div class="badge" style="border-color:#34d399; color:#34d399;">KEY TAKEAWAY</div>
-      <h2 class="hero-title">What To <span>Remember</span></h2>
+      <div class="badge" style="border-color:#34d399; color:#34d399;">{badge_5}</div>
+      <h2 class="hero-title">{head_5}</h2>
       <div class="card" style="border-color: rgba(52, 211, 153, 0.4);">
-        <div class="card-title" style="color:#34d399;">The Big Idea</div>
+        <div class="card-title" style="color:#34d399;">{card_5}</div>
         <div class="card-body">{takeaway}<br><br><span style="color:#38bdf8; font-weight:700;">💡 Rule:</span> {pro_tip}</div>
       </div>
     </div>

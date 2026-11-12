@@ -95,7 +95,7 @@ class StudioEngine:
         return topic_memory.recent(log)
 
     def get_fresh_topic(self, audience: str = "beginner",
-                        pillar: str = "foundations",
+                        pillar: str = "NEWS",
                         long_form: bool = False) -> Dict[str, Any]:
         """Pick a topic that has not appeared in the last 30 days."""
         from src import topic_memory
@@ -192,18 +192,12 @@ class StudioEngine:
     def _slot_context(self, long_form: bool = False):
         """Deterministic audience/pillar rotation for the current IST slot."""
         now = self._ist_now()
-        # All slots adopt the Child-Friendly / ELI5 philosophy
         if long_form:
             pillars = ("foundations", "ai_systems", "engineering")
             idx = now.toordinal() % 3
             return "beginner", pillars[idx]
-        if now.hour < 10:
-            return "beginner", "foundations"
-        if now.hour < 14:
-            return "beginner", "ai_systems"
-        if now.hour < 18:
-            return "beginner", "foundations"
-        return "beginner", "ai_systems"
+        # Every short-form slot is news-first; the ELI5 bank is only a fallback.
+        return "beginner", "NEWS"
 
     def _is_evening_short_slot(self) -> bool:
         return 18 <= self._ist_now().hour < 21
@@ -214,6 +208,9 @@ class StudioEngine:
 
     def _youtube_budget_left(self) -> int:
         return self.YOUTUBE_DAILY_UNITS - self._youtube_units_used()
+
+    def _youtube_uploads_today(self) -> int:
+        return self._youtube_units_used() // self.YOUTUBE_UPLOAD_UNITS
 
     def _record_youtube_upload(self):
         today = self._ist_now().date().isoformat()
@@ -268,7 +265,8 @@ class StudioEngine:
         # 2. Publish to YouTube Shorts
         try:
             yt = YouTubeAutomater()
-            yt_title = f"{title} Explained #Shorts"[:90]
+            is_news = str(topic.get("pillar") or "").upper() == "NEWS"
+            yt_title = (f"{title} #Shorts" if is_news else f"{title} Explained #Shorts")[:90]
             yt_desc = (
                 f"⚡ {title}: {summary}\n\n"
                 f"💡 Engineering Rule: {pro_tip}\n\n"
@@ -279,7 +277,11 @@ class StudioEngine:
                 console.print(f"[yellow][DRY RUN] Would upload YouTube Short: {yt_title}[/yellow]")
                 results["youtube"] = True
             elif not yt.is_authenticated:
-                console.print("[yellow]⚠️ YouTube not authenticated. Check YOUTUBE_TOKEN_BASE64 or run 'python scripts/login_youtube.py'.[/yellow]")
+                console.print("[yellow]�s��,? YouTube not authenticated. Check YOUTUBE_TOKEN_BASE64 or run 'python scripts/login_youtube.py'.[/yellow]")
+            elif self._youtube_uploads_today() >= int(config.CAPS_PER_PLATFORM.get("youtube_shorts", 2)):
+                console.print(
+                    "[yellow]YouTube daily Short cap reached "
+                    f"({config.CAPS_PER_PLATFORM.get('youtube_shorts', 2)}/day); skipping upload.[/yellow]")
             elif self._youtube_budget_left() < self.YOUTUBE_UPLOAD_UNITS:
                 console.print(
                     "[yellow]🛡️ YouTube quota guard: daily budget exhausted, "
@@ -404,7 +406,7 @@ class StudioEngine:
         """
         console.print("\n[bold magenta]🎬 Starting YouTube Long Explainer Production (16:9)...[/bold magenta]")
         if not topic:
-            topic = self.get_fresh_topic()
+            topic = self.get_fresh_topic(pillar="ai_systems")
         title = topic.get("title", "Frontier AI Architecture Deep-Dive")
         summary = topic.get("summary", "")
         pro_tip = topic.get("pro_tip", "")
@@ -558,7 +560,7 @@ class StudioEngine:
             return False
         res = yt.upload_short(
             video_path=str(vpath),
-            title=f"{title} Explained #Shorts"[:90],
+            title=(f"{title} #Shorts" if str(topic.get("pillar") or "").upper() == "NEWS" else f"{title} Explained #Shorts")[:90],
             description=f"⚡ {title}: {topic.get('summary', '')}\n\n💡 Pro-Tip: {topic.get('pro_tip', '')}\n\n#Shorts #AI",
             srt_path=str(srt_path) if srt_path and srt_path.exists() else None
         )

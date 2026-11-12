@@ -158,7 +158,13 @@ FALLBACK_MODELS = [
 
 class AIGenerator:
     def __init__(self):
-        self.client = genai.Client(api_key=config.GEMINI_API_KEY)
+            self.client = genai.Client(
+                api_key=config.GEMINI_API_KEY,
+                http_options=genai.types.HttpOptions(
+                    timeout=30000,
+                    retry_options=genai.types.HttpRetryOptions(attempts=1),
+                ),
+            )
 
     def _generate_with_fallback(self, prompt: str, system_instruction: str, temperature: float = 0.85) -> str:
         """Tries models sequentially in case of 503 high demand spikes."""

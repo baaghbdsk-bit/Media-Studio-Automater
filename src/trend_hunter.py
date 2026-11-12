@@ -625,7 +625,8 @@ class TrendHunter:
 
     @staticmethod
     def _build_topic_prompt(audience: str, pillar: str, n_acts: int,
-                            recent: List[str], exclude_series: List[str]) -> str:
+                            recent: List[str], exclude_series: List[str],
+                            news_context: Optional[List[Dict[str, Any]]] = None) -> str:
         from src import curriculum
 
         style = curriculum.STYLE_GUIDE.get(audience, curriculum.STYLE_GUIDE["beginner"])
@@ -633,18 +634,47 @@ class TrendHunter:
         recent_block = "\n".join(f"- {t}" for t in recent[-40:]) or "- (none yet)"
         series_block = ", ".join(exclude_series) or "none"
         word_range = "45-65" if n_acts > 7 else "30-45"
-        return (
-            "You are a master science educator explaining technology concepts to a child (Explain Like I'm 5 / Child-Friendly).\n"
-            "THE CHILD-FRIENDLY ELI5 PRINCIPLE (HIGHEST PRIORITY):\n"
-            "- Always explain as if talking to a curious 8-12 year old child or someone with ZERO computer background.\n"
-            "- Never assume the viewer knows what the concept is or why anyone should care.\n"
-            "- ALWAYS give everyday human context FIRST before introducing what or why.\n"
-            "  Example (Transformer): DON'T start with 'Transformers use self-attention.'\n"
-            "  DO start with context: 'Imagine reading a book, but you can only read one word at a time, and by the time you reach the end of a sentence, you completely forgot the first word! That is how computers used to struggle with reading. To fix this, scientists invented something called the Transformer...'\n"
-            "- Use vivid, everyday, tangible metaphors: toy blocks, kitchen recipes, backpacks, flashlights, puzzle pieces, playground games, post offices.\n"
-            "- Keep vocabulary simple, conversational, warm, and crystal clear. Zero unexplained academic or engineering jargon.\n"
-            f"TARGET PILLAR: {pillar_label}\n\n"
-            "Pick ONE curious, fascinating topic that belongs in this pillar and is easy to explain to a child.\n\n"
+
+        news_lines = []
+        for item in (news_context or [])[:10]:
+            t = str(item.get("title") or "").strip()
+            s = str(item.get("summary") or "").strip()[:180]
+            if t:
+                news_lines.append(f"- {t}" + (f" — {s}" if s else ""))
+        news_block = "\n".join(news_lines)
+
+        if news_block:
+            mode = (
+                "You are a sharp AI news editor writing a fast, high-retention Short.\n"
+                "CURRENT NEWS CONTEXT (pick ONE story that is genuinely timely and high-stakes):\n"
+                f"{news_block}\n\n"
+                "TITLE RULES:\n"
+                "- 6-12 words. Name the company, person, or model. Make a concrete claim or raise the stakes.\n"
+                "- No vague titles like 'How X Works'. No 'Explained' filler.\n"
+                "- A viewer must understand the stakes from the title alone.\n"
+                "HOOK RULES:\n"
+                "- First sentence names the subject and the stake in under 18 words.\n"
+                "- Sound like a person talking, not an article being read.\n"
+                "TONE: confident, conversational, slightly urgent. Use contractions. Short sentences. No academic jargon.\n"
+                "SAFETY: avoid unverified personal allegations, sexual content, crime accusations, and legal speculation about named individuals. Focus on products, models, companies, benchmarks, and business impact.\n\n"
+                f"TARGET PILLAR: {pillar_label}\n\n"
+                "Pick ONE timely story from the news context above. Use ONLY facts supported by the context. Do not invent, extrapolate, or add claims that are not in the context.\n\n"
+            )
+        else:
+            mode = (
+                "You are a master science educator explaining technology concepts to a child (Explain Like I'm 5 / Child-Friendly).\n"
+                "THE CHILD-FRIENDLY ELI5 PRINCIPLE (HIGHEST PRIORITY):\n"
+                "- Always explain as if talking to a curious 8-12 year old child or someone with ZERO computer background.\n"
+                "- Never assume the viewer knows what the concept is or why anyone should care.\n"
+                "- ALWAYS give everyday human context FIRST before introducing what or why.\n"
+                "  Example (Transformer): DON'T start with 'Transformers use self-attention.'\n"
+                "  DO start with context: 'Imagine reading a book, but you can only read one word at a time, and by the time you reach the end of a sentence, you completely forgot the first word! That is how computers used to struggle with reading. To fix this, scientists invented something called the Transformer...'\n"
+                "- Use vivid, everyday, tangible metaphors: toy blocks, kitchen recipes, backpacks, flashlights, puzzle pieces, playground games, post offices.\n"
+                "- Keep vocabulary simple, conversational, warm, and crystal clear. Zero unexplained academic or engineering jargon.\n"
+                f"TARGET PILLAR: {pillar_label}\n\n"
+                "Pick ONE curious, fascinating topic that belongs in this pillar and is easy to explain to a child.\n\n"
+            )
+        return mode + (
             "STRICT ANTI-DUPLICATION: do not overlap with any of these recently used topics:\n"
             f"{recent_block}\n"
             f"Also avoid these series: {series_block}\n\n"
@@ -702,6 +732,35 @@ class TrendHunter:
             "- Narration must be natural speech. Never include labels like 'Act 1' or 'Visual:'.\n"
             "- Do not use the words 'delve', 'landscape', 'game-changer', 'revolutionize'.\n"
         )
+
+    RISK_TERMS = (
+        "affair", "sexual", "harass", "assault", "rape", "porn", "mistress",
+        "arrested", "indicted", "criminal", "fraud", "embezzl", "espionage",
+        "intelligence agent", "spy", "drug traffick", "molest", "abuse",
+    )
+
+    @classmethod
+    def _has_news_risk(cls, text: str) -> bool:
+        lowered = str(text).lower()
+        return any(term in lowered for term in cls.RISK_TERMS)
+
+    @staticmethod
+    def _is_grounded(title: str, context: List[Dict[str, Any]]) -> bool:
+        stop = {
+            "this", "that", "with", "from", "have", "will", "your", "their",
+            "about", "after", "before", "what", "when", "where", "which",
+            "while", "into", "over", "under", "more", "most", "than", "then",
+            "they", "them", "there", "here", "just", "only", "also", "amid",
+            "says", "said", "could", "would", "should", "still", "been",
+        }
+        tokens = {w for w in re.findall(r"[a-z0-9]{4,}", str(title).lower()) if w not in stop}
+        if not tokens:
+            return True
+        hay = " ".join(
+            str(item.get("title", "")) + " " + str(item.get("summary", ""))
+            for item in context
+        ).lower()
+        return any(token in hay for token in tokens)
 
     @classmethod
     def _validate_topic(cls, data: Dict[str, Any], audience: str, pillar: str,
@@ -790,7 +849,13 @@ class TrendHunter:
             import config
             if getattr(config, "GEMINI_API_KEY", ""):
                 from google import genai
-                client = genai.Client(api_key=config.GEMINI_API_KEY)
+                client = genai.Client(
+                    api_key=config.GEMINI_API_KEY,
+                    http_options=genai.types.HttpOptions(
+                        timeout=30000,
+                        retry_options=genai.types.HttpRetryOptions(attempts=1),
+                    ),
+                )
                 primary_model = getattr(config, "GEMINI_MODEL", "gemini-3.5-flash")
                 candidate_models = [primary_model, "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.1-flash-lite"]
                 models_to_try = []
@@ -798,7 +863,19 @@ class TrendHunter:
                     if m and m not in models_to_try:
                         models_to_try.append(m)
 
-                prompt = self._build_topic_prompt(audience, pillar, n_acts, used_topics, exclude_series)
+                news_context = None
+                if str(pillar).upper() == "NEWS":
+                    try:
+                        news_context = [
+                            item for item in self.get_linkedin_topics(pillar="NEWS")
+                            if not self._has_news_risk(json.dumps(item))
+                        ]
+                    except Exception as news_exc:
+                        print(f"[TrendHunter] News context fetch skipped: {news_exc}")
+                prompt = self._build_topic_prompt(
+                    audience, pillar, n_acts, used_topics, exclude_series,
+                    news_context=news_context,
+                )
                 for model_name in models_to_try:
                     try:
                         res = client.models.generate_content(model=model_name, contents=prompt)
@@ -808,6 +885,12 @@ class TrendHunter:
                         elif "```" in txt:
                             txt = txt.split("```")[1].split("```")[0].strip()
                         data = json.loads(txt)
+                        if news_context and not self._is_grounded(data.get("title", ""), news_context):
+                            print(f"[TrendHunter] Gemini ({model_name}) topic rejected: not grounded in current news context.")
+                            continue
+                        if news_context and self._has_news_risk(json.dumps(data)):
+                            print(f"[TrendHunter] Gemini ({model_name}) topic rejected: personal/legal risk.")
+                            continue
                         validated = self._validate_topic(
                             data, audience, pillar, n_acts, used_topics, exclude_series)
                         if validated:

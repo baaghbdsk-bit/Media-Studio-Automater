@@ -16,7 +16,13 @@ class StoryboardAI:
     def __init__(self):
         self.api_key = config.GEMINI_API_KEY
         self.model = getattr(config, "GEMINI_MODEL", "gemini-3.8-flash")
-        self.client = genai.Client(api_key=self.api_key) if self.api_key else None
+        self.client = genai.Client(
+            api_key=self.api_key,
+            http_options=genai.types.HttpOptions(
+                timeout=30000,
+                retry_options=genai.types.HttpRetryOptions(attempts=1),
+            ),
+        ) if self.api_key else None
 
     def plan_3d_presentation(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
         """
