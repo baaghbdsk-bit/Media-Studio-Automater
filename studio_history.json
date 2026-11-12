@@ -22,7 +22,8 @@
     "How Memorizing Answers Makes AI Fail on Real Tests",
     "How AI Sees Pictures by Looking Through a Magic Window",
     "How AI Reads Whole Sentences at Once Using Attention",
-    "How AI Brains Use Highway Shortcuts to Avoid Getting Lost"
+    "How AI Brains Use Highway Shortcuts to Avoid Getting Lost",
+    "Nvidia Board Prepares to Oust CEO Jensen Huang As Soon As Wednesday"
   ],
   "events": [
     {
@@ -257,6 +258,17 @@
       "details": {
         "url": "https://youtube.com/shorts/kxUZ5FzOFWE"
       }
+    },
+    {
+      "time": "2026-11-12 10:21 AM",
+      "type": "video_broadcast",
+      "title": "Nvidia Board Prepares to Oust CEO Jensen Huang As Soon As Wednesday",
+      "details": {
+        "youtube": true,
+        "instagram_reel": true,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -423,6 +435,14 @@
       "pillar": "foundations",
       "long_form": true,
       "time": "2026-11-11T22:42:57+00:00"
+    },
+    {
+      "title": "Nvidia Board Prepares to Oust CEO Jensen Huang As Soon As Wednesday",
+      "series": "nvidia-ceo-ouster",
+      "audience": "beginner",
+      "pillar": "NEWS",
+      "long_form": false,
+      "time": "2026-11-12T10:21:41+00:00"
     }
   ],
   "youtube_units": {
@@ -430,6 +450,9 @@
     "2026-11-09": 2000,
     "2026-11-10": 8000,
     "2026-11-11": 6000,
-    "2026-11-12": 4000
+    "2026-11-12": 6000
+  },
+  "broadcast_counts": {
+    "2026-11-12": 1
   }
 }
