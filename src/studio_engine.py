@@ -262,6 +262,15 @@ class StudioEngine:
         start_time = time.time()
         results = {"youtube": False, "instagram_reel": False, "pinterest": False, "threads": False}
 
+        if not self.dry_run:
+            daily_cap = int(config.CAPS_PER_PLATFORM.get("youtube_shorts", 2))
+            if self._broadcasts_today() >= daily_cap:
+                console.print(
+                    f"[yellow]Daily broadcast cap reached ({daily_cap}/day); "
+                    "skipping this cycle on all platforms.[/yellow]"
+                )
+                return results
+
         if not topic:
             topic = self.get_fresh_topic()
         title = topic.get("title", "AI Architecture Breakthrough")

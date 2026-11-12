@@ -64,8 +64,26 @@
   ],
   "strategy_change_2026-11-12": {
     "from": "abstract ELI5 technical explainers, 4 uploads/day, 60-113s runtime",
-    "to": "timely AI news/commentary, 2 uploads/day, 45-58s runtime, grounded and safety-filtered",
+    "to": "timely AI news/commentary, 2 uploads/day for a 7-day test, 45-58s runtime, grounded and safety-filtered",
     "rationale": "Channel's own data: news/commentary averaged 3478 views vs 14 for the ELI5 pivot"
+  },
+  "test_plan_2026-11-12": {
+    "cadence": "2 broadcasts/day across all platforms",
+    "duration_days": 7,
+    "review_date": "2026-11-19",
+    "reason": "Controlled test of the news format. The cap is a daily volume guard, not a stop; the system keeps posting 2/day every day while the operator is traveling.",
+    "success_criteria": {
+      "median_views": "> 200 (baseline 27)",
+      "breakout": "at least 1 video > 1,000 views in 14 posts",
+      "like_rate": "> 1.5% of views (baseline 1.51%)",
+      "comments": "present on most posts (November baseline ~0)",
+      "subscribers": "> 10 net new in 7 days"
+    },
+    "decision_rules": {
+      "scale_to_3_per_day": "median > 200 and at least one breakout",
+      "keep_2_per_day": "median 100-200",
+      "change_packaging_first": "median < 100"
+    }
   },
   "verified_render_2026-11-12": {
     "topic": "United Airlines Bans AI Booking Agents From Purchasing Tickets",
