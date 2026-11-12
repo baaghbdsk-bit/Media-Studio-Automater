@@ -233,6 +233,11 @@ class StudioEngine:
             return None
         return video_path
 
+    @staticmethod
+    def _pin_title(title: str, topic: Dict[str, Any]) -> str:
+        suffix = "AI News" if str(topic.get("pillar") or "").upper() == "NEWS" else "AI Breakdown"
+        return f"{title} • {suffix}"[:80]
+
     def run_studio_all(self, topic: Optional[Dict[str, Any]] = None) -> Dict[str, bool]:
         """
         Executes unified video studio production (9:16 Vertical Manim Short/Reel):
@@ -344,7 +349,7 @@ class StudioEngine:
                 console.print(f"[bold magenta]📌 Publishing Video Pin to Pinterest: {title[:50]}...[/bold magenta]")
                 p_ok, p_msg = pin.create_pin(
                     image_path=str(video_path),
-                    title=f"{title} • AI Breakdown"[:80],
+                    title=self._pin_title(title, topic),
                     description=p_desc,
                     link="https://app.neubench.workers.dev"
                 )
@@ -606,7 +611,7 @@ class StudioEngine:
             return True
         pin = PinterestAutomater(headless=True, dry_run=self.dry_run)
         desc = f"{title}\n\n{topic.get('summary', '')}\n\n#AI #Tech"
-        ok, msg = pin.create_pin(image_path=str(vpath), title=f"{title} • AI Breakdown"[:80], description=desc)
+        ok, msg = pin.create_pin(image_path=str(vpath), title=self._pin_title(title, topic), description=desc)
         if ok:
             console.print("[bold green]✅ Pinterest Pin published![/bold green]")
             self.record_topic(title)
