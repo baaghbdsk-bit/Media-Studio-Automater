@@ -27,7 +27,8 @@
     "Who Could Replace Jensen Huang Atop Nvidia Right Now?",
     "Google Deploys Gemini 4 Hydrogen to Fix Complex Search Queries",
     "Nebius Risks Everything on a Massive Forty Billion Dollar AI Bet",
-    "How AI Uses Hallucination Checks to Stop Making Things Up"
+    "How AI Uses Hallucination Checks to Stop Making Things Up",
+    "Startup Powers Floating Data Centers Using Ocean Heat"
   ],
   "events": [
     {
@@ -314,6 +315,17 @@
       "details": {
         "url": "https://youtube.com/shorts/hfgkQjpImN4"
       }
+    },
+    {
+      "time": "2026-11-14 07:06 AM",
+      "type": "video_broadcast",
+      "title": "Startup Powers Floating Data Centers Using Ocean Heat",
+      "details": {
+        "youtube": true,
+        "instagram_reel": true,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -520,6 +532,14 @@
       "pillar": "ai_systems",
       "long_form": true,
       "time": "2026-11-13T16:47:09+00:00"
+    },
+    {
+      "title": "Startup Powers Floating Data Centers Using Ocean Heat",
+      "series": "ocean-data-centers",
+      "audience": "beginner",
+      "pillar": "NEWS",
+      "long_form": false,
+      "time": "2026-11-14T07:06:36+00:00"
     }
   ],
   "youtube_units": {
@@ -528,10 +548,12 @@
     "2026-11-10": 8000,
     "2026-11-11": 6000,
     "2026-11-12": 8000,
-    "2026-11-13": 6000
+    "2026-11-13": 6000,
+    "2026-11-14": 2000
   },
   "broadcast_counts": {
     "2026-11-12": 2,
-    "2026-11-13": 2
+    "2026-11-13": 2,
+    "2026-11-14": 1
   }
 }
