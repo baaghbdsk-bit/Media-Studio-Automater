@@ -28,7 +28,8 @@
     "Google Deploys Gemini 4 Hydrogen to Fix Complex Search Queries",
     "Nebius Risks Everything on a Massive Forty Billion Dollar AI Bet",
     "How AI Uses Hallucination Checks to Stop Making Things Up",
-    "Startup Powers Floating Data Centers Using Ocean Heat"
+    "Startup Powers Floating Data Centers Using Ocean Heat",
+    "Microsoft Restores Outlook Teams and Copilot After Global Day-Long Outage"
   ],
   "events": [
     {
@@ -326,6 +327,17 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-14 10:23 AM",
+      "type": "video_broadcast",
+      "title": "Microsoft Restores Outlook Teams and Copilot After Global Day-Long Outage",
+      "details": {
+        "youtube": true,
+        "instagram_reel": true,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -540,6 +552,14 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-14T07:06:36+00:00"
+    },
+    {
+      "title": "Microsoft Restores Outlook Teams and Copilot After Global Day-Long Outage",
+      "series": "microsoft-global-outage",
+      "audience": "beginner",
+      "pillar": "NEWS",
+      "long_form": false,
+      "time": "2026-11-14T10:23:21+00:00"
     }
   ],
   "youtube_units": {
@@ -549,11 +569,11 @@
     "2026-11-11": 6000,
     "2026-11-12": 8000,
     "2026-11-13": 6000,
-    "2026-11-14": 2000
+    "2026-11-14": 4000
   },
   "broadcast_counts": {
     "2026-11-12": 2,
     "2026-11-13": 2,
-    "2026-11-14": 1
+    "2026-11-14": 2
   }
 }
