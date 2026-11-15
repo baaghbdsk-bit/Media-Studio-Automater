@@ -29,7 +29,8 @@
     "Nebius Risks Everything on a Massive Forty Billion Dollar AI Bet",
     "How AI Uses Hallucination Checks to Stop Making Things Up",
     "Startup Powers Floating Data Centers Using Ocean Heat",
-    "Microsoft Restores Outlook Teams and Copilot After Global Day-Long Outage"
+    "Microsoft Restores Outlook Teams and Copilot After Global Day-Long Outage",
+    "NeuBench Benchmark Exposes Huge Latency and Cost Gaps Across AI Models"
   ],
   "events": [
     {
@@ -338,6 +339,17 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-15 06:55 PM",
+      "type": "video_broadcast",
+      "title": "NeuBench Benchmark Exposes Huge Latency and Cost Gaps Across AI Models",
+      "details": {
+        "youtube": false,
+        "instagram_reel": true,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -560,6 +572,14 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-14T10:23:21+00:00"
+    },
+    {
+      "title": "NeuBench Benchmark Exposes Huge Latency and Cost Gaps Across AI Models",
+      "series": "neubench-reasoning-telemetry",
+      "audience": "beginner",
+      "pillar": "NEWS",
+      "long_form": false,
+      "time": "2026-11-15T18:55:45+00:00"
     }
   ],
   "youtube_units": {
@@ -574,6 +594,7 @@
   "broadcast_counts": {
     "2026-11-12": 2,
     "2026-11-13": 2,
-    "2026-11-14": 2
+    "2026-11-14": 2,
+    "2026-11-16": 1
   }
 }
