@@ -30,7 +30,8 @@
     "How AI Uses Hallucination Checks to Stop Making Things Up",
     "Startup Powers Floating Data Centers Using Ocean Heat",
     "Microsoft Restores Outlook Teams and Copilot After Global Day-Long Outage",
-    "NeuBench Benchmark Exposes Huge Latency and Cost Gaps Across AI Models"
+    "NeuBench Benchmark Exposes Huge Latency and Cost Gaps Across AI Models",
+    "Apple Launches New App to Study How AI Answers Health Questions"
   ],
   "events": [
     {
@@ -350,6 +351,17 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-16 07:21 AM",
+      "type": "video_broadcast",
+      "title": "Apple Launches New App to Study How AI Answers Health Questions",
+      "details": {
+        "youtube": false,
+        "instagram_reel": true,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -580,6 +592,14 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-15T18:55:45+00:00"
+    },
+    {
+      "title": "Apple Launches New App to Study How AI Answers Health Questions",
+      "series": "apple-health-ai-app",
+      "audience": "beginner",
+      "pillar": "NEWS",
+      "long_form": false,
+      "time": "2026-11-16T07:21:06+00:00"
     }
   ],
   "youtube_units": {
@@ -595,6 +615,6 @@
     "2026-11-12": 2,
     "2026-11-13": 2,
     "2026-11-14": 2,
-    "2026-11-16": 1
+    "2026-11-16": 2
   }
 }
