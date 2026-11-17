@@ -32,7 +32,8 @@
     "Microsoft Restores Outlook Teams and Copilot After Global Day-Long Outage",
     "NeuBench Benchmark Exposes Huge Latency and Cost Gaps Across AI Models",
     "Apple Launches New App to Study How AI Answers Health Questions",
-    "Cybersecurity Startup Corma Hits One Billion Dollar Valuation"
+    "Cybersecurity Startup Corma Hits One Billion Dollar Valuation",
+    "Nvidia Earnings Report: The Make-or-Break Moment For The AI Boom"
   ],
   "events": [
     {
@@ -374,6 +375,17 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-17 01:56 PM",
+      "type": "video_broadcast",
+      "title": "Nvidia Earnings Report: The Make-or-Break Moment For The AI Boom",
+      "details": {
+        "youtube": false,
+        "instagram_reel": true,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -620,6 +632,14 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-17T11:51:16+00:00"
+    },
+    {
+      "title": "Nvidia Earnings Report: The Make-or-Break Moment For The AI Boom",
+      "series": "nvidia-q3-results",
+      "audience": "beginner",
+      "pillar": "NEWS",
+      "long_form": false,
+      "time": "2026-11-17T13:56:24+00:00"
     }
   ],
   "youtube_units": {
@@ -636,6 +656,6 @@
     "2026-11-13": 2,
     "2026-11-14": 2,
     "2026-11-16": 2,
-    "2026-11-17": 1
+    "2026-11-17": 2
   }
 }
