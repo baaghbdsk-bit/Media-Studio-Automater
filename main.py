@@ -65,6 +65,8 @@ def run_doctor():
     console.print("🩺 MEDIA STUDIO HEALTH & AUTH DOCTOR", style="bold white on cyan")
     console.print("="*60, style="bold cyan")
 
+    auth_status = {}
+
     table = Table(title="Channel Authentication & Pipeline Health")
     table.add_column("Channel / Component", style="bold cyan", width=22)
     table.add_column("Status", width=16)
@@ -76,8 +78,10 @@ def run_doctor():
         from google import genai
         if getattr(config, "GEMINI_API_KEY", ""):
             table.add_row("Gemini AI API", "[green]ONLINE[/green]", "API key configured & ready")
+            auth_status["Gemini AI"] = {"status": "ok"}
         else:
             table.add_row("Gemini AI API", "[red]MISSING[/red]", "GEMINI_API_KEY not set")
+            auth_status["Gemini AI"] = {"status": "missing", "detail": "GEMINI_API_KEY not set"}
     except Exception as e:
         table.add_row("Gemini AI API", "[yellow]WARNING[/yellow]", str(e)[:60])
 
@@ -87,8 +91,13 @@ def run_doctor():
         yt = YouTubeAutomater()
         if yt.is_authenticated:
             table.add_row("YouTube Data API", "[green]AUTHENTICATED[/green]", "Permanent OAuth refresh token active & verified")
+            auth_status["YouTube Data API"] = {"status": "ok"}
         else:
             table.add_row("YouTube Data API", "[red]DISCONNECTED[/red]", "Token expired or missing. Run 'python scripts/login_youtube.py'")
+            auth_status["YouTube Data API"] = {
+                "status": "disconnected",
+                "detail": "Refresh token expired or revoked. Re-run scripts/login_youtube.py and update YOUTUBE_TOKEN_BASE64.",
+            }
     except Exception as e:
         table.add_row("YouTube Data API", "[red]ERROR[/red]", str(e)[:60])
 
@@ -98,8 +107,10 @@ def run_doctor():
         ig = InstagramAutomater(headless=True)
         if ig.is_session_available():
             table.add_row("Instagram (@neubench)", "[green]AUTHENTICATED[/green]", "Valid session cookies loaded")
+            auth_status["Instagram"] = {"status": "ok"}
         else:
             table.add_row("Instagram (@neubench)", "[red]DISCONNECTED[/red]", "Session missing. Set INSTAGRAM_COOKIES_BASE64")
+            auth_status["Instagram"] = {"status": "disconnected", "detail": "Set INSTAGRAM_COOKIES_BASE64"}
     except Exception as e:
         table.add_row("Instagram (@neubench)", "[red]ERROR[/red]", str(e)[:60])
 
@@ -109,8 +120,10 @@ def run_doctor():
         pin = PinterestAutomater(headless=True)
         if pin.is_session_available():
             table.add_row("Pinterest (@neubench)", "[green]AUTHENTICATED[/green]", "Session cookies loaded & video upload enabled")
+            auth_status["Pinterest"] = {"status": "ok"}
         else:
             table.add_row("Pinterest (@neubench)", "[red]DISCONNECTED[/red]", "Session missing. Run 'python scripts/login_pinterest.py'")
+            auth_status["Pinterest"] = {"status": "disconnected", "detail": "Set PINTEREST_COOKIES_BASE64"}
     except Exception as e:
         table.add_row("Pinterest (@neubench)", "[red]ERROR[/red]", str(e)[:60])
 
@@ -127,13 +140,28 @@ def run_doctor():
 
     console.print(table)
 
-def _run_scheduled_reels_result(results):
+    # Machine-readable copy for CI: lets the workflow annotate credential
+    # problems without turning the whole (non-fatal) doctor step into a failure.
+    try:
+        status_path = _BASE_DIR / "output" / "doctor_status.json"
+        status_path.parent.mkdir(parents=True, exist_ok=True)
+        status_path.write_text(json.dumps(auth_status, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+
+def _run_scheduled_reels_result(results, skipped=""):
+    if skipped:
+        console.print(f"[yellow]Scheduled slot skipped ({skipped}); no action needed.[/yellow]")
+        return
     video_platforms = ("youtube", "instagram_reel", "pinterest")
     if not any(results.get(platform, False) for platform in video_platforms):
         console.print("[red]Scheduled video broadcast produced no published video. See the automation log for details.[/red]")
         raise SystemExit(1)
 
 def _run_scheduled_reels(engine):
+    if engine.daily_broadcast_cap_reached():
+        _run_scheduled_reels_result({}, "daily_cap_reached")
+        return
     _run_scheduled_reels_result(engine.run_studio_all())
 
 def _run_scheduled_explainer(engine):

@@ -217,6 +217,18 @@ class StudioEngine:
         counts = self.history.setdefault("broadcast_counts", {})
         return int(counts.get(today, 0))
 
+    def daily_broadcast_cap_reached(self) -> bool:
+        """True when today's short-form cap is already satisfied.
+
+        A cap is an intentional skip, not a failed broadcast. Exposing it lets
+        the CLI exit successfully so the watchdog does not dispatch pointless
+        catch-up runs.
+        """
+        if self.dry_run:
+            return False
+        daily_cap = int(config.CAPS_PER_PLATFORM.get("youtube_shorts", 2))
+        return self._broadcasts_today() >= daily_cap
+
     def _record_broadcast(self):
         today = self._ist_now().date().isoformat()
         counts = self.history.setdefault("broadcast_counts", {})
@@ -262,14 +274,13 @@ class StudioEngine:
         start_time = time.time()
         results = {"youtube": False, "instagram_reel": False, "pinterest": False, "threads": False}
 
-        if not self.dry_run:
+        if self.daily_broadcast_cap_reached():
             daily_cap = int(config.CAPS_PER_PLATFORM.get("youtube_shorts", 2))
-            if self._broadcasts_today() >= daily_cap:
-                console.print(
-                    f"[yellow]Daily broadcast cap reached ({daily_cap}/day); "
-                    "skipping this cycle on all platforms.[/yellow]"
-                )
-                return results
+            console.print(
+                f"[yellow]Daily broadcast cap reached ({daily_cap}/day); "
+                "skipping this cycle on all platforms.[/yellow]"
+            )
+            return results
 
         if not topic:
             topic = self.get_fresh_topic()
@@ -510,6 +521,14 @@ class StudioEngine:
         """
         report: Dict[str, Any] = {"broadcast_results": {}}
         console.print("\n[bold cyan]⏰ Scheduled Autopilot Heartbeat Triggered...[/bold cyan]")
+
+        # A satisfied daily cap is an intentional no-op, not a failed broadcast.
+        if self.daily_broadcast_cap_reached():
+            console.print(
+                "[yellow]Daily short-form cap already reached; skipping this "
+                "scheduled slot.[/yellow]"
+            )
+            return {"broadcast_results": {}, "skipped": "daily_cap_reached"}
 
         # Quota guard: on long-form days the evening short is skipped ONLY IF
         # remaining daily budget is insufficient for both this short and tonight's long form.

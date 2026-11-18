@@ -32,7 +32,10 @@ class VideoGenerator:
     """
 
     DEFAULT_VOICE = "en-US-AndrewMultilingualNeural"
+    FALLBACK_VOICES = ("en-US-ChristopherNeural", "en-US-GuyNeural", "en-US-AriaNeural")
     DEFAULT_RATE = "+6%"
+    TTS_MAX_ATTEMPTS = 4
+    TTS_MIN_AUDIO_BYTES = 1024
 
     def __init__(self):
         self.base_dir = Path(__file__).resolve().parent.parent
@@ -112,12 +115,51 @@ class VideoGenerator:
         proc_wav = str(work_dir / "voice_proc.wav")
         score_wav = str(work_dir / "ambient_score.wav")
 
-        # 1. Synthesize voice with Edge-TTS
-        async def _synth():
-            tts = edge_tts.Communicate(text, self.DEFAULT_VOICE, rate=self.DEFAULT_RATE)
+        # 1. Synthesize voice with Edge-TTS.
+        # GitHub-hosted runners have intermittently received NoAudioReceived from
+        # Microsoft's free Edge TTS endpoint. Retry across voices and validate the
+        # audio before handing it to ffmpeg, so one dead response cannot abort the
+        # whole scheduled broadcast. EDGE_TTS_PROXY can be set in CI when the
+        # runner's egress IP is throttled/blocked by the TTS service.
+        proxy = (os.environ.get("EDGE_TTS_PROXY") or "").strip() or None
+
+        async def _synth_once(voice: str):
+            tts = edge_tts.Communicate(
+                text,
+                voice,
+                rate=self.DEFAULT_RATE,
+                proxy=proxy,
+            )
             await tts.save(raw_mp3)
 
-        asyncio.run(asyncio.wait_for(_synth(), timeout=90.0))
+        async def _synth():
+            voices = [self.DEFAULT_VOICE] + [
+                v for v in self.FALLBACK_VOICES if v != self.DEFAULT_VOICE
+            ]
+            errors = []
+            for attempt in range(1, self.TTS_MAX_ATTEMPTS + 1):
+                voice = voices[(attempt - 1) % len(voices)]
+                try:
+                    Path(raw_mp3).unlink(missing_ok=True)
+                except OSError:
+                    pass
+                try:
+                    await asyncio.wait_for(_synth_once(voice), timeout=90.0)
+                    size = Path(raw_mp3).stat().st_size if Path(raw_mp3).exists() else 0
+                    if size >= self.TTS_MIN_AUDIO_BYTES:
+                        if attempt > 1:
+                            print(f"[VideoGenerator] Voiceover recovered with {voice} after {attempt} attempts.")
+                        return
+                    errors.append(f"{voice}: empty/short audio ({size} bytes)")
+                except Exception as exc:
+                    errors.append(f"{voice}: {exc}")
+                print(
+                    f"[VideoGenerator] TTS attempt {attempt}/{self.TTS_MAX_ATTEMPTS} failed "
+                    f"({errors[-1]}); trying next voice..."
+                )
+            raise RuntimeError("Edge TTS failed after retries: " + " | ".join(errors))
+
+        asyncio.run(_synth())
 
         # 2. Process with Broadcast Vocal Chain (Highpass, warmth, presence, optical compand)
         vocal_filter = (

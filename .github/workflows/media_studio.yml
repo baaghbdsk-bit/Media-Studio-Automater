@@ -91,6 +91,21 @@ jobs:
         run: |
           python main.py doctor
 
+      - name: Surface auth problems as CI warnings
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          status_file = Path("output/doctor_status.json")
+          if not status_file.exists():
+              raise SystemExit(0)
+          for name, info in json.loads(status_file.read_text(encoding="utf-8")).items():
+              if info.get("status") not in (None, "ok"):
+                  print(f"::warning::{name}: {info.get('detail', info.get('status'))}")
+          PY
+
       - name: Execute Media Studio Production & Broadcast
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -99,6 +114,7 @@ jobs:
           INSTAGRAM_COOKIES_BASE64: ${{ secrets.INSTAGRAM_COOKIES_BASE64 }}
           PINTEREST_COOKIES_BASE64: ${{ secrets.PINTEREST_COOKIES_BASE64 }}
           THREADS_COOKIES_BASE64: ${{ secrets.THREADS_COOKIES_BASE64 }}
+          EDGE_TTS_PROXY: ${{ secrets.EDGE_TTS_PROXY }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
         run: |
           ACTION="${{ github.event.inputs.action || 'schedule-autopilot' }}"
