@@ -33,7 +33,8 @@
     "NeuBench Benchmark Exposes Huge Latency and Cost Gaps Across AI Models",
     "Apple Launches New App to Study How AI Answers Health Questions",
     "Cybersecurity Startup Corma Hits One Billion Dollar Valuation",
-    "Nvidia Earnings Report: The Make-or-Break Moment For The AI Boom"
+    "Nvidia Earnings Report: The Make-or-Break Moment For The AI Boom",
+    "Snapchat Lets Developers Build AR Lenses Using AI Assistants"
   ],
   "events": [
     {
@@ -386,6 +387,17 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-18 08:33 PM",
+      "type": "video_broadcast",
+      "title": "Snapchat Lets Developers Build AR Lenses Using AI Assistants",
+      "details": {
+        "youtube": true,
+        "instagram_reel": true,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -640,22 +652,28 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-17T13:56:24+00:00"
+    },
+    {
+      "title": "Snapchat Lets Developers Build AR Lenses Using AI Assistants",
+      "series": "snapchat-ai-lenses",
+      "audience": "beginner",
+      "pillar": "NEWS",
+      "long_form": false,
+      "time": "2026-11-18T20:33:59+00:00"
     }
   ],
   "youtube_units": {
-    "2026-11-08": 4000,
-    "2026-11-09": 2000,
-    "2026-11-10": 8000,
-    "2026-11-11": 6000,
     "2026-11-12": 8000,
     "2026-11-13": 6000,
-    "2026-11-14": 4000
+    "2026-11-14": 4000,
+    "2026-11-19": 2000
   },
   "broadcast_counts": {
     "2026-11-12": 2,
     "2026-11-13": 2,
     "2026-11-14": 2,
     "2026-11-16": 2,
-    "2026-11-17": 2
+    "2026-11-17": 2,
+    "2026-11-19": 1
   }
 }
