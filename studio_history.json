@@ -34,7 +34,8 @@
     "Apple Launches New App to Study How AI Answers Health Questions",
     "Cybersecurity Startup Corma Hits One Billion Dollar Valuation",
     "Nvidia Earnings Report: The Make-or-Break Moment For The AI Boom",
-    "Snapchat Lets Developers Build AR Lenses Using AI Assistants"
+    "Snapchat Lets Developers Build AR Lenses Using AI Assistants",
+    "How AI Uses Checkpoints to Save Progress Like a Video Game"
   ],
   "events": [
     {
@@ -398,6 +399,14 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-18 11:00 PM",
+      "type": "explainer_video",
+      "title": "How AI Uses Checkpoints to Save Progress Like a Video Game",
+      "details": {
+        "url": "https://youtube.com/shorts/MPgfjP50lg0"
+      }
     }
   ],
   "topic_log": [
@@ -660,13 +669,21 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-18T20:33:59+00:00"
+    },
+    {
+      "title": "How AI Uses Checkpoints to Save Progress Like a Video Game",
+      "series": "ai-resilience",
+      "audience": "beginner",
+      "pillar": "ai_systems",
+      "long_form": true,
+      "time": "2026-11-18T23:00:28+00:00"
     }
   ],
   "youtube_units": {
     "2026-11-12": 8000,
     "2026-11-13": 6000,
     "2026-11-14": 4000,
-    "2026-11-19": 2000
+    "2026-11-19": 4000
   },
   "broadcast_counts": {
     "2026-11-12": 2,
