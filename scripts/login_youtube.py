@@ -124,22 +124,18 @@ def login_youtube():
     # Automatically update tools/YOUTUBE_TOKEN_BASE64.txt and GitHub secret
     try:
         import base64
-        import subprocess
         b64 = base64.b64encode(TOKEN_FILE.read_bytes()).decode("utf-8")
         out_txt = BASE_DIR / "tools" / "YOUTUBE_TOKEN_BASE64.txt"
         out_txt.write_text(b64, encoding="utf-8")
         print(f"[YouTube Auth] ✅ Saved Base64 token to: {out_txt}")
 
-        # Sync to GitHub Secrets via gh CLI
-        res = subprocess.run(
-            ["gh", "secret", "set", "YOUTUBE_TOKEN_BASE64", "--body", b64],
-            capture_output=True,
-            text=True
-        )
-        if res.returncode == 0:
-            print("[YouTube Auth] 🚀 Successfully synced YOUTUBE_TOKEN_BASE64 to GitHub Repository Secrets!")
-        else:
-            print(f"[YouTube Auth] Note on GitHub secret sync: {res.stderr.strip()}")
+        if str(BASE_DIR) not in sys.path:
+            sys.path.insert(0, str(BASE_DIR))
+        from scripts.sync_youtube_secret import sync_secret
+
+        ok, message = sync_secret(b64)
+        prefix = "🚀" if ok else "⚠️"
+        print(f"[YouTube Auth] {prefix} {message}")
     except Exception as ex:
         print(f"[YouTube Auth] Secret auto-sync note: {ex}")
 
