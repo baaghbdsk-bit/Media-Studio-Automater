@@ -315,6 +315,19 @@ def main():
         )
         if not ok:
             raise SystemExit(1)
+        from scripts.qa_video import check_video
+
+        vqa_ok, vqa_report = check_video(video_path)
+        console.print(
+            f"[cyan]QA: static {vqa_report.get('frozen_total_s')}s total / "
+            f"{vqa_report.get('frozen_max_s')}s max, "
+            f"black {vqa_report.get('black_total_s')}s, "
+            f"loudness {vqa_report.get('loudness_lufs')} LUFS[/cyan]"
+        )
+        if not vqa_ok:
+            for err in vqa_report.get("errors", []):
+                console.print(f"[red]QA FAIL: {err}[/red]")
+            raise SystemExit(1)
 
     elif args.action == "ig-diagnose":
         from scripts import ig_diagnose

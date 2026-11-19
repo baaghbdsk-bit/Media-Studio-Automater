@@ -57,6 +57,11 @@ body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Robo
 #root { width: 1080px; height: 1920px; position: relative; overflow: hidden; background: var(--bg); }
 .bg-canvas { position: absolute; inset: 0; background: radial-gradient(circle at 50% 38%, rgba(var(--c2rgb),0.16) 0%, rgba(var(--c1rgb),0.06) 42%, var(--bg) 80%); }
 .grid-bg { position: absolute; inset: -200px; background-image: linear-gradient(rgba(var(--c2rgb),0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--c2rgb),0.06) 1px, transparent 1px); background-size: 110px 110px; opacity: 0.55; }
+.orb { position: absolute; border-radius: 50%; opacity: 0.18; z-index: 1; }
+.orb.a { width: 560px; height: 560px; background: radial-gradient(circle, var(--c1) 0%, transparent 68%); }
+.orb.b { width: 460px; height: 460px; background: radial-gradient(circle, var(--c2) 0%, transparent 68%); }
+.orb.c { width: 400px; height: 400px; background: radial-gradient(circle, var(--c3) 0%, transparent 68%); }
+.sweep { position: absolute; top: -20%; left: 0; width: 34%; height: 140%; z-index: 4; opacity: 0.10; transform: skewX(-18deg); background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 45%, rgba(255,255,255,0.85) 52%, transparent 100%); }
 .beat { position: absolute; inset: 0; clip-path: inset(0 100% 0 0); transform-origin: 50% 44%; z-index: 5; }
 .cam { position: absolute; inset: 0; transform-origin: 50% 44%; }
 .tile { position: absolute; border-radius: 13px; background: linear-gradient(145deg, #ffffff 0%, #cdd6e4 100%); box-shadow: inset 0 -7px 0 rgba(0,0,0,0.16), inset 0 3px 0 rgba(255,255,255,0.85); opacity: 0; }
@@ -466,15 +471,16 @@ def _recipe_bottleneck(sc: _Scene, ctx: Dict[str, Any]) -> None:
     for k in range(count):
         x = 120 + k * (760 // max(count - 1, 1))
         _tile(sc, "bn%d_t%d" % (i, k), x, 280, 62)
+        enter = s + 0.12 + k * (max(0.2, span - 1.6) / max(count, 1))
         sc.add(
             "#bn%d_t%d" % (i, k), "y:-60, opacity:0",
-            'y:420, opacity:1, duration:0.6, ease:"power2.in"',
-            s + 0.15 + k * 0.04,
+            'y:420, opacity:1, duration:0.5, ease:"power2.in"',
+            enter,
         )
         sc.add(
             "#bn%d_t%d" % (i, k), "y:420, opacity:1",
             'y:960, opacity:0, duration:0.5, ease:"power2.out"',
-            release + k * 0.03,
+            enter + 0.62,
         )
     sc.idle("#bn%d_flow" % i, "x", 0, 5, s + 1.6, e, 0.65)
     sc.idle("#bn%d_wl" % i, "y", 0, 5, release + 0.6, e, 0.65)
@@ -624,6 +630,10 @@ def build_short_html_v3(
     )
     sc.h('<div id="bg-canvas" class="bg-canvas"></div>')
     sc.h('<div id="grid-bg" class="grid-bg"></div>')
+    sc.h('<div id="orb1" class="orb a" style="left:-120px;top:180px;"></div>')
+    sc.h('<div id="orb2" class="orb b" style="left:640px;top:1080px;"></div>')
+    sc.h('<div id="orb3" class="orb c" style="left:280px;top:560px;"></div>')
+    sc.h('<div id="sweep" class="sweep"></div>')
 
     first_word_at: List[float] = []
     for index, beat in enumerate(sb_beats):
@@ -691,8 +701,12 @@ def build_short_html_v3(
 
     # Global ambient motion.
     sc.add("#progress", "scaleX:0", 'scaleX:1, duration:%.3f, ease:"none"' % total, 0)
-    sc.add("#grid-bg", "x:0, y:0", 'x:40, y:-50, duration:%.3f, ease:"none"' % total, 0)
+    sc.add("#grid-bg", "x:0, y:0", 'x:240, y:-160, duration:%.3f, ease:"none"' % total, 0)
     sc.add("#bg-canvas", "opacity:0.9", 'opacity:1, duration:%.3f, ease:"none"' % total, 0)
+    sc.add("#orb1", "x:-180, y:0", 'x:420, y:240, duration:%.3f, ease:"none"' % total, 0)
+    sc.add("#orb2", "x:160, y:-120", 'x:-300, y:200, duration:%.3f, ease:"none"' % total, 0)
+    sc.add("#orb3", "x:0, y:140", 'x:320, y:-220, duration:%.3f, ease:"none"' % total, 0)
+    sc.add("#sweep", "x:-800", 'x:2000, duration:%.3f, ease:"none"' % total, 0)
 
     for index, beat in enumerate(sb_beats):
         s, e = starts[index], ends[index]
