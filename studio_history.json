@@ -36,7 +36,8 @@
     "Nvidia Earnings Report: The Make-or-Break Moment For The AI Boom",
     "Snapchat Lets Developers Build AR Lenses Using AI Assistants",
     "How AI Uses Checkpoints to Save Progress Like a Video Game",
-    "Gemini 4 Neon"
+    "Gemini 4 Neon",
+    "How Engineers Keep Giant AI Servers Cool Using Liquid Pipes"
   ],
   "events": [
     {
@@ -419,6 +420,14 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-19 11:26 PM",
+      "type": "explainer_video",
+      "title": "How Engineers Keep Giant AI Servers Cool Using Liquid Pipes",
+      "details": {
+        "url": "https://youtube.com/shorts/8uEpCqP6q1c"
+      }
     }
   ],
   "topic_log": [
@@ -697,13 +706,21 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-19T10:50:52+00:00"
+    },
+    {
+      "title": "How Engineers Keep Giant AI Servers Cool Using Liquid Pipes",
+      "series": "liquid-cooling",
+      "audience": "beginner",
+      "pillar": "engineering",
+      "long_form": true,
+      "time": "2026-11-19T23:26:42+00:00"
     }
   ],
   "youtube_units": {
-    "2026-11-12": 8000,
     "2026-11-13": 6000,
     "2026-11-14": 4000,
-    "2026-11-19": 6000
+    "2026-11-19": 6000,
+    "2026-11-20": 2000
   },
   "broadcast_counts": {
     "2026-11-12": 2,
