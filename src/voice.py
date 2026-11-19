@@ -333,9 +333,9 @@ def make_prosody_profile(sentences: List[str]) -> List[Tuple[str, str, int]]:
         elif short:
             profile.append(("+8%", "+1Hz", 130))
         elif index == 1:
-            profile.append(("+5%", "0Hz", 200))
+            profile.append(("+5%", "+0Hz", 200))
         else:
-            profile.append(("+3%", "0Hz", 170))
+            profile.append(("+3%", "+0Hz", 170))
     return profile
 
 

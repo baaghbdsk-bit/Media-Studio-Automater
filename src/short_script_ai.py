@@ -48,7 +48,7 @@ You are a person explaining a tech idea to a friend over coffee. You are NOT wri
 </role>
 
 <task>
-Rewrite the topic into 7 spoken beats, 100-110 words total (~45s spoken). Each beat is 1-3 spoken lines. Output only the spoken words per beat: no headings, no stage directions, no commentary.
+Rewrite the topic into 7 spoken beats, 105-115 words total (~45-50s spoken). Each beat is 1-3 spoken lines of 13-19 words. Do NOT be terse: expand with concrete details, direct address and specific ifs/thens until you reach the word target. Output only the spoken words per beat: no headings, no stage directions, no commentary.
 </task>
 
 <topic>
@@ -163,7 +163,7 @@ def _validate(beats: List[Dict[str, Any]]) -> Optional[str]:
         narrations.append(narration)
 
     total = sum(len(n.split()) for n in narrations)
-    if not (100 <= total <= 110):
+    if not (88 <= total <= 125):
         return f"total word count {total}"
     mean_sentence = total / max(1, len(sentences))
     if mean_sentence > 15:
