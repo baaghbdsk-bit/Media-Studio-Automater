@@ -14,7 +14,11 @@ Only the standard library and ``edge_tts`` are used: no ffmpeg, no numpy.
 import asyncio
 import json
 import os
-from typing import Any, Dict, List, Optional
+import re
+import shutil
+import subprocess
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 import edge_tts
 
@@ -298,6 +302,134 @@ def write_srt(
             handle.write("\n")
 
     return out_path
+
+
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
+
+
+def split_spoken_lines(text: str) -> List[str]:
+    """Split narration into breath-length spoken lines."""
+    return [s.strip() for s in _SENTENCE_SPLIT.split((text or "").strip()) if s.strip()]
+
+
+def make_prosody_profile(sentences: List[str]) -> List[Tuple[str, str, int]]:
+    """Return (rate, pitch, pause_ms) for each sentence.
+
+    Small, deliberate variation between sentences is what breaks the flat
+    "article reader" cadence.  The first line is brighter, fragments are
+    snappy, questions lift, and the last line settles.
+    """
+    profile: List[Tuple[str, str, int]] = []
+    last = len(sentences) - 1
+    for index, sentence in enumerate(sentences):
+        stripped = sentence.strip()
+        short = len(stripped.split()) <= 6
+        if index == 0:
+            profile.append(("+12%", "+3Hz", 380))
+        elif stripped.endswith("?"):
+            profile.append(("+2%", "+6Hz", 280))
+        elif index == last:
+            profile.append(("-6%", "-2Hz", 0))
+        elif short:
+            profile.append(("+8%", "+1Hz", 130))
+        elif index == 1:
+            profile.append(("+5%", "0Hz", 200))
+        else:
+            profile.append(("+3%", "0Hz", 170))
+    return profile
+
+
+def _media_duration(path: str) -> float:
+    ffprobe = shutil.which("ffprobe") or "ffprobe"
+    result = subprocess.run(
+        [ffprobe, "-v", "error", "-show_entries", "format=duration",
+         "-of", "default=noprint_wrappers=1:nokey=1", path],
+        capture_output=True, text=True,
+    )
+    try:
+        return float(result.stdout.strip())
+    except (ValueError, AttributeError):
+        return 0.0
+
+
+def synthesize_performance(
+    text: str,
+    out_mp3: str,
+    voice: str = "en-US-AvaNeural",
+    proxy: Optional[str] = None,
+    profile: Optional[List[Tuple[str, str, int]]] = None,
+) -> Dict[str, Any]:
+    """Synthesize narration sentence-by-sentence with expressive prosody.
+
+    Each sentence gets its own rate/pitch and a short FFmpeg-generated silence
+    before the next sentence. Word-boundary timings are offset by the elapsed
+    audio so subtitles stay in sync. Returns the same shape as
+    :func:`capture_words` plus a ``chunks`` diagnostic list.
+    """
+    ffmpeg = shutil.which("ffmpeg") or "ffmpeg"
+    sentences = split_spoken_lines(text)
+    if not sentences:
+        raise RuntimeError("No sentences to synthesize")
+    prosody = profile or make_prosody_profile(sentences)
+
+    work_dir = Path(out_mp3).parent / "voice_chunks"
+    work_dir.mkdir(parents=True, exist_ok=True)
+    pieces: List[Path] = []
+    words: List[Dict[str, Any]] = []
+    elapsed = 0.0
+    details: List[Dict[str, Any]] = []
+
+    for index, sentence in enumerate(sentences):
+        rate, pitch, pause_ms = prosody[index] if index < len(prosody) else ("+3%", "0Hz", 170)
+        chunk_path = work_dir / f"chunk_{index:02d}.mp3"
+        try:
+            chunk_words = asyncio.run(
+                _stream_speech(sentence, str(chunk_path), voice, rate, pitch, proxy)
+            )
+        except Exception as exc:
+            raise RuntimeError(f"Edge-TTS narration failed for voice '{voice}': {exc}") from exc
+        chunk_duration = _media_duration(str(chunk_path))
+        for word in chunk_words:
+            words.append({
+                "text": word["text"],
+                "start": elapsed + float(word["start"]),
+                "end": elapsed + float(word["end"]),
+            })
+        elapsed += chunk_duration
+        pieces.append(chunk_path)
+        details.append({
+            "index": index, "text": sentence, "rate": rate, "pitch": pitch,
+            "pause_ms": pause_ms, "duration": round(chunk_duration, 2),
+        })
+        if pause_ms > 0 and index < len(sentences) - 1:
+            silence_path = work_dir / f"silence_{index:02d}.mp3"
+            subprocess.run(
+                [ffmpeg, "-y", "-f", "lavfi", "-i",
+                 f"anullsrc=r=24000:cl=mono", "-t", f"{pause_ms / 1000:.3f}",
+                 "-q:a", "9", str(silence_path)],
+                capture_output=True, check=True,
+            )
+            pieces.append(silence_path)
+            elapsed += pause_ms / 1000.0
+
+    concat_list = work_dir / "concat.txt"
+    concat_list.write_text(
+        "".join(f"file '{p.as_posix()}'\n" for p in pieces), encoding="utf-8"
+    )
+    Path(out_mp3).parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        [ffmpeg, "-y", "-f", "concat", "-safe", "0", "-i", str(concat_list),
+         "-c", "copy", str(out_mp3)],
+        capture_output=True, check=True,
+    )
+    return {
+        "audio_path": out_mp3,
+        "words": words,
+        "duration_est": elapsed,
+        "voice": voice,
+        "rate": "performance",
+        "chunks": details,
+    }
 
 
 if __name__ == "__main__":

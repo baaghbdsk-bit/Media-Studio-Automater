@@ -40,28 +40,48 @@ def _prompt(topic: Dict[str, Any]) -> str:
     news = str(payload["pillar"]).upper() == "NEWS"
     grounding = (
         "Use ONLY the title and summary as facts. Do not invent claims, motives, "
-        "numbers, or outcome." if news else
+        "numbers, or outcomes." if news else
         "Use the topic fields as factual anchors. Explain one mechanism clearly."
     )
-    return f"""You are a senior short-form video script editor. Write ONE 45-55 second YouTube Short script.
+    return f"""<role>
+You are a person explaining a tech idea to a friend over coffee. You are NOT writing a script, an article, or a narration. Say words the way you would actually say them out loud.
+</role>
 
-TOPIC:
+<task>
+Rewrite the topic into 7 spoken beats, 100-110 words total (~45s spoken). Each beat is 1-3 spoken lines. Output only the spoken words per beat: no headings, no stage directions, no commentary.
+</task>
+
+<topic>
 {json.dumps(payload, ensure_ascii=False)}
+</topic>
 
 {grounding}
 
-HARD RULES:
+<voice_rules>
+- Open with a concrete consequence for "you": a number, a sound, an image, or a problem. Never open with a topic sentence or a "Why does..." question.
+- Use "you" or "your" at least 3 times across the whole script.
+- Use contractions wherever natural ("you'll", "it's", "here's", "doesn't"). At least 4 contractions.
+- Average sentence 8-12 words. At least three sentences of 6 words or fewer. No sentence over 18 words.
+- Put a short fragment in beats 1, 3 and 5 ("Not a bug." "Here's the trick.") with terminal punctuation.
+- Add one pattern interrupt by beat 3: a question, an aside, or "Wait—".
+- Never start two consecutive sentences with the same word.
+- Prefer verbs over nouns; active voice; concrete things (laptop, fan, chef) over abstractions (models, systems, infrastructure).
+- End the final beat on a soundbite of 10 words or fewer.
 - Exactly 7 beats in this order: hook, stake, context, mechanism, aha, payoff, loop.
-- Total spoken words: 100-120. Each beat narration: 12-22 words.
-- One idea only: a question, one mechanism, one surprising implication.
-- Sentences <= 20 words. Use contractions and second person. Write for the ear.
-- Each beat must be DIFFERENT: never repeat a clause, a sentence opening, or the same fact twice.
-- Every beat narration must be a COMPLETE sentence with a finished object. Never end on "of", "to", "the", "and", "while", "because", "that", "with", "in", "for", "on", or any other dangling word.
-- No "follow for", "stay curious", "game-changer", "delve", "in today's fast-paced", "here is what we know so far".
-- No greetings, no logo intro, no "in this video". Hook starts mid-thought with a specific question or consequence.
-- The final beat is a short callback to the opening question so the video loops cleanly.
-- focus_word: 1-3 words that anchor that beat on screen.
-- lines: one or two very short on-screen lines (max 6 words each), not a copy of the narration.
+- Every beat must be DIFFERENT: never repeat a clause, a sentence opening, or the same fact twice.
+- Every sentence ends with . ! or ?. Never end on a dangling word like "of", "to", "the", "and", "while", "because", "that", "with".
+</voice_rules>
+
+<negative_constraints>
+Never use: "In this video", "Today we'll", "Let's dive in", "Imagine", "Picture this", "It's important to note", "However", "Additionally", "Furthermore", "In conclusion", "the fact that", "in order to", "utilize", "facilitate", "implementation", "optimization", "delve", "landscape", "realm", "follow for", "stay curious", "game-changer".
+Never write passive voice ("is caused by", "was created by"), noun stacks ("massive AI models", "standard computer processors"), more than one rhetorical question, abstract plural nouns in the first 10 words, or a neutral summary ending.
+Do not explain what you are doing.
+</negative_constraints>
+
+<few_shot_example>
+BAD: "Why do massive AI models stutter when you run them on standard computer processors? You would wait centuries..."
+GOOD: "Your laptop can run a giant AI model. It takes centuries. That's not a bug."
+</few_shot_example>
 
 Return ONLY a raw JSON object with this exact shape:
 {{
@@ -93,40 +113,82 @@ def _parse_response(text: str) -> Optional[List[Dict[str, Any]]]:
     return data.get("beats") if isinstance(data, dict) else None
 
 
+_BANNED_PHRASES = (
+    "in this video", "today we'll", "let's dive in", "imagine", "picture this",
+    "it's important to note", "the fact that", "in order to", "utilize",
+    "facilitate", "implementation", "optimization", "delve", "landscape",
+    "realm", "follow for", "stay curious", "game-changer", "however",
+    "additionally", "furthermore", "in conclusion",
+)
+_PASSIVE_RE = re.compile(r"\b(?:is|are|was|were|be|been|being)\s+\w+(?:ed|en)\b", re.I)
+_CONTRACTION_RE = re.compile(r"\b\w+'(?:s|t|re|ve|ll|d|m)\b", re.I)
+_DANGLING = {
+    "of", "to", "the", "a", "an", "and", "but", "while", "because",
+    "that", "with", "in", "for", "on", "at", "by", "from", "into",
+    "about", "as", "or", "so", "if", "than", "is", "are", "was", "were",
+}
+
+
 def _validate(beats: List[Dict[str, Any]]) -> Optional[str]:
     if not isinstance(beats, list) or len(beats) != 7:
         return "expected 7 beats"
     if [str(b.get("id") or "") for b in beats] != _BEAT_IDS:
         return "wrong beat ids/order"
-    narrations = []
+    narrations: List[str] = []
+    sentences: List[str] = []
+    openings: List[str] = []
     seen = set()
     for b in beats:
         narration = re.sub(r"\s+", " ", str(b.get("narration") or "").strip())
-        words = narration.split()
-        if len(words) < 10 or len(words) > 26:
-            return f"beat {b.get('id')} word count {len(words)}"
         if is_slop(narration):
             return f"beat {b.get('id')} has slop"
-        for sentence in _SENT_SPLIT.split(narration):
-            if len(sentence.split()) > 20:
-                return f"beat {b.get('id')} has a sentence over 20 words"
-            if sentence.rstrip() and sentence.rstrip()[-1] not in ".!?":
+        beat_sentences = [s.strip() for s in _SENT_SPLIT.split(narration) if s.strip()]
+        if not beat_sentences:
+            return f"beat {b.get('id')} has no sentences"
+        for sentence in beat_sentences:
+            n = len(sentence.split())
+            if n > 18:
+                return f"beat {b.get('id')} has a sentence over 18 words"
+            if sentence[-1] not in ".!?":
                 return f"beat {b.get('id')} has an unterminated sentence"
             tail = re.sub(r"[^a-z ]", "", sentence.lower()).split()[-1:]
-            if tail and tail[0] in {
-                "of", "to", "the", "a", "an", "and", "but", "while", "because",
-                "that", "with", "in", "for", "on", "at", "by", "from", "into",
-                "about", "as", "or", "so", "if", "than", "is", "are", "was", "were",
-            }:
+            if tail and tail[0] in _DANGLING:
                 return f"beat {b.get('id')} ends on a dangling word: {tail[0]}"
+            sentences.append(sentence)
+            openings.append(sentence.split()[0].lower())
         key = re.sub(r"\W+", " ", narration.lower()).strip()
         if key in seen:
             return "duplicate beat narration"
         seen.add(key)
         narrations.append(narration)
+
     total = sum(len(n.split()) for n in narrations)
-    if not (95 <= total <= 125):
+    if not (100 <= total <= 110):
         return f"total word count {total}"
+    mean_sentence = total / max(1, len(sentences))
+    if mean_sentence > 15:
+        return f"mean sentence length too high ({mean_sentence:.1f})"
+    fragments = sum(1 for s in sentences if len(s.split()) <= 6)
+    if fragments < 3:
+        return f"too few spoken fragments ({fragments})"
+
+    all_text = " ".join(narrations)
+    lowered = all_text.lower()
+    if len(re.findall(r"\b(?:you|your)\b", lowered)) < 3:
+        return "not enough second-person framing"
+    if len(_CONTRACTION_RE.findall(all_text)) < 4:
+        return "not enough contractions"
+    for phrase in _BANNED_PHRASES:
+        if phrase in lowered:
+            return f"banned article-style phrase: {phrase}"
+    if _PASSIVE_RE.search(all_text):
+        return "passive voice detected"
+    if all_text.count("?") > 1:
+        return "more than one rhetorical question"
+    if any(openings[i] == openings[i + 1] for i in range(len(openings) - 1)):
+        return "two consecutive sentences share an opening word"
+    if len(sentences[-1].split()) > 10:
+        return "final soundbite is too long"
     return None
 
 

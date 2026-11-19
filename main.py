@@ -257,8 +257,9 @@ def main():
 
         from src.short_script import build_short_script
         from src.short_script_ai import build_short_script_ai
-        from src.voice import capture_words, make_audition, write_srt, VOICES
-        from src.short_visual_v2 import build_short_html
+        from src.storyboard_ai import build_storyboard_ai, deterministic_storyboard
+        from src.voice import synthesize_performance, write_srt
+        from src.short_visual_v3 import build_short_html_v3
         from src.video_generator import VideoGenerator
 
         topic = (
@@ -266,37 +267,34 @@ def main():
             if args.topic else engine.get_fresh_topic()
         )
         script = build_short_script_ai(topic) or build_short_script(topic)
+        storyboard = build_storyboard_ai(topic, script) or deterministic_storyboard(topic, script)
         qa = script.get("qa", {})
         console.print(
-            f"[dim]Script: {qa.get('word_count')} words, "
-            f"~{qa.get('estimated_seconds_at_145wpm', 0):.0f}s at 145 wpm[/dim]"
+            f"[dim]Script: {qa.get('word_count')} words, source={qa.get('source', 'fallback')}[/dim]"
+        )
+        console.print(
+            "[dim]Visual recipes: "
+            + ", ".join(b.get("template_id", "?") for b in storyboard["beats"])
+            + f" ({storyboard.get('source', '?')})[/dim]"
         )
         for beat in script["beats"]:
-            console.print(
-                f"  [cyan]{beat['label']:<12}[/cyan] {beat['focus_word']} — "
-                f"{beat['narration'][:80]}..."
-            )
+            console.print(f"  [cyan]{beat['narration']}[/cyan]")
 
         gen = VideoGenerator()
         slug = re.sub(r"[^a-zA-Z0-9]+", "_", script["title"].lower()).strip("_")[:35]
-        work_dir = gen.output_dir / f"short_v2_{slug}"
+        work_dir = gen.output_dir / f"short_v3_{slug}"
         work_dir.mkdir(parents=True, exist_ok=True)
 
         raw_mp3 = work_dir / "voice_raw.mp3"
         voice_result = None
-        for label in ("Christopher", "Ava", "Guy", "Jenny", "Aria"):
-            cfg = VOICES[label]
+        for voice in ("en-US-AvaNeural", "en-US-AndrewNeural", "en-US-EmmaNeural"):
             try:
-                voice_result = capture_words(
-                    script["narration"],
-                    str(raw_mp3),
-                    voice=cfg["name"],
-                    rate=cfg["rate"],
-                    pitch=cfg["pitch"],
+                voice_result = synthesize_performance(
+                    script["narration"], str(raw_mp3), voice=voice
                 )
                 break
             except RuntimeError as exc:
-                console.print(f"[yellow]Voice {label} failed: {exc}[/yellow]")
+                console.print(f"[yellow]Voice {voice} failed: {exc}[/yellow]")
         if voice_result is None:
             raise SystemExit("All narration voices failed")
         words = voice_result["words"]
@@ -305,12 +303,12 @@ def main():
             str(raw_mp3), str(work_dir / "narration_master.wav"), target
         )
 
-        html = build_short_html(topic, script, words, duration)
+        html = build_short_html_v3(topic, script, storyboard, words, duration)
         (work_dir / "index.html").write_text(html, encoding="utf-8")
+        (work_dir / "script.txt").write_text(script["narration"], encoding="utf-8")
         write_srt(words, str(work_dir / "subtitles.srt"))
-        make_audition(script["narration"], str(work_dir / "audition"))
 
-        video_path = str(work_dir / f"short_v2_{slug}.mp4")
+        video_path = str(work_dir / f"short_v3_{slug}.mp4")
         ok = gen._render_hyperframes(work_dir, video_path)
         console.print(
             f"[bold green]Demo short: {video_path} ({duration:.1f}s, rendered={ok})[/bold green]"
