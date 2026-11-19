@@ -140,3 +140,15 @@ jobs:
           fi
           git pull --rebase origin master --autostash || true
           git push origin master || true
+
+      - name: Upload rendered media for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-media-${{ github.run_number }}
+          path: |
+            generated_visuals/videos/**/*.mp4
+            generated_visuals/videos/**/*.srt
+            generated_visuals/videos/**/*.jpg
+          if-no-files-found: ignore
+          retention-days: 14
