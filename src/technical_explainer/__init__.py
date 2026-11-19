@@ -119,7 +119,7 @@ class TechnicalExplainerStudio:
         print(f"[TechnicalExplainer] Work Directory: {work_dir}", flush=True)
         print("=" * 65, flush=True)
 
-        # 1. Long-form storyboard (12 acts)
+        # 1. Long-form storyboard (16 acts)
         print("[TechnicalExplainer] Planning the long-form narrative...", flush=True)
         storyboard = self.planner.plan_long_storyboard(topic_data)
 

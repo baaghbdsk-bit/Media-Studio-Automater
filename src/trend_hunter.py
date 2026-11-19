@@ -633,7 +633,9 @@ class TrendHunter:
         pillar_label = curriculum.PILLAR_LABELS.get(pillar, pillar.upper())
         recent_block = "\n".join(f"- {t}" for t in recent[-40:]) or "- (none yet)"
         series_block = ", ".join(exclude_series) or "none"
-        word_range = "45-65" if n_acts > 7 else "30-45"
+        word_range = (
+            "60-80" if n_acts > 12 else ("45-65" if n_acts > 7 else "30-45")
+        )
 
         news_lines = []
         for item in (news_context or [])[:10]:
@@ -903,7 +905,7 @@ class TrendHunter:
         exclude_series = list(exclude_series or [])
         audience = audience or "beginner"
         pillar = pillar or "NEWS"
-        n_acts = 12 if long_form else 7
+        n_acts = 16 if long_form else 7
 
         news_context = None
         if str(pillar).upper() == "NEWS":

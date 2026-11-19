@@ -56,6 +56,7 @@ HARD RULES:
 - One idea only: a question, one mechanism, one surprising implication.
 - Sentences <= 20 words. Use contractions and second person. Write for the ear.
 - Each beat must be DIFFERENT: never repeat a clause, a sentence opening, or the same fact twice.
+- Every beat narration must be a COMPLETE sentence with a finished object. Never end on "of", "to", "the", "and", "while", "because", "that", "with", "in", "for", "on", or any other dangling word.
 - No "follow for", "stay curious", "game-changer", "delve", "in today's fast-paced", "here is what we know so far".
 - No greetings, no logo intro, no "in this video". Hook starts mid-thought with a specific question or consequence.
 - The final beat is a short callback to the opening question so the video loops cleanly.
@@ -111,6 +112,13 @@ def _validate(beats: List[Dict[str, Any]]) -> Optional[str]:
                 return f"beat {b.get('id')} has a sentence over 20 words"
             if sentence.rstrip() and sentence.rstrip()[-1] not in ".!?":
                 return f"beat {b.get('id')} has an unterminated sentence"
+            tail = re.sub(r"[^a-z ]", "", sentence.lower()).split()[-1:]
+            if tail and tail[0] in {
+                "of", "to", "the", "a", "an", "and", "but", "while", "because",
+                "that", "with", "in", "for", "on", "at", "by", "from", "into",
+                "about", "as", "or", "so", "if", "than", "is", "are", "was", "were",
+            }:
+                return f"beat {b.get('id')} ends on a dangling word: {tail[0]}"
         key = re.sub(r"\W+", " ", narration.lower()).strip()
         if key in seen:
             return "duplicate beat narration"
