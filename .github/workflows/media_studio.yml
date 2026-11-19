@@ -31,6 +31,7 @@ on:
           - pinterest
           - threads
           - generate-video
+          - generate-explainer
 
 concurrency:
   group: 'media-studio-cloud-engine'

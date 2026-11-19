@@ -186,6 +186,7 @@ def main():
             "youtube-explainer",
             "long-explainer",
             "generate-video",
+            "generate-explainer",
             "ig-diagnose",
             "metrics",
             "doctor",
@@ -236,6 +237,18 @@ def main():
         topic = {"title": args.topic} if args.topic else engine.get_fresh_topic()
         res = VideoGenerator().generate_dynamic_short(topic, dry_run=args.dry_run)
         console.print(f"[bold green]Video generated: {res}[/bold green]")
+
+    elif args.action == "generate-explainer":
+        console.print("[bold magenta]⏳ Rendering long-form explainer only (no publishing)...[/bold magenta]")
+        from src.technical_explainer import TechnicalExplainerStudio
+        topic = {"title": args.topic} if args.topic else engine.get_fresh_topic(
+            pillar="ai_systems", long_form=True
+        )
+        res = TechnicalExplainerStudio().generate_long_explainer_video(topic)
+        console.print(
+            f"[bold green]Explainer rendered: {res.get('duration')}s -> "
+            f"{res.get('video_path')}[/bold green]"
+        )
 
     elif args.action == "ig-diagnose":
         from scripts import ig_diagnose

@@ -111,7 +111,7 @@ class AutomationDaemon:
         today = datetime.now().strftime("%Y-%m-%d")
         if self.last_explainer_run == today:
             return
-        self._run_pipeline("schedule-explainer", 900)
+        self._run_pipeline("schedule-explainer", 1800)
         self.last_explainer_run = today
 
     def run(self):
@@ -145,7 +145,7 @@ def main():
     if args.action == "schedule-reels-shorts":
         sys.exit(0 if daemon._run_pipeline(args.action, 600) else 1)
     if args.action == "schedule-explainer":
-        sys.exit(0 if daemon._run_pipeline(args.action, 900) else 1)
+        sys.exit(0 if daemon._run_pipeline(args.action, 1800) else 1)
     daemon.run()
 
 if __name__ == "__main__":

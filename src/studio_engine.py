@@ -451,8 +451,12 @@ class StudioEngine:
             console.print(f"[yellow][DRY RUN] Would publish 16:9 YouTube Explainer: {title}[/yellow]")
             return True
 
-        vid_gen = VideoGenerator()
-        v_res = vid_gen.generate_dynamic_explainer(topic, dry_run=self.dry_run)
+        # Use the 12-act long-form engine. The old VideoGenerator path was a
+        # 60-second, 5-static-slide explainer regardless of the topic.
+        from src.technical_explainer import TechnicalExplainerStudio
+
+        vid_gen = TechnicalExplainerStudio()
+        v_res = vid_gen.generate_long_explainer_video(topic)
         vpath = self._rendered_video_path(v_res, "YouTube explainer")
         if vpath is None:
             return False
