@@ -220,11 +220,12 @@ class VideoGenerator:
         return total_dur
 
     def _render_hyperframes(self, comp_dir: Path, output_mp4: str) -> bool:
-        """Render with HyperFrames, then apply a finishing pass.
+        """Render with HyperFrames, then normalise audio loudness.
 
-        The finishing pass adds subtle temporal grain (so no frame is a
-        duplicate of the previous one) and normalises loudness to -14 LUFS.
-        Both are required by the pre-publish QA gate.
+        Visible motion is authored in the composition itself (bounded
+        parallax/loop layers), so no grain or video re-encode is needed. The
+        loudness pass only re-encodes audio, keeping file size and picture
+        quality intact.
         """
         output = Path(output_mp4)
         raw_output = output.with_name(output.stem + "_raw.mp4")
@@ -244,11 +245,10 @@ class VideoGenerator:
             subprocess.run([
                 self.ffmpeg_bin, "-y", "-v", "error",
                 "-i", str(raw_output),
-                "-vf", "noise=alls=6:allf=t",
+                "-c:v", "copy",
                 "-af", "loudnorm=I=-14:TP=-1.5:LRA=11",
-                "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
-                "-pix_fmt", "yuv420p", "-movflags", "+faststart",
-                "-c:a", "aac", "-b:a", "192k",
+                "-c:a", "aac", "-b:a", "160k",
+                "-movflags", "+faststart",
                 str(output),
             ], check=True, capture_output=True)
             raw_output.unlink(missing_ok=True)
@@ -310,13 +310,17 @@ class VideoGenerator:
         }
 
     def generate_dynamic_short(self, topic_data: Dict[str, Any], dry_run: bool = False) -> Dict[str, Optional[str]]:
-        """
-        Renders a full-production 9:16 Vertical (1080x1920) Cinematic Animation Short/Reel.
-        Duration: 60 seconds.
-        Follows the Beginner-Friendly AMM Framework.
-        """
-        story = self._compose_beginner_friendly_story(topic_data)
-        title = story["title"]
+        """Render a 9:16 Short with spoken script, AI storyboard and object animation."""
+        from src.short_script import build_short_script
+        from src.short_script_ai import build_short_script_ai
+        from src.storyboard_ai import build_storyboard_ai, deterministic_storyboard
+        from src.voice import synthesize_performance, write_srt
+        from src.short_visual_v3 import build_short_html_v3
+        from scripts.qa_video import check_video
+
+        script = build_short_script_ai(topic_data) or build_short_script(topic_data)
+        storyboard = build_storyboard_ai(topic_data, script) or deterministic_storyboard(topic_data, script)
+        title = str(script.get("title") or topic_data.get("title") or "AI Explained")
         slug = re.sub(r'[^a-zA-Z0-9]+', '_', title.lower()).strip('_')[:35]
         work_dir = self.output_dir / f"short_{slug}"
         work_dir.mkdir(parents=True, exist_ok=True)
@@ -328,53 +332,38 @@ class VideoGenerator:
         if dry_run:
             if not Path(video_path).exists():
                 Path(video_path).touch()
-            return {
-                "video_path": video_path,
-                "srt_path": srt_path,
-                "audio_path": audio_path
-            }
-
-        narration_text = story["narration"]
+            return {"video_path": video_path, "srt_path": srt_path, "audio_path": audio_path}
 
         try:
-            print(f"[VideoGenerator] 🎙️ Synthesizing beginner-friendly voiceover for '{title[:35]}'...")
-            total_dur = self._synthesize_voice_and_audio_suite(narration_text, audio_path, duration_target=48.0)
+            raw_mp3 = work_dir / "voice_raw.mp3"
+            voice_result = None
+            for voice in ("en-US-AvaNeural", "en-US-AndrewNeural", "en-US-EmmaNeural"):
+                try:
+                    voice_result = synthesize_performance(
+                        script["narration"], str(raw_mp3), voice=voice
+                    )
+                    break
+                except RuntimeError as exc:
+                    print(f"[VideoGenerator] Voice {voice} failed: {exc}")
+            if voice_result is None:
+                raise RuntimeError("All narration voices failed")
 
-            # Generate Subtitles for 5 Acts
-            act_dur = total_dur / 5.0
-            # Subtitles follow the actual spoken script, not generic scene labels.
-            sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", narration_text) if s.strip()]
-            chunks: List[List[str]] = [[] for _ in range(5)]
-            for idx, sentence in enumerate(sentences):
-                chunks[idx * 5 // max(1, len(sentences))].append(sentence)
-            captions = [" ".join(chunk)[:120] for chunk in chunks]
-            sub_scenes = [{"duration": act_dur, "caption": c} for c in captions]
-            self._generate_srt_file(sub_scenes, srt_path)
+            words = voice_result["words"]
+            target = max(40.0, (words[-1]["end"] if words else 0.0) + 2.0)
+            total_dur = self._master_audio_from_mp3(str(raw_mp3), audio_path, target)
+            write_srt(words, srt_path)
 
-            # Build 9:16 Vertical HyperFrames Composition (5 Acts)
-            comp_html = self._build_vertical_short_html(
-                title=story["title"],
-                hook=story["hook"],
-                analogy=story.get("summary") if is_news else story["analogy"],
-                problem=story["problem"],
-                solution=story["solution"],
-                takeaway=story["takeaway"],
-                pro_tip=story["pro_tip"],
-                duration=total_dur,
-                mode="news" if is_news else "concept"
-            )
-            index_path = work_dir / "index.html"
-            with open(index_path, "w", encoding="utf-8") as f:
-                f.write(comp_html)
+            html = build_short_html_v3(topic_data, script, storyboard, words, total_dur)
+            (work_dir / "index.html").write_text(html, encoding="utf-8")
+            (work_dir / "script.txt").write_text(script["narration"], encoding="utf-8")
 
-            # Render with HyperFrames
-            ok = self._render_hyperframes(work_dir, video_path)
-            if ok:
-                return {
-                    "video_path": video_path,
-                    "srt_path": srt_path,
-                    "audio_path": audio_path
-                }
+            if self._render_hyperframes(work_dir, video_path):
+                qa_ok, qa_report = check_video(video_path)
+                print(f"[VideoGenerator] QA: {qa_report}")
+                if not qa_ok:
+                    print(f"[VideoGenerator] QA failed: {qa_report.get('errors')}")
+                    return {"video_path": None, "srt_path": srt_path, "audio_path": audio_path}
+                return {"video_path": video_path, "srt_path": srt_path, "audio_path": audio_path}
         except Exception as ex:
             print(f"[VideoGenerator] Short generation error: {ex}")
 

@@ -56,12 +56,13 @@ html, body { background: var(--bg); overflow: hidden; }
 body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--ink); }
 #root { width: 1080px; height: 1920px; position: relative; overflow: hidden; background: var(--bg); }
 .bg-canvas { position: absolute; inset: 0; background: radial-gradient(circle at 50% 38%, rgba(var(--c2rgb),0.16) 0%, rgba(var(--c1rgb),0.06) 42%, var(--bg) 80%); }
-.grid-bg { position: absolute; inset: -200px; background-image: linear-gradient(rgba(var(--c2rgb),0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--c2rgb),0.06) 1px, transparent 1px); background-size: 110px 110px; opacity: 0.55; }
-.orb { position: absolute; border-radius: 50%; opacity: 0.18; z-index: 1; }
+.grid-bg { position: absolute; inset: -300px; background-image: linear-gradient(rgba(var(--c2rgb),0.16) 2px, transparent 2px), linear-gradient(90deg, rgba(var(--c2rgb),0.16) 2px, transparent 2px); background-size: 64px 64px; opacity: 0.5; }
+.world { position: absolute; inset: 0; transform-origin: 50% 45%; z-index: 2; }
+.orb { position: absolute; border-radius: 50%; opacity: 0.28; z-index: 1; }
 .orb.a { width: 560px; height: 560px; background: radial-gradient(circle, var(--c1) 0%, transparent 68%); }
 .orb.b { width: 460px; height: 460px; background: radial-gradient(circle, var(--c2) 0%, transparent 68%); }
 .orb.c { width: 400px; height: 400px; background: radial-gradient(circle, var(--c3) 0%, transparent 68%); }
-.sweep { position: absolute; top: -20%; left: 0; width: 34%; height: 140%; z-index: 4; opacity: 0.10; transform: skewX(-18deg); background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 45%, rgba(255,255,255,0.85) 52%, transparent 100%); }
+.sweep { position: absolute; top: -20%; left: 0; width: 34%; height: 140%; z-index: 4; opacity: 0.13; transform: skewX(-18deg); background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 45%, rgba(255,255,255,0.85) 52%, transparent 100%); }
 .beat { position: absolute; inset: 0; clip-path: inset(0 100% 0 0); transform-origin: 50% 44%; z-index: 5; }
 .cam { position: absolute; inset: 0; transform-origin: 50% 44%; }
 .tile { position: absolute; border-radius: 13px; background: linear-gradient(145deg, #ffffff 0%, #cdd6e4 100%); box-shadow: inset 0 -7px 0 rgba(0,0,0,0.16), inset 0 3px 0 rgba(255,255,255,0.85); opacity: 0; }
@@ -634,6 +635,7 @@ def build_short_html_v3(
     sc.h('<div id="orb2" class="orb b" style="left:640px;top:1080px;"></div>')
     sc.h('<div id="orb3" class="orb c" style="left:280px;top:560px;"></div>')
     sc.h('<div id="sweep" class="sweep"></div>')
+    sc.h('<div id="world" class="world">')
 
     first_word_at: List[float] = []
     for index, beat in enumerate(sb_beats):
@@ -684,6 +686,7 @@ def build_short_html_v3(
                 break
         first_word_at.append(found)
 
+    sc.h("</div>")  # /world
     sc.h('<div class="progress-track"><div class="progress-fill" id="progress"></div></div>')
     for index in range(count):
         sc.h(
@@ -701,12 +704,19 @@ def build_short_html_v3(
 
     # Global ambient motion.
     sc.add("#progress", "scaleX:0", 'scaleX:1, duration:%.3f, ease:"none"' % total, 0)
-    sc.add("#grid-bg", "x:0, y:0", 'x:240, y:-160, duration:%.3f, ease:"none"' % total, 0)
-    sc.add("#bg-canvas", "opacity:0.9", 'opacity:1, duration:%.3f, ease:"none"' % total, 0)
-    sc.add("#orb1", "x:-180, y:0", 'x:420, y:240, duration:%.3f, ease:"none"' % total, 0)
-    sc.add("#orb2", "x:160, y:-120", 'x:-300, y:200, duration:%.3f, ease:"none"' % total, 0)
-    sc.add("#orb3", "x:0, y:140", 'x:320, y:-220, duration:%.3f, ease:"none"' % total, 0)
-    sc.add("#sweep", "x:-800", 'x:2000, duration:%.3f, ease:"none"' % total, 0)
+    # Bounded loops keep the picture moving for the entire video. A one-way
+    # drift eventually leaves the frame, which made later beats look static.
+    sc.add("#world", "scale:1", 'scale:1.10, duration:%.3f, ease:"none"' % total, 0)
+    sc.idle("#grid-bg", "x", 0, 64, 0, total, 0.9, "none")
+    sc.idle("#grid-bg", "y", 0, 64, 0, total, 1.3, "none")
+    sc.add("#bg-canvas", "opacity:0.85", 'opacity:1, duration:%.3f, ease:"none"' % total, 0)
+    sc.idle("#orb1", "x", -180, 180, 0, total, 2.3, "sine.inOut")
+    sc.idle("#orb1", "y", -90, 90, 0, total, 3.1, "sine.inOut")
+    sc.idle("#orb2", "x", 160, -160, 0, total, 2.7, "sine.inOut")
+    sc.idle("#orb2", "y", -80, 80, 0, total, 3.5, "sine.inOut")
+    sc.idle("#orb3", "x", -140, 140, 0, total, 2.1, "sine.inOut")
+    sc.idle("#orb3", "y", 100, -100, 0, total, 2.9, "sine.inOut")
+    sc.idle("#sweep", "x", -320, 320, 0, total, 1.4, "none")
 
     for index, beat in enumerate(sb_beats):
         s, e = starts[index], ends[index]
