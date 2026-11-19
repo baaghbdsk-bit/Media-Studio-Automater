@@ -782,17 +782,27 @@ class TrendHunter:
             if topic_memory.similarity(title, old) >= topic_memory.DEFAULT_SIMILARITY:
                 return None
 
+        from src.content_quality import clean_text, is_slop
+
         raw_acts = data.get("acts") if isinstance(data.get("acts"), list) else []
         clean: List[Dict[str, Any]] = []
+        seen_narrations = set()
         for act in raw_acts:
             if not isinstance(act, dict):
                 continue
-            narration = str(act.get("narration") or "").strip()
-            if len(narration.split()) < 12:
+            narration = clean_text(str(act.get("narration") or ""))
+            if len(narration.split()) < 12 or is_slop(narration):
                 continue
+            act_title = str(act.get("title") or "").strip()
+            if not act_title or act_title.lower() in ("next", "part", "act"):
+                continue
+            key = re.sub(r"\W+", " ", narration.lower()).strip()
+            if key in seen_narrations:
+                continue
+            seen_narrations.add(key)
             layer = act.get("visual_layer")
             clean.append({
-                "title": str(act.get("title") or "Next")[:70],
+                "title": act_title[:70],
                 "narration": narration,
                 "visual_layer": layer if layer in cls.LAYERS else "ecosystem",
                 "hud_badge": str(act.get("hud_badge") or "")[:32],
@@ -834,6 +844,7 @@ class TrendHunter:
                              used_topics: List[str]) -> Optional[Dict[str, Any]]:
         """Build a safe news topic from the top grounded headline when Gemini is unavailable."""
         from src import topic_memory
+        from src.content_quality import clean_text
 
         for item in (news_context or []):
             raw_title = str(item.get("title") or "").strip()
@@ -854,7 +865,8 @@ class TrendHunter:
                 for old in used_topics
             ):
                 continue
-            body = summary or f"{title}. Here is what we know so far."
+            body = clean_text(summary or title)
+            sentences = re.split(r"(?<=[.!?])\s+", body)
             return {
                 "title": title,
                 "canonical_topic": title,
@@ -864,14 +876,14 @@ class TrendHunter:
                 "audience": "beginner",
                 "pillar": "NEWS",
                 "hook": title,
-                "tagline": "Here is what changed.",
+                "tagline": sentences[0] if sentences else body,
                 "summary": body,
                 "analogy": body,
-                "problem": "The details are still developing, and the stakes are high for everyone building with AI.",
-                "solution": "Here is what we know so far, and what to watch next.",
+                "problem": sentences[1] if len(sentences) > 1 else "",
+                "solution": sentences[2] if len(sentences) > 2 else "",
                 "example": "",
-                "pro_tip": "Follow for AI news that actually matters.",
-                "takeaway": "The story is moving fast, so watch for the next update.",
+                "pro_tip": "",
+                "takeaway": sentences[-1] if len(sentences) > 3 else "",
                 "long_form": False,
                 "acts": [],
             }

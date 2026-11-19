@@ -229,69 +229,43 @@ class VideoGenerator:
         return False
 
     def _compose_beginner_friendly_story(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Builds a 5-Act Beginner-Empathetic Explainer Story following the
-        Anchor -> Metaphor -> Bottleneck -> Unlock -> Takeaway (AMM) Framework.
-        Ensures anyone with zero technical background immediately grasps the core concept.
-        """
-        title = str(topic_data.get("title") or "Modern Computing Breakthrough").strip()
-        hook = str(topic_data.get("hook") or "").strip()
-        analogy = str(topic_data.get("analogy") or "").strip()
-        problem = str(topic_data.get("problem") or "").strip()
-        solution = str(topic_data.get("solution") or "").strip()
-        summary = str(topic_data.get("summary") or "").strip()
-        pro_tip = str(topic_data.get("pro_tip") or "").strip()
-        takeaway = str(topic_data.get("takeaway") or "").strip()
-        example = str(topic_data.get("example") or "").strip()
+        """Build on-screen story cards and a grounded, filler-free narration."""
+        from src.content_quality import clean_text, trim_to_sentences
 
-        # 1. Curious Everyday Context & Hook (Anchor) - zero technical jargon, child-friendly
-        if not hook:
-            hook = f"Have you ever wondered how computers actually do {title} without getting completely confused?"
+        source = topic_data or {}
+        title = str(source.get("title") or "Modern Computing Breakthrough").strip()
 
-        # 2. Everyday Metaphor (Relatable Physical World)
-        if not analogy:
-            analogy = f"Think of it like building with toy blocks: instead of dumping the whole box at once, you find the right pieces and snap them together step by step."
+        real_hook = str(source.get("hook") or "").strip()
+        real_analogy = str(source.get("analogy") or "").strip()
+        real_problem = str(source.get("problem") or "").strip()
+        real_solution = str(source.get("solution") or "").strip()
+        real_takeaway = str(source.get("takeaway") or "").strip()
+        real_pro_tip = str(source.get("pro_tip") or "").strip()
+        summary = str(source.get("summary") or "").strip()
 
-        # 3. Tangible Problem (Detailed Why-It-Breaks in simple human terms)
-        if not problem:
-            problem = f"Before this existed, computers had to guess everything word-by-word. It was like a slow reader who forgets the beginning of a sentence before reaching the end!"
+        # On-screen fallbacks stay visual only. They are never narrated, so a
+        # missing field cannot inject canned "magic glasses" prose into the VO.
+        hook = real_hook or f"Have you ever wondered how {title} actually works?"
+        analogy = real_analogy or "Think of it like sorting a pile of letters by hand: slow, easy to get wrong, and impossible to scale."
+        problem = real_problem or "The old approach was slow and broke down as the input grew."
+        solution = real_solution or f"{title} changes that by handling the whole problem in one pass."
+        takeaway = real_takeaway or title
+        pro_tip = real_pro_tip or "Look for the concrete constraint this removes, not the buzzword."
 
-        # 4. Technical Unlock (The Solution in simple terms)
-        if not solution:
-            solution = f"That is why scientists created {title}. It gives the computer magic glasses to look at the whole picture at once, connecting all the pieces instantly."
-
-        # 5. Core Takeaway (The 'Aha!' Rule)
-        if not takeaway:
-            takeaway = f"Now you know: smart connections make things fast and clear."
-
-        if not pro_tip:
-            pro_tip = f"Remember: the best technology always solves a simple human problem."
-
-        is_news = str(topic_data.get("pillar") or "").upper() == "NEWS"
+        is_news = str(source.get("pillar") or "").upper() == "NEWS"
         if is_news:
-            segments = [hook, summary, problem, solution, takeaway, pro_tip]
-            body = " ".join(seg.strip() for seg in segments if seg and seg.strip())
-            if not body:
-                body = f"{title}. Here is what actually happened, and why it matters."
-            body_words = body.split()
-            if len(body_words) > 105:
-                body = " ".join(body_words[:105]).rstrip(",;:") + "."
-            if not body.endswith((".", "!", "?")):
-                body += "."
-            narration = body + " Follow for AI news that actually matters."
+            # Grounded news: only the headline and the sourced summary.
+            narration_parts = [real_hook, summary]
         else:
-            narration = (
-                f"{hook} "
-                f"Here is the simple way to think about it: {analogy} "
-                f"Before this existed, {problem} "
-                f"That is why {title} was invented: {solution} "
-                f"So the big takeaway? {takeaway} {pro_tip} "
-                f"Stay curious, and follow for more simple tech breakdowns!"
-            )
+            narration_parts = [
+                real_hook, real_analogy, real_problem,
+                real_solution, real_takeaway, real_pro_tip,
+            ]
 
-            words = narration.split()
-            if len(words) > 115:
-                narration = " ".join(words[:115]).rstrip(",;:") + "."
+        narration = clean_text(" ".join(p for p in narration_parts if p))
+        if not narration:
+            narration = clean_text(summary or f"{title}. Here is what changed and why it matters.")
+        narration = trim_to_sentences(narration, 105 if is_news else 115)
 
         return {
             "title": title,
@@ -302,7 +276,7 @@ class VideoGenerator:
             "solution": solution,
             "takeaway": takeaway,
             "pro_tip": pro_tip,
-            "narration": narration
+            "narration": narration,
         }
 
     def generate_dynamic_short(self, topic_data: Dict[str, Any], dry_run: bool = False) -> Dict[str, Optional[str]]:
@@ -338,11 +312,12 @@ class VideoGenerator:
 
             # Generate Subtitles for 5 Acts
             act_dur = total_dur / 5.0
-            is_news = str(topic_data.get("pillar") or "").upper() == "NEWS"
-            if is_news:
-                captions = [f"{title}: Breaking", "What Happened", "Why It Matters", "The Reaction", "What's Next"]
-            else:
-                captions = [f"{title}: The Big Question", "Real-World Metaphor", "The Hidden Bottleneck", "The Architectural Unlock", "Key Takeaway & Rule"]
+            # Subtitles follow the actual spoken script, not generic scene labels.
+            sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", narration_text) if s.strip()]
+            chunks: List[List[str]] = [[] for _ in range(5)]
+            for idx, sentence in enumerate(sentences):
+                chunks[idx * 5 // max(1, len(sentences))].append(sentence)
+            captions = [" ".join(chunk)[:120] for chunk in chunks]
             sub_scenes = [{"duration": act_dur, "caption": c} for c in captions]
             self._generate_srt_file(sub_scenes, srt_path)
 
