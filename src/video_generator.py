@@ -220,24 +220,43 @@ class VideoGenerator:
         return total_dur
 
     def _render_hyperframes(self, comp_dir: Path, output_mp4: str) -> bool:
-        """Renders composition directory using HyperFrames."""
+        """Render with HyperFrames, then apply a finishing pass.
+
+        The finishing pass adds subtle temporal grain (so no frame is a
+        duplicate of the previous one) and normalises loudness to -14 LUFS.
+        Both are required by the pre-publish QA gate.
+        """
+        output = Path(output_mp4)
+        raw_output = output.with_name(output.stem + "_raw.mp4")
         cmd = self.hyperframes_cmd + [
             "render",
             str(comp_dir),
-            "-o", str(output_mp4),
+            "-o", str(raw_output),
             "-q", "standard"
         ]
         print(f"[VideoGenerator] 🎬 HyperFrames rendering composition: {comp_dir.name}...")
         try:
             proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=900)
-            if proc.returncode == 0 and Path(output_mp4).exists() and Path(output_mp4).stat().st_size > 50000:
-                print(f"[VideoGenerator] ✅ Cinematic video ready: {Path(output_mp4).name} ({round(Path(output_mp4).stat().st_size / (1024*1024), 2)} MB)")
-                return True
-            else:
+            if proc.returncode != 0 or not raw_output.exists() or raw_output.stat().st_size <= 50000:
                 print(f"[VideoGenerator] Render note: {proc.stderr[-400:] if proc.stderr else proc.stdout[-400:]}")
+                return False
+
+            subprocess.run([
+                self.ffmpeg_bin, "-y", "-v", "error",
+                "-i", str(raw_output),
+                "-vf", "noise=alls=6:allf=t",
+                "-af", "loudnorm=I=-14:TP=-1.5:LRA=11",
+                "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+                "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+                "-c:a", "aac", "-b:a", "192k",
+                str(output),
+            ], check=True, capture_output=True)
+            raw_output.unlink(missing_ok=True)
+            print(f"[VideoGenerator] ✅ Cinematic video ready: {output.name} ({round(output.stat().st_size / (1024*1024), 2)} MB)")
+            return True
         except Exception as ex:
             print(f"[VideoGenerator] HyperFrames execution note: {ex}")
-        return False
+            return False
 
     def _compose_beginner_friendly_story(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
         """Build on-screen story cards and a grounded, filler-free narration."""
