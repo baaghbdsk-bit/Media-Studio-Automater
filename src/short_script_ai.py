@@ -163,20 +163,20 @@ def _validate(beats: List[Dict[str, Any]]) -> Optional[str]:
         narrations.append(narration)
 
     total = sum(len(n.split()) for n in narrations)
-    if not (88 <= total <= 125):
+    if not (75 <= total <= 125):
         return f"total word count {total}"
     mean_sentence = total / max(1, len(sentences))
-    if mean_sentence > 15:
+    if mean_sentence > 16:
         return f"mean sentence length too high ({mean_sentence:.1f})"
     fragments = sum(1 for s in sentences if len(s.split()) <= 6)
-    if fragments < 3:
+    if fragments < 2:
         return f"too few spoken fragments ({fragments})"
 
     all_text = " ".join(narrations)
     lowered = all_text.lower()
-    if len(re.findall(r"\b(?:you|your)\b", lowered)) < 3:
+    if len(re.findall(r"\b(?:you|your)\b", lowered)) < 2:
         return "not enough second-person framing"
-    if len(_CONTRACTION_RE.findall(all_text)) < 4:
+    if len(_CONTRACTION_RE.findall(all_text)) < 3:
         return "not enough contractions"
     for phrase in _BANNED_PHRASES:
         if phrase in lowered:

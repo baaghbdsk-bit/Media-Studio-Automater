@@ -241,8 +241,6 @@ def _validate(data: Dict[str, Any], script: dict) -> Optional[str]:
         focus_words = _words(focus)
         if len(focus_words) > 3:
             return f"beat {index} focus_label word count {len(focus_words)}"
-        if " ".join(text_words) in forbidden or " ".join(focus_words) in forbidden:
-            return f"beat {index} uses scaffolding label"
         if " ".join(text_words) in sentences:
             return f"beat {index} on_screen_text copies narration"
         if not isinstance(beat.get("params"), dict):
@@ -254,15 +252,27 @@ def _validate(data: Dict[str, Any], script: dict) -> Optional[str]:
     return None
 
 
-def _normalize(data: Dict[str, Any], model: str) -> Dict[str, Any]:
+def _normalize(data: Dict[str, Any], model: str, script: Optional[dict] = None) -> Dict[str, Any]:
     """Coerce a validated payload into the exact public beat-key shape."""
+    forbidden = set(_SCAFFOLDING)
+    for beat in (script or {}).get("beats") or []:
+        if isinstance(beat, dict):
+            label = str(beat.get("label") or "").strip().lower()
+            if label:
+                forbidden.add(label)
+
     beats: List[Dict[str, Any]] = []
     for raw in data["beats"]:
         text = " ".join(str(raw.get("on_screen_text") or "").split())[:60]
+        focus = " ".join(str(raw.get("focus_label") or "").split())[:40]
+        if text.lower() in forbidden:
+            text = focus or str(raw["template_id"]).upper()
+        if focus.lower() in forbidden:
+            focus = ""
         beats.append({
             "template_id": str(raw["template_id"]),
             "on_screen_text": text,
-            "focus_label": " ".join(str(raw.get("focus_label") or "").split())[:40],
+            "focus_label": focus,
             "params": dict(raw.get("params") or {}),
             "camera": str(raw["camera"]),
             "visual_metaphor": str(raw.get("visual_metaphor") or "").strip()[:120],
@@ -316,7 +326,7 @@ def build_storyboard_ai(topic: dict, script: dict) -> Optional[dict]:
             if error:
                 print(f"[StoryboardAI] {model} rejected: {error}")
                 continue
-            result = _normalize(data, model)
+            result = _normalize(data, model, script or {})
             print(f"[StoryboardAI] built a 7-beat storyboard with {model}")
             return result
         except Exception as exc:
