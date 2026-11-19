@@ -187,6 +187,7 @@ def main():
             "long-explainer",
             "generate-video",
             "generate-explainer",
+            "generate-demo-short",
             "ig-diagnose",
             "metrics",
             "doctor",
@@ -249,6 +250,73 @@ def main():
             f"[bold green]Explainer rendered: {res.get('duration')}s -> "
             f"{res.get('video_path')}[/bold green]"
         )
+
+    elif args.action == "generate-demo-short":
+        console.print("[bold cyan]🎬 Rendering next-generation demo short (no publishing)...[/bold cyan]")
+        import re
+
+        from src.short_script import build_short_script
+        from src.short_script_ai import build_short_script_ai
+        from src.voice import capture_words, make_audition, write_srt, VOICES
+        from src.short_visual_v2 import build_short_html
+        from src.video_generator import VideoGenerator
+
+        topic = (
+            {"title": args.topic, "pillar": "ai_systems"}
+            if args.topic else engine.get_fresh_topic()
+        )
+        script = build_short_script_ai(topic) or build_short_script(topic)
+        qa = script.get("qa", {})
+        console.print(
+            f"[dim]Script: {qa.get('word_count')} words, "
+            f"~{qa.get('estimated_seconds_at_145wpm', 0):.0f}s at 145 wpm[/dim]"
+        )
+        for beat in script["beats"]:
+            console.print(
+                f"  [cyan]{beat['label']:<12}[/cyan] {beat['focus_word']} — "
+                f"{beat['narration'][:80]}..."
+            )
+
+        gen = VideoGenerator()
+        slug = re.sub(r"[^a-zA-Z0-9]+", "_", script["title"].lower()).strip("_")[:35]
+        work_dir = gen.output_dir / f"short_v2_{slug}"
+        work_dir.mkdir(parents=True, exist_ok=True)
+
+        raw_mp3 = work_dir / "voice_raw.mp3"
+        voice_result = None
+        for label in ("Christopher", "Ava", "Guy", "Jenny", "Aria"):
+            cfg = VOICES[label]
+            try:
+                voice_result = capture_words(
+                    script["narration"],
+                    str(raw_mp3),
+                    voice=cfg["name"],
+                    rate=cfg["rate"],
+                    pitch=cfg["pitch"],
+                )
+                break
+            except RuntimeError as exc:
+                console.print(f"[yellow]Voice {label} failed: {exc}[/yellow]")
+        if voice_result is None:
+            raise SystemExit("All narration voices failed")
+        words = voice_result["words"]
+        target = max(40.0, (words[-1]["end"] if words else 0.0) + 2.0)
+        duration = gen._master_audio_from_mp3(
+            str(raw_mp3), str(work_dir / "narration_master.wav"), target
+        )
+
+        html = build_short_html(topic, script, words, duration)
+        (work_dir / "index.html").write_text(html, encoding="utf-8")
+        write_srt(words, str(work_dir / "subtitles.srt"))
+        make_audition(script["narration"], str(work_dir / "audition"))
+
+        video_path = str(work_dir / f"short_v2_{slug}.mp4")
+        ok = gen._render_hyperframes(work_dir, video_path)
+        console.print(
+            f"[bold green]Demo short: {video_path} ({duration:.1f}s, rendered={ok})[/bold green]"
+        )
+        if not ok:
+            raise SystemExit(1)
 
     elif args.action == "ig-diagnose":
         from scripts import ig_diagnose

@@ -161,7 +161,16 @@ class VideoGenerator:
 
         asyncio.run(_synth())
 
-        # 2. Process with Broadcast Vocal Chain (Highpass, warmth, presence, optical compand)
+        return self._master_audio_from_mp3(raw_mp3, output_master_wav, duration_target)
+
+    def _master_audio_from_mp3(self, raw_mp3: str, output_master_wav: str,
+                               duration_target: float) -> float:
+        """Process an existing voice MP3 into a mastered, broadcast-ready WAV."""
+        work_dir = Path(output_master_wav).parent
+        proc_wav = str(work_dir / "voice_proc.wav")
+        score_wav = str(work_dir / "ambient_score.wav")
+
+        # Broadcast vocal chain: rumble cut, warmth, presence, gentle levelling.
         vocal_filter = (
             "highpass=f=75,"
             "equalizer=f=180:t=q:w=1.2:g=1.8,"
@@ -174,8 +183,9 @@ class VideoGenerator:
 
         measured_dur = self._get_audio_duration(proc_wav)
         total_dur = max(measured_dur + 2.0, duration_target)
+        fade_out_start = max(0.0, total_dur - 3.0)
 
-        # 3. Generate Atmospheric Score Bed
+        # Low ambient bed, ducked under the voice by the mix below.
         subprocess.run([
             self.ffmpeg_bin, "-y",
             "-f", "lavfi", "-i", f"sine=frequency=55:duration={total_dur}",
@@ -185,15 +195,16 @@ class VideoGenerator:
             "[0]volume=0.32[sub];"
             "[1]volume=0.18,chorus=0.6:0.8:60:0.4:0.25:2[pad];"
             "[2]lowpass=f=350,volume=0.2[tape];"
-            "[sub][pad][tape]amix=inputs=3:normalize=0,volume=0.35,afade=t=in:st=0:d=2.0,afade=t=out:st=57:d=3[score_raw]",
+            f"[sub][pad][tape]amix=inputs=3:normalize=0,volume=0.35,afade=t=in:st=0:d=2.0,afade=t=out:st={fade_out_start:.1f}:d=3[score_raw]",
             "-map", "[score_raw]", "-t", f"{total_dur:.2f}", score_wav
         ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
 
-        # 4. Master Mixdown
+        # Short-form loudness target: -14 LUFS, true peak <= -1.5 dBTP.
         master_filter = (
             "[0]volume=1.0[voc];"
-            "[1]volume=0.12[bed];"
+            "[1]volume=0.10[bed];"
             "[voc][bed]amix=inputs=2:normalize=0,"
+            "loudnorm=I=-14:TP=-1.5:LRA=11,"
             "alimiter=limit=-1.0dB:attack=5:release=50[master]"
         )
         subprocess.run([

@@ -16,6 +16,11 @@ on:
         required: false
         default: 'false'
         type: string
+      topic:
+        description: 'Optional custom topic for render-only demos'
+        required: false
+        default: ''
+        type: string
       action:
         description: 'Action to execute'
         required: false
@@ -32,6 +37,7 @@ on:
           - threads
           - generate-video
           - generate-explainer
+          - generate-demo-short
 
 concurrency:
   group: 'media-studio-cloud-engine'
@@ -117,6 +123,7 @@ jobs:
           THREADS_COOKIES_BASE64: ${{ secrets.THREADS_COOKIES_BASE64 }}
           EDGE_TTS_PROXY: ${{ secrets.EDGE_TTS_PROXY }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          TOPIC: ${{ github.event.inputs.topic || '' }}
         run: |
           ACTION="${{ github.event.inputs.action || 'schedule-autopilot' }}"
           if [ "${{ github.event.schedule }}" = "10 16 * * *" ]; then
@@ -127,7 +134,7 @@ jobs:
             DRY_RUN_FLAG="--dry-run"
           fi
           echo "🚀 Executing action: $ACTION (dry_run: ${{ github.event.inputs.dry_run || 'false' }})"
-          python main.py "$ACTION" $DRY_RUN_FLAG
+          python main.py "$ACTION" $DRY_RUN_FLAG --topic "$TOPIC"
 
       - name: Persist Studio State & Topic History
         if: always()
