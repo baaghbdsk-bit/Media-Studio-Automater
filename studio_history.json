@@ -35,7 +35,8 @@
     "Cybersecurity Startup Corma Hits One Billion Dollar Valuation",
     "Nvidia Earnings Report: The Make-or-Break Moment For The AI Boom",
     "Snapchat Lets Developers Build AR Lenses Using AI Assistants",
-    "How AI Uses Checkpoints to Save Progress Like a Video Game"
+    "How AI Uses Checkpoints to Save Progress Like a Video Game",
+    "Gemini 4 Neon"
   ],
   "events": [
     {
@@ -407,6 +408,17 @@
       "details": {
         "url": "https://youtube.com/shorts/MPgfjP50lg0"
       }
+    },
+    {
+      "time": "2026-11-19 10:50 AM",
+      "type": "video_broadcast",
+      "title": "Gemini 4 Neon",
+      "details": {
+        "youtube": true,
+        "instagram_reel": false,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -677,13 +689,21 @@
       "pillar": "ai_systems",
       "long_form": true,
       "time": "2026-11-18T23:00:28+00:00"
+    },
+    {
+      "title": "Gemini 4 Neon",
+      "series": "",
+      "audience": "beginner",
+      "pillar": "NEWS",
+      "long_form": false,
+      "time": "2026-11-19T10:50:52+00:00"
     }
   ],
   "youtube_units": {
     "2026-11-12": 8000,
     "2026-11-13": 6000,
     "2026-11-14": 4000,
-    "2026-11-19": 4000
+    "2026-11-19": 6000
   },
   "broadcast_counts": {
     "2026-11-12": 2,
@@ -691,6 +711,6 @@
     "2026-11-14": 2,
     "2026-11-16": 2,
     "2026-11-17": 2,
-    "2026-11-19": 1
+    "2026-11-19": 2
   }
 }
