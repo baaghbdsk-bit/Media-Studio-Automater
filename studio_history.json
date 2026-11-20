@@ -40,7 +40,8 @@
     "How Engineers Keep Giant AI Servers Cool Using Liquid Pipes",
     "Anthropic Founders Cash Out Two Billion Dollars in Historic Stock Debut",
     "Secret UK Cyber Operation Saves Thousands of Smart Fridges From Hackers",
-    "Daniel Ek Backs New Startup Chasing Fusion Power"
+    "Daniel Ek Backs New Startup Chasing Fusion Power",
+    "How Computers Use Error Correction Codes to Fix Garbled Messages"
   ],
   "events": [
     {
@@ -464,6 +465,14 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-20 11:02 PM",
+      "type": "explainer_video",
+      "title": "How Computers Use Error Correction Codes to Fix Garbled Messages",
+      "details": {
+        "url": "https://youtube.com/shorts/NbZrfbTJ-_s"
+      }
     }
   ],
   "topic_log": [
@@ -774,13 +783,21 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-20T20:14:55+00:00"
+    },
+    {
+      "title": "How Computers Use Error Correction Codes to Fix Garbled Messages",
+      "series": "data-reliability",
+      "audience": "beginner",
+      "pillar": "foundations",
+      "long_form": true,
+      "time": "2026-11-20T23:02:45+00:00"
     }
   ],
   "youtube_units": {
     "2026-11-14": 4000,
     "2026-11-19": 6000,
     "2026-11-20": 6000,
-    "2026-11-21": 2000
+    "2026-11-21": 4000
   },
   "broadcast_counts": {
     "2026-11-14": 2,
