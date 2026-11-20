@@ -37,7 +37,8 @@
     "Snapchat Lets Developers Build AR Lenses Using AI Assistants",
     "How AI Uses Checkpoints to Save Progress Like a Video Game",
     "Gemini 4 Neon",
-    "How Engineers Keep Giant AI Servers Cool Using Liquid Pipes"
+    "How Engineers Keep Giant AI Servers Cool Using Liquid Pipes",
+    "Anthropic Founders Cash Out Two Billion Dollars in Historic Stock Debut"
   ],
   "events": [
     {
@@ -428,6 +429,17 @@
       "details": {
         "url": "https://youtube.com/shorts/8uEpCqP6q1c"
       }
+    },
+    {
+      "time": "2026-11-20 03:53 AM",
+      "type": "video_broadcast",
+      "title": "Anthropic Founders Cash Out Two Billion Dollars in Historic Stock Debut",
+      "details": {
+        "youtube": true,
+        "instagram_reel": false,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -714,20 +726,28 @@
       "pillar": "engineering",
       "long_form": true,
       "time": "2026-11-19T23:26:42+00:00"
+    },
+    {
+      "title": "Anthropic Founders Cash Out Two Billion Dollars in Historic Stock Debut",
+      "series": "anthropic-historic-ipo",
+      "audience": "beginner",
+      "pillar": "NEWS",
+      "long_form": false,
+      "time": "2026-11-20T03:53:34+00:00"
     }
   ],
   "youtube_units": {
     "2026-11-13": 6000,
     "2026-11-14": 4000,
     "2026-11-19": 6000,
-    "2026-11-20": 2000
+    "2026-11-20": 4000
   },
   "broadcast_counts": {
-    "2026-11-12": 2,
     "2026-11-13": 2,
     "2026-11-14": 2,
     "2026-11-16": 2,
     "2026-11-17": 2,
-    "2026-11-19": 2
+    "2026-11-19": 2,
+    "2026-11-20": 1
   }
 }
