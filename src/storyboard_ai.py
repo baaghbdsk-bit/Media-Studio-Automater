@@ -26,6 +26,14 @@ ALLOWED_TEMPLATES = (
 )
 ALLOWED_CAMERAS = ("dolly_in", "zoom_out", "pan_right", "none")
 
+# Closed icon vocabulary owned by the renderer. Each icon literally depicts the
+# main noun of a beat's narration (chef, task, processor, workers, waiting,
+# speed, result, ...) so a viewer with the sound off still understands the beat.
+ALLOWED_ICONS = (
+    "chef", "cupcake", "cpu", "grid", "clock", "bolt",
+    "check", "queue", "funnel", "none",
+)
+
 # Topics marked as NEWS lean on these recipes; everything else on the rest.
 NEWS_TEMPLATES = ("flood", "queue", "race", "bottleneck")
 CONCEPT_TEMPLATES = ("parallel_grid", "merge", "payoff")
@@ -53,6 +61,18 @@ _SCAFFOLDING = {
     "the hook", "why it matters", "the setup", "how it works",
     "the surprise", "your move", "the loop", "hook", "stake",
     "context", "mechanism", "aha", "payoff", "loop",
+}
+
+# Clear, descriptive on-screen statements used when the model returns nothing
+# or falls back to a scaffolding label. Never a bare topic or structural label.
+_TEXT_FALLBACK = {
+    "flood": "LOOK AT ALL THE TASKS POURING IN",
+    "queue": "ONE WORKER, ONE TASK AT A TIME",
+    "parallel_grid": "THOUSANDS OF WORKERS, ALL AT ONCE",
+    "race": "THE PARALLEL PATH FINISHES FIRST",
+    "bottleneck": "ONE NARROW STEP HOLDS EVERYTHING BACK",
+    "merge": "ALL THE STREAMS MERGE INTO ONE",
+    "payoff": "THE FINISHED RESULT LANDS HERE",
 }
 
 _HEX_RE = re.compile(r"^#?(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
@@ -123,9 +143,19 @@ Choose one animation RECIPE per beat from this CLOSED vocabulary (never invent a
 - merge: separate streams combine into one (integration / synthesis).
 - payoff: a single result or number lands large (outcome / takeaway).
 
-For EACH of the 7 beats output a JSON object with EXACTLY these six keys:
+For EACH of the 7 beats output a JSON object with EXACTLY these seven keys:
 - "template_id": one of flood, queue, parallel_grid, race, bottleneck, merge, payoff.
-- "on_screen_text": max 5 words, a short label or number only, NEVER a sentence.
+- "icon": one of chef, cupcake, cpu, grid, clock, bolt, check, queue, funnel, none.
+  Choose the icon that LITERALLY depicts the main noun/metaphor of that beat's
+  narration: chef for a single cook/worker doing one task at a time, cupcake for
+  individual tasks or items, cpu for a processor/engine, grid for many parallel
+  workers, clock for waiting or latency, bolt for speed, check for a finished
+  result, queue for a waiting line, funnel for a bottleneck/constraint. Use
+  "none" ONLY when the beat truly has no depictable noun.
+- "on_screen_text": max 8 words. It MUST be a short, clear statement of WHAT IS
+  HAPPENING in the beat, e.g. "ONE CHEF, ONE TASK AT A TIME" or
+  "10,000 CHEFS, ALL AT ONCE". Never a bare scaffold like "The Hook" or a bare
+  topic like "CPU BOTTLENECK".
 - "focus_label": 1-3 words of optional accent label (may be empty).
 - "params": an object of numeric/string params appropriate to that recipe
   (e.g. counts, values, labels, number strings such as {{"count": 12, "label": "requests"}}).
@@ -137,7 +167,8 @@ each a hex color like "#22d3ee".
 
 HARD RULES:
 - Use at least 4 DIFFERENT template_ids across the 7 beats.
-- on_screen_text is <= 5 words and is a label/number, never a sentence.
+- icon MUST be one of the ten closed values above; pick the literal noun.
+- on_screen_text is <= 8 words and states what is happening, not scaffolding.
 - Do NOT repeat any sentence from a beat's narration on screen.
 - NEVER use scaffolding labels such as "The Hook" or "Why It Matters" as on-screen text.
 - Match the recipe to the beat's role, but keep every recipe from the closed vocabulary.
@@ -145,7 +176,7 @@ HARD RULES:
 Return ONLY a raw JSON object with this exact shape:
 {{
   "beats": [
-    {{"template_id": "...", "on_screen_text": "...", "focus_label": "...", "params": {{}}, "camera": "...", "visual_metaphor": "..."}},
+    {{"template_id": "...", "icon": "...", "on_screen_text": "...", "focus_label": "...", "params": {{}}, "camera": "...", "visual_metaphor": "..."}},
     ... seven objects total, in the same order as the script beats ...
   ],
   "palette": {{"primary": "#...", "secondary": "#...", "accent": "#...", "bg": "#..."}}
@@ -233,9 +264,12 @@ def _validate(data: Dict[str, Any], script: dict) -> Optional[str]:
         camera = str(beat.get("camera") or "").strip()
         if camera not in ALLOWED_CAMERAS:
             return f"beat {index} bad camera: {camera}"
+        icon = str(beat.get("icon") or "none").strip().lower()
+        if icon not in ALLOWED_ICONS:
+            return f"beat {index} bad icon: {icon}"
         text = str(beat.get("on_screen_text") or "").strip()
         text_words = _words(text)
-        if not text_words or len(text_words) > 5:
+        if not text_words or len(text_words) > 8:
             return f"beat {index} on_screen_text word count {len(text_words)}"
         focus = str(beat.get("focus_label") or "").strip()
         focus_words = _words(focus)
@@ -263,14 +297,19 @@ def _normalize(data: Dict[str, Any], model: str, script: Optional[dict] = None) 
 
     beats: List[Dict[str, Any]] = []
     for raw in data["beats"]:
-        text = " ".join(str(raw.get("on_screen_text") or "").split())[:60]
+        template = str(raw.get("template_id") or "").strip().lower()
+        text = " ".join(str(raw.get("on_screen_text") or "").split())[:72]
         focus = " ".join(str(raw.get("focus_label") or "").split())[:40]
-        if text.lower() in forbidden:
-            text = focus or str(raw["template_id"]).upper()
+        if not text or text.lower() in forbidden:
+            text = _TEXT_FALLBACK.get(template, "HERE IS WHAT HAPPENS NEXT")
         if focus.lower() in forbidden:
             focus = ""
+        icon = str(raw.get("icon") or "none").strip().lower()
+        if icon not in ALLOWED_ICONS:
+            icon = "none"
         beats.append({
             "template_id": str(raw["template_id"]),
+            "icon": icon,
             "on_screen_text": text,
             "focus_label": focus,
             "params": dict(raw.get("params") or {}),
@@ -344,26 +383,37 @@ def deterministic_storyboard(topic: dict, script: dict) -> dict:
     script = script or {}
     topic = topic or {}
 
+    # template, params, camera, metaphor, focus, icon, on-screen statement.
+    # The icon literally depicts the noun; the statement says what is happening.
     sequence = [
-        ("flood", {"count": 40, "label": "requests"}, "dolly_in", "a surge of items pouring in", "SURGE"),
-        ("queue", {"count": 12, "label": "items"}, "pan_right", "items waiting in a line", "WAITING"),
-        ("parallel_grid", {"rows": 3, "cols": 4, "label": "workers"}, "zoom_out", "cells working side by side", "PARALLEL"),
-        ("race", {"lanes": 3, "labels": ["A", "B", "C"], "winner": "A"}, "dolly_in", "lanes racing to the finish", "SPEED"),
-        ("bottleneck", {"capacity": 5, "label": "pipeline", "pressure": 3}, "zoom_out", "flow squeezing through a gap", "LIMIT"),
-        ("merge", {"inputs": 3, "label": "streams"}, "pan_right", "streams combining into one", "COMBINE"),
-        ("payoff", {"value": "10x", "label": "gain"}, "dolly_in", "one result landing large", "RESULT"),
+        ("flood", {"count": 40, "label": "tasks"}, "dolly_in",
+         "a flood of little tasks pouring in", "VOLUME", "cupcake",
+         "A FLOOD OF LITTLE TASKS ARRIVES"),
+        ("queue", {"count": 12, "label": "tasks"}, "pan_right",
+         "one cook working through a waiting line", "WAITING", "chef",
+         "ONE CHEF, ONE TASK AT A TIME"),
+        ("parallel_grid", {"rows": 3, "cols": 4, "label": "workers"}, "zoom_out",
+         "thousands of workers cooking side by side", "PARALLEL", "grid",
+         "10,000 WORKERS, ALL AT ONCE"),
+        ("race", {"lanes": 3, "labels": ["A", "B", "C"], "winner": "A"}, "dolly_in",
+         "the parallel path racing ahead", "SPEED", "bolt",
+         "THE PARALLEL PATH WINS THE RACE"),
+        ("bottleneck", {"capacity": 5, "label": "pipeline", "pressure": 3}, "zoom_out",
+         "everything squeezed through one narrow step", "LIMIT", "funnel",
+         "ONE NARROW STEP HOLDS IT ALL BACK"),
+        ("merge", {"inputs": 3, "label": "streams"}, "pan_right",
+         "every stream landing in one processor", "COMBINE", "cpu",
+         "EVERY STREAM LANDS IN ONE CHIP"),
+        ("payoff", {"value": "10x", "label": "gain"}, "dolly_in",
+         "one finished result landing large", "RESULT", "check",
+         "THE WHOLE MEAL IS FINISHED"),
     ]
 
-    script_beats = [b for b in (script.get("beats") or []) if isinstance(b, dict)]
     beats: List[Dict[str, Any]] = []
-    for index, (template, params, camera, metaphor, focus) in enumerate(sequence):
-        source = script_beats[index] if index < len(script_beats) else {}
-        text = " ".join(str(source.get("focus_word") or "idea").split())[:60] or "idea"
-        text_words = _words(text)
-        if not text_words or len(text_words) > 5:
-            text = " ".join(text_words[:5]) or "idea"
+    for template, params, camera, metaphor, focus, icon, text in sequence:
         beats.append({
             "template_id": template,
+            "icon": icon,
             "on_screen_text": text,
             "focus_label": focus,
             "params": dict(params),

@@ -8,6 +8,12 @@ grids, bars, a bottleneck and a final chip/mosaic. Every recipe keeps its
 objects moving for the full beat via explicit, finite idle cycles, so no
 element is ever static for more than ~0.7s.
 
+On top of that moving world, every beat renders a LARGE inline-SVG icon (chef
+hat, cupcake, CPU, grid, clock, bolt, check, queue or funnel) as the focal
+subject, plus a short, readable lower-third statement of what is happening.
+The icon is chosen by the storyboard's ``icon`` field and literally depicts the
+noun/metaphor of that beat's narration.
+
 Everything is deterministic: one paused GSAP timeline exposed at
 ``window.__timelines["main"]``, every tween is an absolute-time ``fromTo`` and
 nothing reads the clock, randomness or the network. Only transforms, opacity,
@@ -50,6 +56,109 @@ _ALIASES = {
     "final": "payoff", "result": "payoff", "reveal": "payoff",
 }
 
+
+# --------------------------------------------------------------------------- #
+# Inline SVG icon library (self-contained: no external files, no network).
+# Each icon uses a 48x48 viewBox and currentColor strokes, then the renderer
+# scales it to ~300px via CSS transforms. "none" is not a shape: beats that
+# request it fall back to the recipe's default icon so every beat has a focal
+# subject.
+# --------------------------------------------------------------------------- #
+_ICON_TONE = {
+    "chef": 1, "cupcake": 1, "bolt": 1,
+    "clock": 2, "queue": 2, "funnel": 2, "cpu": 2, "grid": 2,
+    "check": 3,
+}
+
+_ICON_BY_TEMPLATE = {
+    "flood": "cupcake", "queue": "chef", "parallel_grid": "grid",
+    "race": "bolt", "bottleneck": "funnel", "merge": "cpu", "payoff": "check",
+}
+
+_GRID_SQUARES = "".join(
+    '<rect x="%d" y="%d" width="10" height="10" rx="2"%s/>'
+    % (
+        7 + c * 12, 7 + r * 12,
+        ' fill="currentColor" stroke="none"' if (r + c) % 3 == 0 else "",
+    )
+    for r in range(3)
+    for c in range(3)
+)
+
+_ICON_SVGS = {
+    "chef": (
+        '<path d="M13 24c-5 0-8.5-3.5-8.5-8 0-4.2 3.3-7.6 7.5-7.7'
+        'C13.5 4.4 18 2 24 2s10.5 2.4 12 6.3c4.2.1 7.5 3.5 7.5 7.7'
+        ' 0 4.5-3.5 8-8.5 8H13z"/>'
+        '<path d="M13.5 11v7M24 8.5v9M34.5 11v7" opacity="0.55"/>'
+        '<path d="M13 24h22v11H13z"/><path d="M13 29h22"/>'
+        '<path d="M10.5 35h27v7h-27z"/><path d="M16 42h16"/>'
+    ),
+    "cupcake": (
+        '<path d="M10 25h28l-4 17H14l-4-17z"/>'
+        '<path d="M13.5 31h21M15 36h18M16.5 40h15"/>'
+        '<path d="M9 25c-1.5-5 2.5-9 7.5-8-1-5 3-9 8-8'
+        ' 3.5-3.5 9-2.5 11 2 4.5-.5 8 3 6 7.5-1 2-3 3.5-5.5 3.5H9z"/>'
+        '<circle cx="24" cy="7" r="2.6" fill="currentColor" stroke="none"/>'
+    ),
+    "cpu": (
+        '<rect x="10" y="10" width="28" height="28" rx="4"/>'
+        '<rect x="17" y="17" width="14" height="14" rx="2"/>'
+        '<circle cx="24" cy="24" r="2.4" fill="currentColor" stroke="none"/>'
+        '<path d="M16 10V5M24 10V5M32 10V5M16 38v5M24 38v5M32 38v5'
+        'M10 16H5M10 24H5M10 32H5M38 16h5M38 24h5M38 32h5"/>'
+    ),
+    "grid": _GRID_SQUARES,
+    "clock": (
+        '<circle cx="24" cy="24" r="18"/><path d="M24 12v12l8 5"/>'
+        '<path d="M24 3v5M24 40v5M3 24h5M40 24h5"/>'
+        '<circle cx="24" cy="24" r="2" fill="currentColor" stroke="none"/>'
+    ),
+    "bolt": (
+        '<path d="M27.5 3 11 27h11l-2.5 18L38 20H26l1.5-17z"'
+        ' fill="currentColor" stroke="none"/>'
+        '<path d="M24 9 16 24h7l-2 11 10-14h-7l1-12z" fill="none"'
+        ' stroke="#ffffff" stroke-opacity="0.5" stroke-width="1.4"/>'
+    ),
+    "check": (
+        '<circle cx="24" cy="24" r="18"/>'
+        '<path d="m14 25 7 7 14-16" stroke-width="4"/>'
+    ),
+    "queue": (
+        '<circle cx="11" cy="14" r="4"/>'
+        '<path d="M4 30c0-4.4 3.1-7.5 7-7.5s7 3.1 7 7.5"/>'
+        '<circle cx="24" cy="14" r="4"/>'
+        '<path d="M17 30c0-4.4 3.1-7.5 7-7.5s7 3.1 7 7.5"/>'
+        '<circle cx="37" cy="14" r="4"/>'
+        '<path d="M30 30c0-4.4 3.1-7.5 7-7.5s7 3.1 7 7.5"/>'
+        '<path d="M4 39h40"/>'
+    ),
+    "funnel": (
+        '<path d="M5 6h38L29.5 25v14l-11 5V25L5 6z"/>'
+        '<path d="M9 13h30"/>'
+        '<circle cx="24" cy="40" r="1.6" fill="currentColor" stroke="none"/>'
+    ),
+}
+
+
+def _hero_svg(name: str) -> str:
+    """Return a single self-contained, scalable SVG for an icon name."""
+    return (
+        '<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" '
+        'fill="none" stroke="currentColor" stroke-width="2.4" '
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+        "%s</svg>" % _ICON_SVGS[name]
+    )
+
+
+def _icon(beat: Dict[str, Any], index: int, template: str) -> str:
+    """Resolve the storyboard icon, falling back to the recipe's literal noun."""
+    raw = str(beat.get("icon") or "").strip().lower()
+    if raw in _ICON_SVGS:
+        return raw
+    return _ICON_BY_TEMPLATE.get(template, "cpu")
+
+
 _CSS = """
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { background: var(--bg); overflow: hidden; }
@@ -86,8 +195,16 @@ body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Robo
 .chip .zb { right: 0; background: linear-gradient(180deg, var(--c2), rgba(0,0,0,0.30)); }
 .stamp { position: absolute; display: flex; align-items: center; justify-content: center; border-radius: 999px; font-size: 26px; font-weight: 900; letter-spacing: 0.08em; color: #06210f; background: var(--c3); opacity: 0; transform: scale(0); }
 .ring { position: absolute; border: 3px solid var(--c1); border-radius: 50%; opacity: 0; transform: scale(0.5); }
-.lower { position: absolute; left: 60px; top: 1450px; width: 960px; height: 200px; display: flex; align-items: center; justify-content: center; z-index: 9; }
-.lower .txt { font-size: 32px; font-weight: 750; line-height: 1.2; text-align: center; color: var(--ink); opacity: 0; letter-spacing: 0.01em; }
+.lower { position: absolute; left: 54px; top: 1408px; width: 972px; height: 250px; display: flex; align-items: center; justify-content: center; z-index: 9; }
+.lower .txt { font-size: 40px; font-weight: 800; line-height: 1.18; text-align: center; color: var(--ink); opacity: 0; letter-spacing: 0.005em; text-shadow: 0 4px 24px rgba(0,0,0,0.75); }
+.lower .txt .line { display: block; }
+/* Focal icon: large, upper-middle, always above the recipe and below the text. */
+.hero { position: absolute; left: 390px; top: 540px; width: 300px; height: 300px; z-index: 7; transform-origin: 50% 50%; opacity: 0; }
+.hero .halo { position: absolute; inset: -44px; border-radius: 50%; background: radial-gradient(circle, rgba(var(--c2rgb),0.30) 0%, rgba(var(--c1rgb),0.12) 46%, transparent 72%); }
+.hero .disc { position: absolute; inset: 4px; border-radius: 50%; background: linear-gradient(160deg, rgba(10,15,28,0.84), rgba(6,8,13,0.66)); border: 3px solid rgba(var(--c2rgb),0.55); box-shadow: 0 0 70px rgba(var(--c2rgb),0.28), inset 0 0 44px rgba(var(--c1rgb),0.14); }
+.hero svg { position: absolute; inset: 22px; width: calc(100% - 44px); height: calc(100% - 44px); color: var(--c2); filter: drop-shadow(0 0 16px rgba(var(--c2rgb),0.6)); transform-origin: 50% 50%; overflow: visible; }
+.hero.t1 svg { color: var(--c1); filter: drop-shadow(0 0 16px rgba(var(--c1rgb),0.6)); }
+.hero.t3 svg { color: var(--c3); filter: drop-shadow(0 0 16px rgba(var(--c3rgb),0.6)); }
 .focus-tag { position: absolute; right: 60px; top: 62px; font-size: 18px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--c2); opacity: 0; z-index: 10; }
 .progress-track { position: absolute; left: 0; top: 0; width: 1080px; height: 8px; background: rgba(255,255,255,0.10); z-index: 30; }
 .progress-fill { width: 100%; height: 100%; background: linear-gradient(90deg, var(--c1), var(--c2)); transform: scaleX(0); transform-origin: left center; }
@@ -181,15 +298,30 @@ def _beat_starts(beats: List[Dict[str, Any]], duration: float) -> List[float]:
 
 
 def _on_screen_text(beat: Dict[str, Any], script_beat: Dict[str, Any]) -> str:
-    """Return at most five words from the storyboard's on_screen_text."""
+    """Return at most eight words from the storyboard's on_screen_text."""
     raw = beat.get("on_screen_text") or beat.get("text") or ""
     raw = str(raw).strip()
     if not raw and isinstance(script_beat, dict):
         raw = str(script_beat.get("focus_word") or "").strip()
     words = raw.split()
-    if len(words) > 5:
-        words = words[:5]
-    return _esc(" ".join(words)[:60])
+    if len(words) > 8:
+        words = words[:8]
+    return _esc(" ".join(words)[:72])
+
+
+def _text_lines(escaped: str) -> List[str]:
+    """Split an already-escaped statement into at most two balanced lines.
+
+    The input is HTML-escaped, so rejoining its space-separated tokens with
+    ``<br>`` (done by the caller) cannot inject markup.
+    """
+    words = escaped.split()
+    if not words:
+        return []
+    if len(words) <= 3:
+        return [" ".join(words)]
+    pivot = (len(words) + 1) // 2
+    return [" ".join(words[:pivot]), " ".join(words[pivot:])]
 
 
 def _focus_label(beat: Dict[str, Any], script_beat: Dict[str, Any]) -> str:
@@ -584,8 +716,10 @@ def build_short_html_v3(
         script: output of ``short_script`` (beats + narration); supplies beat
             ordering, labels and fallback on-screen text.
         storyboard: dict with a ``palette`` mapping and a ``beats`` list. Each
-            storyboard beat may define ``template_id``, ``on_screen_text``,
-            ``focus_label``, ``params``, ``camera`` and ``visual_metaphor``.
+            storyboard beat may define ``template_id``, ``icon``,
+            ``on_screen_text``, ``focus_label``, ``params``, ``camera`` and
+            ``visual_metaphor``. ``icon`` literally depicts the beat's noun
+            (chef/cupcake/cpu/grid/clock/bolt/check/queue/funnel/none).
         words: ``[{"text", "start", "end"}]``; used sparingly to pulse a small
             accent ring on each beat's first spoken word.
         duration: final narration duration in seconds.
@@ -660,11 +794,24 @@ def build_short_html_v3(
 
         sc.h("</div>")  # /cam
 
+        # Focal icon: the literal noun of the beat, large in the upper-middle.
+        # It sits above the moving recipe (z-index 7) and below the statement.
+        icon = _icon(beat, index, template)
+        sc.h(
+            '<div id="hero%d" class="hero t%d" data-icon="%s">'
+            '<div class="halo"></div><div class="disc"></div>%s</div>'
+            % (index, _ICON_TONE[icon], icon, _hero_svg(icon))
+        )
+
         text = _on_screen_text(beat, script_beat)
         if text:
+            lines = _text_lines(text)
+            body = "<br>".join(
+                '<span class="line">%s</span>' % line for line in lines
+            )
             sc.h(
                 '<div class="lower"><div class="txt" id="lot%d">%s</div></div>'
-                % (index, text)
+                % (index, body)
             )
         focus = _focus_label(beat, script_beat)
         if focus:
@@ -754,6 +901,25 @@ def build_short_html_v3(
             "#beat%d" % index, "scale:1",
             'scale:1.05, duration:%.3f, ease:"power2.in"' % out_dur, exit_at,
         )
+
+        # Focal icon: present for the whole beat, with small bounded idle
+        # motion (breathing + gentle tilt). All tweens are absolute-time
+        # fromTo statements on the paused timeline, so frame seeking works.
+        template = _template_id(beat, index)
+        icon = _icon(beat, index, template)
+        hero = "#hero%d" % index
+        sc.add(
+            hero, "scale:0.62, opacity:0, y:36",
+            'scale:1, opacity:1, y:0, duration:0.42, ease:"back.out(1.7)"',
+            s + 0.05,
+        )
+        idle_from = min(e - 0.05, s + 0.52)
+        if idle_from > s + 0.1:
+            sc.idle(hero, "scale", 1, 1.06, idle_from, e, 0.72)
+            sc.idle(hero, "y", 0, -9, idle_from, e, 0.66)
+            sc.idle(hero + " svg", "rotation", -3.5, 3.5, idle_from, e, 0.86)
+        out_at = max(s + span * 0.5, exit_at - 0.06)
+        sc.add(hero, "opacity:1", 'opacity:0, duration:0.22, ease:"power2.in"', out_at)
 
         # Lower-third and corner-label fades carry no meaning themselves.
         if _on_screen_text(beat, script_beats[index] if index < len(script_beats) else {}):
