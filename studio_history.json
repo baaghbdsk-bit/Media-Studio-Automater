@@ -39,7 +39,8 @@
     "Gemini 4 Neon",
     "How Engineers Keep Giant AI Servers Cool Using Liquid Pipes",
     "Anthropic Founders Cash Out Two Billion Dollars in Historic Stock Debut",
-    "Secret UK Cyber Operation Saves Thousands of Smart Fridges From Hackers"
+    "Secret UK Cyber Operation Saves Thousands of Smart Fridges From Hackers",
+    "Daniel Ek Backs New Startup Chasing Fusion Power"
   ],
   "events": [
     {
@@ -452,6 +453,17 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-20 08:14 PM",
+      "type": "video_broadcast",
+      "title": "Daniel Ek Backs New Startup Chasing Fusion Power",
+      "details": {
+        "youtube": true,
+        "instagram_reel": false,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -754,20 +766,28 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-20T11:37:10+00:00"
+    },
+    {
+      "title": "Daniel Ek Backs New Startup Chasing Fusion Power",
+      "series": "europa-fusion-power",
+      "audience": "beginner",
+      "pillar": "NEWS",
+      "long_form": false,
+      "time": "2026-11-20T20:14:55+00:00"
     }
   ],
   "youtube_units": {
-    "2026-11-13": 6000,
     "2026-11-14": 4000,
     "2026-11-19": 6000,
-    "2026-11-20": 6000
+    "2026-11-20": 6000,
+    "2026-11-21": 2000
   },
   "broadcast_counts": {
-    "2026-11-13": 2,
     "2026-11-14": 2,
     "2026-11-16": 2,
     "2026-11-17": 2,
     "2026-11-19": 2,
-    "2026-11-20": 2
+    "2026-11-20": 2,
+    "2026-11-21": 1
   }
 }
