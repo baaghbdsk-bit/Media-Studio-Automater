@@ -20,3 +20,6 @@ tools/*.txt
 tools/fix_*.py
 tools/apply_*.py
 tools/test_*.py
+data/visual_assets/cache/
+data/visual_assets/assets/
+data/visual_assets/*.json
