@@ -37,6 +37,8 @@ _PERSON_TERMS = (
     "portrait", "woman", "man ", " girl", " boy", "face", "person", "people",
     "celebrity", "actor", "actress", "model", "sexy", "lingerie", "nude",
     "swimwear", "selfie", "wedding", "baby", "child",
+    "expo", "conference", "crowd", "audience", "booth", "trade show",
+    "attendees", "festival", "protest", "parade",
 )
 
 

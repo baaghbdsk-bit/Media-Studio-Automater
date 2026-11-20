@@ -11,6 +11,30 @@
     "local_path": "assets/eaa0efe1ee85150f3d702b605dd1091d698eacb02a04d5c640046c01bcf1750f.jpg",
     "sha256": "eaa0efe1ee85150f3d702b605dd1091d698eacb02a04d5c640046c01bcf1750f"
   },
+  "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/08/NVIDIA_GPU_workstation.webp/1280px-NVIDIA_GPU_workstation.webp?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail": {
+    "ext": ".webp",
+    "file": "13943b6d9b80c7f0b0bf80516ef39255c382c20e4e6be5ca6d5c74230365ae8d.webp",
+    "local_path": "assets/13943b6d9b80c7f0b0bf80516ef39255c382c20e4e6be5ca6d5c74230365ae8d.webp",
+    "sha256": "13943b6d9b80c7f0b0bf80516ef39255c382c20e4e6be5ca6d5c74230365ae8d"
+  },
+  "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/NVIDIA_Headquarters.jpg/1280px-NVIDIA_Headquarters.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail": {
+    "ext": ".jpg",
+    "file": "80efa50b06a80048f59a14bc02d845f9e853a89b38ddb5c9484c07e3ca3cd5ef.jpg",
+    "local_path": "assets/80efa50b06a80048f59a14bc02d845f9e853a89b38ddb5c9484c07e3ca3cd5ef.jpg",
+    "sha256": "80efa50b06a80048f59a14bc02d845f9e853a89b38ddb5c9484c07e3ca3cd5ef"
+  },
+  "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/CeBIT_2005_Nvidia_Stand.jpg/1280px-CeBIT_2005_Nvidia_Stand.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail": {
+    "ext": ".jpg",
+    "file": "eb91e3b5e4aaea1a7165ae4c502993a62d2271c59737e146fab884260ebfd62e.jpg",
+    "local_path": "assets/eb91e3b5e4aaea1a7165ae4c502993a62d2271c59737e146fab884260ebfd62e.jpg",
+    "sha256": "eb91e3b5e4aaea1a7165ae4c502993a62d2271c59737e146fab884260ebfd62e"
+  },
+  "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1e/NVIDIA_GPU_workstation_2.webp/1280px-NVIDIA_GPU_workstation_2.webp?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail": {
+    "ext": ".webp",
+    "file": "33d9a6bd9a70b616f9cc5af962320cb966fe22d9def94d9a335c47a5bb597d49.webp",
+    "local_path": "assets/33d9a6bd9a70b616f9cc5af962320cb966fe22d9def94d9a335c47a5bb597d49.webp",
+    "sha256": "33d9a6bd9a70b616f9cc5af962320cb966fe22d9def94d9a335c47a5bb597d49"
+  },
   "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/20/Computer_Entertainer_7-3.pdf/page1-960px-Computer_Entertainer_7-3.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail": {
     "ext": ".jpg",
     "file": "4cb241a03a475e9a1e67da7dd30045fb73c039a1f0ccc2023461c832f40d264a.jpg",
@@ -47,6 +71,12 @@
     "local_path": "assets/d6825307c833a3f24ce6402b92b9a3e00d5a1df243173465cbf663154e2f23cf.jpg",
     "sha256": "d6825307c833a3f24ce6402b92b9a3e00d5a1df243173465cbf663154e2f23cf"
   },
+  "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/37/Nvidia_SLI_GTX280.jpg/1280px-Nvidia_SLI_GTX280.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail": {
+    "ext": ".jpg",
+    "file": "d95d3e6ff6808e5c79cd866f4381e63adcb0c1aebc5e38b77cd05725bcba755c.jpg",
+    "local_path": "assets/d95d3e6ff6808e5c79cd866f4381e63adcb0c1aebc5e38b77cd05725bcba755c.jpg",
+    "sha256": "d95d3e6ff6808e5c79cd866f4381e63adcb0c1aebc5e38b77cd05725bcba755c"
+  },
   "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/39/Computer_Entertainer_8-2.pdf/page1-960px-Computer_Entertainer_8-2.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail": {
     "ext": ".jpg",
     "file": "83eb40034e0cf81aa13dc0574e2cedc929a167df03ef57320878ac22cb92f115.jpg",
@@ -77,11 +107,29 @@
     "local_path": "assets/b0bb20e9d0a559db0efee868ef4b0e3f244b943e80fc5e87802436b47bde9e18.jpg",
     "sha256": "b0bb20e9d0a559db0efee868ef4b0e3f244b943e80fc5e87802436b47bde9e18"
   },
+  "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/58/NVIDIA_cube_Blender.webp/1280px-NVIDIA_cube_Blender.webp?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail": {
+    "ext": ".webp",
+    "file": "3aebdcf1610c59b3caa64e5f63a7270f8a0e4338005d7b09992f88adc95630d3.webp",
+    "local_path": "assets/3aebdcf1610c59b3caa64e5f63a7270f8a0e4338005d7b09992f88adc95630d3.webp",
+    "sha256": "3aebdcf1610c59b3caa64e5f63a7270f8a0e4338005d7b09992f88adc95630d3"
+  },
+  "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6c/Nintendo_Switch_2_NVIDIA_SoC_GMLX30-A1.jpg/1280px-Nintendo_Switch_2_NVIDIA_SoC_GMLX30-A1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail": {
+    "ext": ".jpg",
+    "file": "dc4e3c7bcfcc4705488755672e7afa8734013d3678ed52bd8085dce7eed3914d.jpg",
+    "local_path": "assets/dc4e3c7bcfcc4705488755672e7afa8734013d3678ed52bd8085dce7eed3914d.jpg",
+    "sha256": "dc4e3c7bcfcc4705488755672e7afa8734013d3678ed52bd8085dce7eed3914d"
+  },
   "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/70/FEDLINK_-_United_States_Federal_Collection_%28IA_benchmarksforenh1094510555%29.pdf/page1-960px-FEDLINK_-_United_States_Federal_Collection_%28IA_benchmarksforenh1094510555%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail": {
     "ext": ".jpg",
     "file": "b30f2c68ad34ea157982753a05ee41ded5ca0aad1e05df69b0c17ab9595d3fb4.jpg",
     "local_path": "assets/b30f2c68ad34ea157982753a05ee41ded5ca0aad1e05df69b0c17ab9595d3fb4.jpg",
     "sha256": "b30f2c68ad34ea157982753a05ee41ded5ca0aad1e05df69b0c17ab9595d3fb4"
+  },
+  "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/80/Nvidia_GM200_GeForce_GTX_980_Ti_die_shot.jpg/1280px-Nvidia_GM200_GeForce_GTX_980_Ti_die_shot.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail": {
+    "ext": ".jpg",
+    "file": "9cb0cadfaac735f018e22ca2a1b90089729062990eba56614fd80e5c47ca0807.jpg",
+    "local_path": "assets/9cb0cadfaac735f018e22ca2a1b90089729062990eba56614fd80e5c47ca0807.jpg",
+    "sha256": "9cb0cadfaac735f018e22ca2a1b90089729062990eba56614fd80e5c47ca0807"
   },
   "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/85/Password-Hashing_Status.pdf/page1-960px-Password-Hashing_Status.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail": {
     "ext": ".jpg",

@@ -760,7 +760,13 @@ def _normalize(
             "animation": _coerce_enum(raw.get("animation")),
             "transition": _coerce_enum(raw.get("transition")),
             "duration_s": duration,
-            "fallback_strategy": _coerce_enum(raw.get("fallback_strategy")),
+            "fallback_strategy": (
+                str(raw.get("fallback_strategy") or "").strip().lower()
+                if str(raw.get("fallback_strategy") or "").strip().lower() in FALLBACKS
+                else _FALLBACK_BY_TYPE.get(
+                    _coerce_enum(raw.get("visual_type")), "illustration"
+                )
+            ),
             "relevance_assessed": True,
         })
     return {

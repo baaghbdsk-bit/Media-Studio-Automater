@@ -838,5 +838,61 @@
     "scene_id": 7,
     "topic": "Why GPUs Beat CPUs for AI",
     "used_at": 1795171296.7577941
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 1,
+    "topic": "Nvidia Announces New AI Chip for Data Centers",
+    "used_at": 1795175653.2939067
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 2,
+    "topic": "Nvidia Announces New AI Chip for Data Centers",
+    "used_at": 1795175653.2949262
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 3,
+    "topic": "Nvidia Announces New AI Chip for Data Centers",
+    "used_at": 1795175653.2974408
+  },
+  {
+    "asset_hash": "2ed7aa0274f0aa84dc0dcac7099fbb73661649fdf8b94ce63a9efe81f64e264b",
+    "local_path": "",
+    "provider": "diagram",
+    "scene_id": 4,
+    "topic": "Nvidia Announces New AI Chip for Data Centers",
+    "used_at": 1795175653.2990575
+  },
+  {
+    "asset_hash": "75fab5e16b7c4098afac71e0161f038b3223730b1a338c2f5ac052b315f74116",
+    "local_path": "",
+    "provider": "illustration",
+    "scene_id": 5,
+    "topic": "Nvidia Announces New AI Chip for Data Centers",
+    "used_at": 1795175653.3020785
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 6,
+    "topic": "Nvidia Announces New AI Chip for Data Centers",
+    "used_at": 1795175653.3042533
+  },
+  {
+    "asset_hash": "eb91e3b5e4aaea1a7165ae4c502993a62d2271c59737e146fab884260ebfd62e",
+    "local_path": "assets/eb91e3b5e4aaea1a7165ae4c502993a62d2271c59737e146fab884260ebfd62e.jpg",
+    "provider": "stock",
+    "scene_id": 7,
+    "topic": "Nvidia Announces New AI Chip for Data Centers",
+    "used_at": 1795175662.1419823
   }
 ]

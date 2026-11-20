@@ -171,13 +171,13 @@ html, body { background: var(--bg); overflow: hidden; }
 body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--ink); }
 #root { width: 1080px; height: 1920px; position: relative; overflow: hidden; background: var(--bg); }
 .bg-canvas { position: absolute; inset: 0; background: radial-gradient(circle at 50% 38%, rgba(var(--c2rgb),0.16) 0%, rgba(var(--c1rgb),0.06) 42%, var(--bg) 80%); }
-.grid-bg { position: absolute; inset: -300px; background-image: linear-gradient(rgba(var(--c2rgb),0.16) 2px, transparent 2px), linear-gradient(90deg, rgba(var(--c2rgb),0.16) 2px, transparent 2px); background-size: 64px 64px; opacity: 0.5; }
+.grid-bg { position: absolute; inset: -300px; background-image: linear-gradient(rgba(var(--c2rgb),0.28) 2px, transparent 2px), linear-gradient(90deg, rgba(var(--c2rgb),0.28) 2px, transparent 2px); background-size: 64px 64px; opacity: 0.78; }
 .world { position: absolute; inset: 0; transform-origin: 50% 45%; z-index: 2; }
 .orb { position: absolute; border-radius: 50%; opacity: 0.28; z-index: 1; }
 .orb.a { width: 560px; height: 560px; background: radial-gradient(circle, var(--c1) 0%, transparent 68%); }
 .orb.b { width: 460px; height: 460px; background: radial-gradient(circle, var(--c2) 0%, transparent 68%); }
 .orb.c { width: 400px; height: 400px; background: radial-gradient(circle, var(--c3) 0%, transparent 68%); }
-.sweep { position: absolute; top: -20%; left: 0; width: 34%; height: 140%; z-index: 4; opacity: 0.13; transform: skewX(-18deg); background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 45%, rgba(255,255,255,0.85) 52%, transparent 100%); }
+.sweep { position: absolute; top: -20%; left: 0; width: 34%; height: 140%; z-index: 4; opacity: 0.20; transform: skewX(-18deg); background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 45%, rgba(255,255,255,0.85) 52%, transparent 100%); }
 .beat { position: absolute; inset: 0; clip-path: inset(0 100% 0 0); transform-origin: 50% 44%; z-index: 5; }
 .cam { position: absolute; inset: 0; transform-origin: 50% 44%; }
 .tile { position: absolute; border-radius: 13px; background: linear-gradient(145deg, #ffffff 0%, #cdd6e4 100%); box-shadow: inset 0 -7px 0 rgba(0,0,0,0.16), inset 0 3px 0 rgba(255,255,255,0.85); opacity: 0; }

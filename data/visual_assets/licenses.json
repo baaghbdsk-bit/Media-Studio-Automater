@@ -65,6 +65,14 @@
       "sha256": "10fcb7ee6b0aa23378cb4980ead78ade1072000e5303e4c9b84cfb40d5aaddc1",
       "source_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/33/H%C3%A5kan_Lans_computer_color_graphics_card_Datacolor.jpg/1280px-H%C3%A5kan_Lans_computer_color_graphics_card_Datacolor.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
       "type": "image"
+    },
+    {
+      "attribution": "Strubbl / Wikimedia Commons (https://commons.wikimedia.org/wiki/File:CeBIT_2005_Nvidia_Stand.jpg)",
+      "license": "CC BY-SA",
+      "provider": "stock",
+      "sha256": "eb91e3b5e4aaea1a7165ae4c502993a62d2271c59737e146fab884260ebfd62e",
+      "source_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/CeBIT_2005_Nvidia_Stand.jpg/1280px-CeBIT_2005_Nvidia_Stand.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "type": "image"
     }
   ],
   "rejected_patterns": [
