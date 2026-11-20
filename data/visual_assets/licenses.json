@@ -1,0 +1,76 @@
+{
+  "allowed_licenses": [
+    "CC0",
+    "Public Domain",
+    "CC BY",
+    "CC BY-SA",
+    "Pixabay Content License",
+    "Pexels License",
+    "MIT/Own-generated",
+    "official press"
+  ],
+  "records": [
+    {
+      "attribution": "King, Justin L. / Wikimedia Commons (https://commons.wikimedia.org/wiki/File:CONCEPT_OF_OPERATIONS_FOR_USING_COMPUTER_VISION_CAPABILITIES_ON_TACTICAL_AIRCRAFT_(IA_conceptofoperati1094559698).pdf)",
+      "license": "Public Domain",
+      "provider": "stock",
+      "sha256": "ddc264a461340d439f02205d75554b633d6e6aae28823e2be3af9a827071d0c8",
+      "source_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ac/CONCEPT_OF_OPERATIONS_FOR_USING_COMPUTER_VISION_CAPABILITIES_ON_TACTICAL_AIRCRAFT_%28IA_conceptofoperati1094559698%29.pdf/page1-960px-CONCEPT_OF_OPERATIONS_FOR_USING_COMPUTER_VISION_CAPABILITIES_ON_TACTICAL_AIRCRAFT_%28IA_conceptofoperati1094559698%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "type": "video"
+    },
+    {
+      "attribution": "Camp, David M. / Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Evaluation_of_object_detection_algorithms_for_ship_detection_in_the_visible_spectrum_(IA_evaluationofobje1094538891).pdf)",
+      "license": "Public Domain",
+      "provider": "stock",
+      "sha256": "8ae87c10a5cf60ee95f4c736e215ca74e0974862dd9c1d9c25cee4aeb2358a6d",
+      "source_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/30/Evaluation_of_object_detection_algorithms_for_ship_detection_in_the_visible_spectrum_%28IA_evaluationofobje1094538891%29.pdf/page1-960px-Evaluation_of_object_detection_algorithms_for_ship_detection_in_the_visible_spectrum_%28IA_evaluationofobje1094538891%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "type": "image"
+    },
+    {
+      "attribution": "Burman, Rex Coca, Anthony R. / Wikimedia Commons (https://commons.wikimedia.org/wiki/File:FEDLINK_-_United_States_Federal_Collection_(IA_benchmarksforenh1094510555).pdf)",
+      "license": "Public Domain",
+      "provider": "stock",
+      "sha256": "b30f2c68ad34ea157982753a05ee41ded5ca0aad1e05df69b0c17ab9595d3fb4",
+      "source_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/70/FEDLINK_-_United_States_Federal_Collection_%28IA_benchmarksforenh1094510555%29.pdf/page1-960px-FEDLINK_-_United_States_Federal_Collection_%28IA_benchmarksforenh1094510555%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "type": "image"
+    },
+    {
+      "attribution": "Wells, William D. / Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Generating_enhanced_natural_environments_and_terrain_for_interactive_combat_simulations_(GENETICS)_(IA_generatingenhanc1094510052).pdf)",
+      "license": "Public Domain",
+      "provider": "stock",
+      "sha256": "eaa0efe1ee85150f3d702b605dd1091d698eacb02a04d5c640046c01bcf1750f",
+      "source_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/03/Generating_enhanced_natural_environments_and_terrain_for_interactive_combat_simulations_%28GENETICS%29_%28IA_generatingenhanc1094510052%29.pdf/page1-960px-Generating_enhanced_natural_environments_and_terrain_for_interactive_combat_simulations_%28GENETICS%29_%28IA_generatingenhanc1094510052%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "type": "image"
+    },
+    {
+      "attribution": "New American Movement / Wikimedia Commons (https://commons.wikimedia.org/wiki/File:MO_1979_July_final_web.pdf)",
+      "license": "Public Domain",
+      "provider": "stock",
+      "sha256": "7962ee678fb8a3dc361e96d3324ba07a2e5dbdeaefab5440c42c8e6511b8bb5f",
+      "source_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f9/MO_1979_July_final_web.pdf/page1-960px-MO_1979_July_final_web.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "type": "image"
+    },
+    {
+      "attribution": "Computer Entertainer (Marylou Badeaux and Celeste Dolan) / Wikimedia Commons (https://commons.wikimedia.org/wiki/File:Computer_Entertainer_3-4.pdf)",
+      "license": "CC BY",
+      "provider": "stock",
+      "sha256": "ef6256885b33e6df3212a438e970972b45387b146b8fd6a804523b43305c4d6b",
+      "source_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/Computer_Entertainer_3-4.pdf/page1-960px-Computer_Entertainer_3-4.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "type": "image"
+    },
+    {
+      "attribution": "Agnes Andersson / Wikimedia Commons (https://commons.wikimedia.org/wiki/File:H%C3%A5kan_Lans_computer_color_graphics_card_Datacolor.jpg)",
+      "license": "CC BY",
+      "provider": "stock",
+      "sha256": "10fcb7ee6b0aa23378cb4980ead78ade1072000e5303e4c9b84cfb40d5aaddc1",
+      "source_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/33/H%C3%A5kan_Lans_computer_color_graphics_card_Datacolor.jpg/1280px-H%C3%A5kan_Lans_computer_color_graphics_card_Datacolor.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "type": "image"
+    }
+  ],
+  "rejected_patterns": [
+    "NC",
+    "ND",
+    "All Rights Reserved",
+    "unknown"
+  ]
+}

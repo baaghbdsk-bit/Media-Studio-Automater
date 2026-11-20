@@ -36,6 +36,7 @@ on:
           - pinterest
           - threads
           - generate-video
+          - generate-pilot-short
           - generate-explainer
           - generate-demo-short
 
@@ -87,6 +88,14 @@ jobs:
         run: |
           playwright install chromium --with-deps
 
+      - name: Cache visual provider assets
+        uses: actions/cache@v4
+        with:
+          path: data/visual_assets/cache
+          key: ${{ runner.os }}-visual-assets-${{ hashFiles('src/visual_providers/**/*.py', 'src/asset_cache.py', 'src/license_ledger.py') }}
+          restore-keys: |
+            ${{ runner.os }}-visual-assets-
+
       - name: Pre-flight Health & Auth Check
         continue-on-error: true
         env:
@@ -122,6 +131,7 @@ jobs:
           PINTEREST_COOKIES_BASE64: ${{ secrets.PINTEREST_COOKIES_BASE64 }}
           THREADS_COOKIES_BASE64: ${{ secrets.THREADS_COOKIES_BASE64 }}
           EDGE_TTS_PROXY: ${{ secrets.EDGE_TTS_PROXY }}
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
           TOPIC: ${{ github.event.inputs.topic || '' }}
         run: |

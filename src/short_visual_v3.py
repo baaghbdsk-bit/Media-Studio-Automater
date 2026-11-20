@@ -21,7 +21,13 @@ colour and beat-transition clip-paths are animated.
 
 Public entry point::
 
-    build_short_html_v3(topic, script, storyboard, words, duration) -> str
+    build_short_html_v3(topic, script, storyboard, words, duration,
+                        visual_manifest=None) -> str
+
+Passing ``visual_manifest=None`` keeps the literal-icon/recipe renderer exactly
+as before (the rollback path). With a manifest, a per-beat semantic asset layer
+is added between the recipe and the focal icon; missing assets fall back to the
+original icon/recipe for that beat.
 """
 
 from __future__ import annotations
@@ -29,7 +35,7 @@ from __future__ import annotations
 import html
 import math
 import re
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 # Exactly the tag used by video_generator._build_vertical_short_html.
 GSAP_CDN = "https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
@@ -205,6 +211,9 @@ body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Robo
 .hero svg { position: absolute; inset: 22px; width: calc(100% - 44px); height: calc(100% - 44px); color: var(--c2); filter: drop-shadow(0 0 16px rgba(var(--c2rgb),0.6)); transform-origin: 50% 50%; overflow: visible; }
 .hero.t1 svg { color: var(--c1); filter: drop-shadow(0 0 16px rgba(var(--c1rgb),0.6)); }
 .hero.t3 svg { color: var(--c3); filter: drop-shadow(0 0 16px rgba(var(--c3rgb),0.6)); }
+/* Semantic asset layer (manifest mode only): above the recipe (z-index 5), below the hero icon (7). */
+.scene-asset { position: absolute; left: 96px; top: 210px; width: 888px; height: 888px; object-fit: cover; object-position: center; border-radius: 32px; z-index: 6; opacity: 0; overflow: hidden; background: rgba(6,8,13,0.55); box-shadow: 0 24px 80px rgba(0,0,0,0.55); transform-origin: 50% 50%; }
+.scene-asset[data-asset-type="markup"] { display: flex; align-items: center; justify-content: center; }
 .focus-tag { position: absolute; right: 60px; top: 62px; font-size: 18px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--c2); opacity: 0; z-index: 10; }
 .progress-track { position: absolute; left: 0; top: 0; width: 1080px; height: 8px; background: rgba(255,255,255,0.10); z-index: 30; }
 .progress-fill { width: 100%; height: 100%; background: linear-gradient(90deg, var(--c1), var(--c2)); transform: scaleX(0); transform-origin: left center; }
@@ -361,6 +370,93 @@ def _int_param(params: Dict[str, Any], key: str, default: int, cap: int) -> int:
     except (TypeError, ValueError):
         value = default
     return max(1, min(cap, value))
+
+
+# --------------------------------------------------------------------------- #
+# Optional visual-manifest helpers
+# --------------------------------------------------------------------------- #
+def _manifest_scene_map(visual_manifest: Any, count: int) -> Dict[int, Dict[str, Any]]:
+    """Map manifest scenes onto beat indices.
+
+    Scene ids may be 0-based (matching beat indices) or 1-based; both are
+    detected. Any index left unmapped gets a positional fallback so a partial
+    manifest still decorates as many beats as possible.
+    """
+    scenes = visual_manifest.get("scenes") if isinstance(visual_manifest, dict) else None
+    if not isinstance(scenes, list) or count <= 0:
+        return {}
+    usable = [scene for scene in scenes if isinstance(scene, dict)]
+    ids = [scene.get("scene_id") for scene in usable]
+    int_ids = [
+        sid for sid in ids if isinstance(sid, int) and not isinstance(sid, bool)
+    ]
+    mapping: Dict[int, Dict[str, Any]] = {}
+    if len(int_ids) == len(usable) and set(int_ids) == set(range(1, count + 1)):
+        for scene in usable:
+            sid = scene.get("scene_id")
+            if isinstance(sid, int) and not isinstance(sid, bool):
+                mapping[sid - 1] = scene
+    else:
+        for scene in usable:
+            sid = scene.get("scene_id")
+            if isinstance(sid, int) and not isinstance(sid, bool) and 0 <= sid < count:
+                mapping[sid] = scene
+    for pos, scene in enumerate(usable[:count]):
+        mapping.setdefault(pos, scene)
+    return mapping
+
+
+def _clean_asset(scene: Any) -> Optional[Dict[str, Any]]:
+    """Return a manifest asset only when it can actually be rendered."""
+    if not isinstance(scene, dict):
+        return None
+    asset = scene.get("asset")
+    if not isinstance(asset, dict):
+        return None
+    kind = str(asset.get("type") or "").strip().lower()
+    if kind not in ("image", "video", "markup"):
+        return None
+    if kind == "markup":
+        return asset if str(asset.get("inline_markup") or "").strip() else None
+    poster = str(asset.get("poster_path") or "").strip()
+    local = str(asset.get("local_path") or "").strip()
+    return asset if (poster or local) else None
+
+
+def _asset_markup(scene: Dict[str, Any], asset: Dict[str, Any], index: int) -> str:
+    """Emit the semantic asset element for one beat."""
+    kind = str(asset.get("type") or "image").strip().lower()
+    scene_id = str(scene.get("scene_id", index)) if isinstance(scene, dict) else str(index)
+    concept = str(scene.get("main_visual_concept") or "")[:90]
+    ident = "asset%d" % index
+    poster = str(asset.get("poster_path") or "").strip()
+    local = str(asset.get("local_path") or "").strip()
+
+    if kind == "markup":
+        return (
+            '<div id="%s" class="scene-asset scene-asset-markup" data-asset-type="markup" '
+            'data-scene-id="%s">%s</div>'
+            % (ident, _esc(scene_id), str(asset.get("inline_markup") or ""))
+        )
+    if kind == "video" and poster:
+        # HyperFrames renders <img> far more reliably than <video>. When the
+        # provider supplies a poster still, prefer it over the video source.
+        return (
+            '<img id="%s" class="scene-asset" data-asset-type="video" data-source-type="poster" '
+            'data-scene-id="%s" src="%s" alt="%s" />'
+            % (ident, _esc(scene_id), _esc(poster), _esc(concept))
+        )
+    if kind == "video":
+        return (
+            '<video id="%s" class="scene-asset" data-asset-type="video" data-scene-id="%s" '
+            'src="%s" muted playsinline preload="auto"></video>'
+            % (ident, _esc(scene_id), _esc(local))
+        )
+    return (
+        '<img id="%s" class="scene-asset" data-asset-type="image" data-scene-id="%s" '
+        'src="%s" alt="%s" />'
+        % (ident, _esc(scene_id), _esc(local), _esc(concept))
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -707,7 +803,8 @@ _RECIPE_FNS = {
 # Public builder
 # --------------------------------------------------------------------------- #
 def build_short_html_v3(
-    topic: dict, script: dict, storyboard: dict, words: list, duration: float
+    topic: dict, script: dict, storyboard: dict, words: list, duration: float,
+    visual_manifest: Optional[dict] = None,
 ) -> str:
     """Return a complete, self-contained object-animation HyperFrames document.
 
@@ -723,6 +820,9 @@ def build_short_html_v3(
         words: ``[{"text", "start", "end"}]``; used sparingly to pulse a small
             accent ring on each beat's first spoken word.
         duration: final narration duration in seconds.
+        visual_manifest: optional semantic manifest from the visual provider
+            orchestrator. When omitted (or invalid), the literal-icon/recipe
+            renderer is used unchanged for every beat.
     """
     topic = topic if isinstance(topic, dict) else {}
     script = script if isinstance(script, dict) else {}
@@ -751,6 +851,11 @@ def build_short_html_v3(
     count = len(sb_beats)
     starts = _beat_starts(sb_beats, total)
     ends = [starts[i + 1] if i + 1 < count else total for i in range(count)]
+
+    # Manifest mode is strictly additive: a beat with no usable asset keeps the
+    # exact icon + recipe output it had before.
+    scene_map = _manifest_scene_map(visual_manifest, count)
+    beat_assets: Dict[int, Dict[str, Any]] = {}
 
     sc = _Scene(total)
 
@@ -793,6 +898,14 @@ def build_short_html_v3(
         _RECIPE_FNS[template](sc, ctx)
 
         sc.h("</div>")  # /cam
+
+        # Semantic asset layer (manifest mode only). It sits above the recipe
+        # (z-index 6) but below the focal icon (7) and lower-third (9).
+        scene = scene_map.get(index)
+        asset = _clean_asset(scene) if scene is not None else None
+        if asset is not None:
+            beat_assets[index] = asset
+            sc.h(_asset_markup(scene, asset, index))
 
         # Focal icon: the literal noun of the beat, large in the upper-middle.
         # It sits above the moving recipe (z-index 7) and below the statement.
@@ -920,6 +1033,24 @@ def build_short_html_v3(
             sc.idle(hero + " svg", "rotation", -3.5, 3.5, idle_from, e, 0.86)
         out_at = max(s + span * 0.5, exit_at - 0.06)
         sc.add(hero, "opacity:1", 'opacity:0, duration:0.22, ease:"power2.in"', out_at)
+
+        # Semantic asset motion: absolute-time fromTo tweens, transforms and
+        # opacity only. Bounded idle loops keep the freeze check passing.
+        asset = beat_assets.get(index)
+        if asset is not None:
+            asset_sel = "#asset%d" % index
+            sc.add(
+                asset_sel, "opacity:0, scale:1.04",
+                'opacity:0.92, scale:1, duration:0.45, ease:"power2.out"', s + 0.03,
+            )
+            idle_from = min(e - 0.05, s + 0.55)
+            if idle_from > s + 0.15:
+                sc.idle(asset_sel, "scale", 1, 1.03, idle_from, e, 0.78)
+                sc.idle(asset_sel, "y", 0, -6, idle_from, e, 0.84)
+            sc.add(
+                asset_sel, "opacity:0.92",
+                'opacity:0, duration:0.22, ease:"power2.in"', out_at,
+            )
 
         # Lower-third and corner-label fades carry no meaning themselves.
         if _on_screen_text(beat, script_beats[index] if index < len(script_beats) else {}):

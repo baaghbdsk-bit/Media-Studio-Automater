@@ -186,6 +186,7 @@ def main():
             "youtube-explainer",
             "long-explainer",
             "generate-video",
+            "generate-pilot-short",
             "generate-explainer",
             "generate-demo-short",
             "ig-diagnose",
@@ -238,6 +239,30 @@ def main():
         topic = {"title": args.topic} if args.topic else engine.get_fresh_topic()
         res = VideoGenerator().generate_dynamic_short(topic, dry_run=args.dry_run)
         console.print(f"[bold green]Video generated: {res}[/bold green]")
+
+    elif args.action == "generate-pilot-short":
+        console.print("[bold cyan]🧪 Generating semantic pilot short (render only, no publishing)...[/bold cyan]")
+        from src.video_generator import VideoGenerator
+
+        topic = {"title": args.topic} if args.topic else engine.get_fresh_topic()
+        res = VideoGenerator().generate_dynamic_short(topic, dry_run=False)
+        console.print(f"[bold green]Pilot short result: {res}[/bold green]")
+        qa = res.get("qa_report") or {}
+        if qa:
+            console.print(
+                f"[cyan]QA: pass={qa.get('passed')}, "
+                f"static {qa.get('frozen_total_s')}s total / {qa.get('frozen_max_s')}s max, "
+                f"black {qa.get('black_total_s')}s, "
+                f"loudness {qa.get('loudness_lufs')} LUFS[/cyan]"
+            )
+            for err in qa.get("errors", []):
+                console.print(f"[red]QA FAIL: {err}[/red]")
+            manifest_report = qa.get("manifest")
+            if manifest_report:
+                for err in manifest_report.get("errors", []):
+                    console.print(f"[red]MANIFEST ERROR: {err}[/red]")
+        else:
+            console.print("[yellow]QA summary unavailable (render did not complete).[/yellow]")
 
     elif args.action == "generate-explainer":
         console.print("[bold magenta]⏳ Rendering long-form explainer only (no publishing)...[/bold magenta]")

@@ -1,0 +1,842 @@
+[
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 1,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169372.3209324
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 2,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169372.3219194
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 3,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169372.3219194
+  },
+  {
+    "asset_hash": "92f7cae23e12e63361844c11df921b7e2b0e9dbcde3b63b7266ecfc30dfe5533",
+    "local_path": "",
+    "provider": "diagram",
+    "scene_id": 4,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169372.3234322
+  },
+  {
+    "asset_hash": "75fab5e16b7c4098afac71e0161f038b3223730b1a338c2f5ac052b315f74116",
+    "local_path": "",
+    "provider": "illustration",
+    "scene_id": 5,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169372.3234322
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 6,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169372.3234322
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 7,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169379.89329
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 1,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169647.5063996
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 2,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169647.5084147
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 3,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169647.509423
+  },
+  {
+    "asset_hash": "92f7cae23e12e63361844c11df921b7e2b0e9dbcde3b63b7266ecfc30dfe5533",
+    "local_path": "",
+    "provider": "diagram",
+    "scene_id": 4,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169647.5104134
+  },
+  {
+    "asset_hash": "75fab5e16b7c4098afac71e0161f038b3223730b1a338c2f5ac052b315f74116",
+    "local_path": "",
+    "provider": "illustration",
+    "scene_id": 5,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169647.5114734
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 6,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169647.5114734
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 7,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169648.820781
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 1,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169719.6599462
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 2,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169719.6609468
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 3,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169719.6609468
+  },
+  {
+    "asset_hash": "92f7cae23e12e63361844c11df921b7e2b0e9dbcde3b63b7266ecfc30dfe5533",
+    "local_path": "",
+    "provider": "diagram",
+    "scene_id": 4,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169719.6624568
+  },
+  {
+    "asset_hash": "75fab5e16b7c4098afac71e0161f038b3223730b1a338c2f5ac052b315f74116",
+    "local_path": "",
+    "provider": "illustration",
+    "scene_id": 5,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169719.6634705
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 6,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169719.6644664
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 7,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169730.3779154
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 1,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169849.6872995
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 2,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169849.688882
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 3,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169849.6899
+  },
+  {
+    "asset_hash": "92f7cae23e12e63361844c11df921b7e2b0e9dbcde3b63b7266ecfc30dfe5533",
+    "local_path": "",
+    "provider": "diagram",
+    "scene_id": 4,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169849.6908998
+  },
+  {
+    "asset_hash": "75fab5e16b7c4098afac71e0161f038b3223730b1a338c2f5ac052b315f74116",
+    "local_path": "",
+    "provider": "illustration",
+    "scene_id": 5,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169849.6908998
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 6,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169849.6924148
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 7,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169857.1075385
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 1,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169914.8692095
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 2,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169914.8692095
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 3,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169914.870723
+  },
+  {
+    "asset_hash": "92f7cae23e12e63361844c11df921b7e2b0e9dbcde3b63b7266ecfc30dfe5533",
+    "local_path": "",
+    "provider": "diagram",
+    "scene_id": 4,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169914.8717322
+  },
+  {
+    "asset_hash": "75fab5e16b7c4098afac71e0161f038b3223730b1a338c2f5ac052b315f74116",
+    "local_path": "",
+    "provider": "illustration",
+    "scene_id": 5,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169914.8727324
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 6,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169914.873733
+  },
+  {
+    "asset_hash": "ddc264a461340d439f02205d75554b633d6e6aae28823e2be3af9a827071d0c8",
+    "local_path": "assets/ddc264a461340d439f02205d75554b633d6e6aae28823e2be3af9a827071d0c8.jpg",
+    "provider": "stock",
+    "scene_id": 7,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169929.117998
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 1,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169957.8613765
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 2,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169957.8623724
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 3,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169957.8623724
+  },
+  {
+    "asset_hash": "92f7cae23e12e63361844c11df921b7e2b0e9dbcde3b63b7266ecfc30dfe5533",
+    "local_path": "",
+    "provider": "diagram",
+    "scene_id": 4,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169957.8638787
+  },
+  {
+    "asset_hash": "75fab5e16b7c4098afac71e0161f038b3223730b1a338c2f5ac052b315f74116",
+    "local_path": "",
+    "provider": "illustration",
+    "scene_id": 5,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169957.865487
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 6,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169957.8664937
+  },
+  {
+    "asset_hash": "8ae87c10a5cf60ee95f4c736e215ca74e0974862dd9c1d9c25cee4aeb2358a6d",
+    "local_path": "assets/8ae87c10a5cf60ee95f4c736e215ca74e0974862dd9c1d9c25cee4aeb2358a6d.jpg",
+    "provider": "stock",
+    "scene_id": 7,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795169963.7432666
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 1,
+    "topic": "D:\\YT-INSTA\\Media-Studio-Automater\\generated_visuals\\videos\\short_why_gpus_beat_cpus_for_ai",
+    "used_at": 1795170013.4190035
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 2,
+    "topic": "D:\\YT-INSTA\\Media-Studio-Automater\\generated_visuals\\videos\\short_why_gpus_beat_cpus_for_ai",
+    "used_at": 1795170013.4199977
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 3,
+    "topic": "D:\\YT-INSTA\\Media-Studio-Automater\\generated_visuals\\videos\\short_why_gpus_beat_cpus_for_ai",
+    "used_at": 1795170013.4220002
+  },
+  {
+    "asset_hash": "92f7cae23e12e63361844c11df921b7e2b0e9dbcde3b63b7266ecfc30dfe5533",
+    "local_path": "",
+    "provider": "diagram",
+    "scene_id": 4,
+    "topic": "D:\\YT-INSTA\\Media-Studio-Automater\\generated_visuals\\videos\\short_why_gpus_beat_cpus_for_ai",
+    "used_at": 1795170013.4235117
+  },
+  {
+    "asset_hash": "75fab5e16b7c4098afac71e0161f038b3223730b1a338c2f5ac052b315f74116",
+    "local_path": "",
+    "provider": "illustration",
+    "scene_id": 5,
+    "topic": "D:\\YT-INSTA\\Media-Studio-Automater\\generated_visuals\\videos\\short_why_gpus_beat_cpus_for_ai",
+    "used_at": 1795170013.4245284
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 6,
+    "topic": "D:\\YT-INSTA\\Media-Studio-Automater\\generated_visuals\\videos\\short_why_gpus_beat_cpus_for_ai",
+    "used_at": 1795170013.426574
+  },
+  {
+    "asset_hash": "ddc264a461340d439f02205d75554b633d6e6aae28823e2be3af9a827071d0c8",
+    "local_path": "assets/ddc264a461340d439f02205d75554b633d6e6aae28823e2be3af9a827071d0c8.jpg",
+    "provider": "stock",
+    "scene_id": 7,
+    "topic": "D:\\YT-INSTA\\Media-Studio-Automater\\generated_visuals\\videos\\short_why_gpus_beat_cpus_for_ai",
+    "used_at": 1795170019.920171
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 1,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170251.1091006
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 2,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170251.1111062
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 3,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170251.1121035
+  },
+  {
+    "asset_hash": "92f7cae23e12e63361844c11df921b7e2b0e9dbcde3b63b7266ecfc30dfe5533",
+    "local_path": "",
+    "provider": "diagram",
+    "scene_id": 4,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170251.1131015
+  },
+  {
+    "asset_hash": "75fab5e16b7c4098afac71e0161f038b3223730b1a338c2f5ac052b315f74116",
+    "local_path": "",
+    "provider": "illustration",
+    "scene_id": 5,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170251.115097
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 6,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170251.1160975
+  },
+  {
+    "asset_hash": "b30f2c68ad34ea157982753a05ee41ded5ca0aad1e05df69b0c17ab9595d3fb4",
+    "local_path": "assets/b30f2c68ad34ea157982753a05ee41ded5ca0aad1e05df69b0c17ab9595d3fb4.jpg",
+    "provider": "stock",
+    "scene_id": 7,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170256.7149258
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 1,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170311.561751
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 2,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170311.563772
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 3,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170311.5647721
+  },
+  {
+    "asset_hash": "92f7cae23e12e63361844c11df921b7e2b0e9dbcde3b63b7266ecfc30dfe5533",
+    "local_path": "",
+    "provider": "diagram",
+    "scene_id": 4,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170311.5657508
+  },
+  {
+    "asset_hash": "75fab5e16b7c4098afac71e0161f038b3223730b1a338c2f5ac052b315f74116",
+    "local_path": "",
+    "provider": "illustration",
+    "scene_id": 5,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170311.5672588
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 6,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170311.5703042
+  },
+  {
+    "asset_hash": "eaa0efe1ee85150f3d702b605dd1091d698eacb02a04d5c640046c01bcf1750f",
+    "local_path": "assets/eaa0efe1ee85150f3d702b605dd1091d698eacb02a04d5c640046c01bcf1750f.jpg",
+    "provider": "stock",
+    "scene_id": 7,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170317.3772006
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 1,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170732.3000228
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 2,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170732.302096
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 3,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170732.3030958
+  },
+  {
+    "asset_hash": "92f7cae23e12e63361844c11df921b7e2b0e9dbcde3b63b7266ecfc30dfe5533",
+    "local_path": "",
+    "provider": "diagram",
+    "scene_id": 4,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170732.3060906
+  },
+  {
+    "asset_hash": "75fab5e16b7c4098afac71e0161f038b3223730b1a338c2f5ac052b315f74116",
+    "local_path": "",
+    "provider": "illustration",
+    "scene_id": 5,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170732.3071012
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 6,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170732.3081014
+  },
+  {
+    "asset_hash": "7962ee678fb8a3dc361e96d3324ba07a2e5dbdeaefab5440c42c8e6511b8bb5f",
+    "local_path": "assets/7962ee678fb8a3dc361e96d3324ba07a2e5dbdeaefab5440c42c8e6511b8bb5f.jpg",
+    "provider": "stock",
+    "scene_id": 7,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170738.3329837
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 1,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170829.6262312
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 2,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170829.6272378
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 3,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170829.6292331
+  },
+  {
+    "asset_hash": "92f7cae23e12e63361844c11df921b7e2b0e9dbcde3b63b7266ecfc30dfe5533",
+    "local_path": "",
+    "provider": "diagram",
+    "scene_id": 4,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170829.630241
+  },
+  {
+    "asset_hash": "75fab5e16b7c4098afac71e0161f038b3223730b1a338c2f5ac052b315f74116",
+    "local_path": "",
+    "provider": "illustration",
+    "scene_id": 5,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170829.632239
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 6,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170829.6332405
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 7,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795170862.4456098
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 1,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171048.6507661
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 2,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171048.651775
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 3,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171048.6537707
+  },
+  {
+    "asset_hash": "92f7cae23e12e63361844c11df921b7e2b0e9dbcde3b63b7266ecfc30dfe5533",
+    "local_path": "",
+    "provider": "diagram",
+    "scene_id": 4,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171048.655999
+  },
+  {
+    "asset_hash": "75fab5e16b7c4098afac71e0161f038b3223730b1a338c2f5ac052b315f74116",
+    "local_path": "",
+    "provider": "illustration",
+    "scene_id": 5,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171048.657997
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 6,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171048.66
+  },
+  {
+    "asset_hash": "ef6256885b33e6df3212a438e970972b45387b146b8fd6a804523b43305c4d6b",
+    "local_path": "assets/ef6256885b33e6df3212a438e970972b45387b146b8fd6a804523b43305c4d6b.jpg",
+    "provider": "stock",
+    "scene_id": 7,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171060.8490114
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 1,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171120.0439296
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 2,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171120.0459516
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 3,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171120.0474703
+  },
+  {
+    "asset_hash": "92f7cae23e12e63361844c11df921b7e2b0e9dbcde3b63b7266ecfc30dfe5533",
+    "local_path": "",
+    "provider": "diagram",
+    "scene_id": 4,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171120.0490687
+  },
+  {
+    "asset_hash": "75fab5e16b7c4098afac71e0161f038b3223730b1a338c2f5ac052b315f74116",
+    "local_path": "",
+    "provider": "illustration",
+    "scene_id": 5,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171120.0506005
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 6,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171120.0526206
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 7,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171132.4033308
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 1,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171245.9241092
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 2,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171245.9261036
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 3,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171245.9271011
+  },
+  {
+    "asset_hash": "92f7cae23e12e63361844c11df921b7e2b0e9dbcde3b63b7266ecfc30dfe5533",
+    "local_path": "",
+    "provider": "diagram",
+    "scene_id": 4,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171245.9286156
+  },
+  {
+    "asset_hash": "75fab5e16b7c4098afac71e0161f038b3223730b1a338c2f5ac052b315f74116",
+    "local_path": "",
+    "provider": "illustration",
+    "scene_id": 5,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171245.9306304
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 6,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171245.9316328
+  },
+  {
+    "asset_hash": "10fcb7ee6b0aa23378cb4980ead78ade1072000e5303e4c9b84cfb40d5aaddc1",
+    "local_path": "assets/10fcb7ee6b0aa23378cb4980ead78ade1072000e5303e4c9b84cfb40d5aaddc1.jpg",
+    "provider": "stock",
+    "scene_id": 7,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171258.5575204
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 1,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171290.6732757
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 2,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171290.6752985
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 3,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171290.6772683
+  },
+  {
+    "asset_hash": "92f7cae23e12e63361844c11df921b7e2b0e9dbcde3b63b7266ecfc30dfe5533",
+    "local_path": "",
+    "provider": "diagram",
+    "scene_id": 4,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171290.678276
+  },
+  {
+    "asset_hash": "75fab5e16b7c4098afac71e0161f038b3223730b1a338c2f5ac052b315f74116",
+    "local_path": "",
+    "provider": "illustration",
+    "scene_id": 5,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171290.681265
+  },
+  {
+    "asset_hash": "a7fd4687125a800de3c54ffd933ece37a83798619bfc4b93b68829923f7b7d83",
+    "local_path": "",
+    "provider": "fallback",
+    "scene_id": 6,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171290.682276
+  },
+  {
+    "asset_hash": "10fcb7ee6b0aa23378cb4980ead78ade1072000e5303e4c9b84cfb40d5aaddc1",
+    "local_path": "assets/10fcb7ee6b0aa23378cb4980ead78ade1072000e5303e4c9b84cfb40d5aaddc1.jpg",
+    "provider": "stock",
+    "scene_id": 7,
+    "topic": "Why GPUs Beat CPUs for AI",
+    "used_at": 1795171296.7577941
+  }
+]

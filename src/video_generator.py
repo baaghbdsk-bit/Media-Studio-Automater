@@ -309,7 +309,111 @@ class VideoGenerator:
             "narration": narration,
         }
 
-    def generate_dynamic_short(self, topic_data: Dict[str, Any], dry_run: bool = False) -> Dict[str, Optional[str]]:
+    @staticmethod
+    def _semantic_visuals_enabled() -> bool:
+        """SEMANTIC_VISUALS=0 (or false/off/no) selects the rollback path."""
+        raw = (os.environ.get("SEMANTIC_VISUALS") or "1").strip().lower()
+        return raw not in ("0", "false", "off", "no")
+
+    @staticmethod
+    def _call_planner(fn, topic_data: Dict[str, Any], script: Dict[str, Any], words: list):
+        """Call a planner helper defensively across plausible signatures."""
+        last_exc = None
+        for args in (
+            (topic_data, script, words),
+            (topic_data, script),
+            (topic_data,),
+            (),
+        ):
+            try:
+                return fn(*args)
+            except TypeError as exc:
+                last_exc = exc
+        if last_exc is not None:
+            raise last_exc
+        raise RuntimeError("visual planner call failed")
+
+    def _find_asset_source(self, raw_path: str, work_dir: Path) -> Optional[Path]:
+        """Resolve a provider local_path to an existing file on disk."""
+        path = Path(raw_path)
+        candidates: List[Path] = []
+        if path.is_absolute():
+            candidates.append(path)
+        else:
+            candidates.extend([
+                self.base_dir / path,
+                work_dir / path,
+                Path.cwd() / path,
+                self.base_dir / "data" / "visual_assets" / path,
+            ])
+        for candidate in candidates:
+            try:
+                if candidate.is_file():
+                    return candidate
+            except OSError:
+                continue
+        return None
+
+    def _resolve_semantic_manifest(self, topic_data: Dict[str, Any],
+                                   script: Dict[str, Any], words: list,
+                                   work_dir: Path):
+        """Build, resolve and localise a visual manifest for the composition."""
+        from src.visual_planner import build_visual_plan, deterministic_visual_plan
+        from src.visual_providers.orchestrator import resolve_plan
+
+        plan = self._call_planner(build_visual_plan, topic_data, script, words)
+        if not plan:
+            plan = self._call_planner(deterministic_visual_plan, topic_data, script, words)
+        if not plan:
+            raise RuntimeError("visual planner returned no plan")
+
+        manifest = resolve_plan(plan, topic_data)
+        if not isinstance(manifest, dict):
+            raise RuntimeError("resolve_plan did not return a manifest")
+        if not isinstance(manifest.get("scenes"), list):
+            raise RuntimeError("manifest has no scenes list")
+
+        # Copy every referenced asset into the composition so HyperFrames can
+        # resolve it with a relative path, and rewrite the manifest in place.
+        assets_dir = work_dir / "assets"
+        assets_dir.mkdir(parents=True, exist_ok=True)
+        used_names: Dict[str, str] = {}
+        for index, scene in enumerate(manifest["scenes"]):
+            if not isinstance(scene, dict):
+                continue
+            asset = scene.get("asset")
+            if not isinstance(asset, dict):
+                continue
+            for key in ("local_path", "poster_path"):
+                raw = asset.get(key)
+                if not isinstance(raw, str) or not raw.strip():
+                    continue
+                source = self._find_asset_source(raw, work_dir)
+                if source is None:
+                    print(
+                        f"[VideoGenerator] Semantic asset not found: {raw} "
+                        f"(scene {index}); that beat falls back to its icon."
+                    )
+                    asset[key] = ""
+                    continue
+                name = source.name
+                resolved_source = str(source.resolve())
+                if name in used_names and used_names[name] != resolved_source:
+                    stem, suffix = os.path.splitext(name)
+                    name = "%d_%s%s" % (index, stem, suffix)
+                used_names[name] = resolved_source
+                target = assets_dir / name
+                if target.resolve() != source.resolve():
+                    shutil.copy2(str(source), str(target))
+                asset[key] = "assets/" + name
+
+        manifest_path = work_dir / "visual_manifest.json"
+        manifest_path.write_text(
+            json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        return manifest, str(manifest_path)
+
+    def generate_dynamic_short(self, topic_data: Dict[str, Any], dry_run: bool = False) -> Dict[str, Any]:
         """Render a 9:16 Short with spoken script, AI storyboard and object animation."""
         from src.short_script import build_short_script
         from src.short_script_ai import build_short_script_ai
@@ -353,17 +457,45 @@ class VideoGenerator:
             total_dur = self._master_audio_from_mp3(str(raw_mp3), audio_path, target)
             write_srt(words, srt_path)
 
-            html = build_short_html_v3(topic_data, script, storyboard, words, total_dur)
+            # Semantic visuals are opt-out (SEMANTIC_VISUALS=0). Any planner or
+            # provider failure degrades to the exact recipe-only renderer.
+            visual_manifest = None
+            manifest_path = None
+            if self._semantic_visuals_enabled():
+                try:
+                    visual_manifest, manifest_path = self._resolve_semantic_manifest(
+                        topic_data, script, words, work_dir
+                    )
+                except Exception as ex:
+                    print(
+                        f"[VideoGenerator] Semantic visuals unavailable: {ex}; "
+                        "falling back to recipe-only visuals."
+                    )
+                    visual_manifest, manifest_path = None, None
+
+            if visual_manifest is None:
+                html = build_short_html_v3(topic_data, script, storyboard, words, total_dur)
+            else:
+                html = build_short_html_v3(
+                    topic_data, script, storyboard, words, total_dur,
+                    visual_manifest=visual_manifest,
+                )
             (work_dir / "index.html").write_text(html, encoding="utf-8")
             (work_dir / "script.txt").write_text(script["narration"], encoding="utf-8")
 
             if self._render_hyperframes(work_dir, video_path):
-                qa_ok, qa_report = check_video(video_path)
+                qa_ok, qa_report = check_video(video_path, manifest_path=manifest_path)
                 print(f"[VideoGenerator] QA: {qa_report}")
                 if not qa_ok:
                     print(f"[VideoGenerator] QA failed: {qa_report.get('errors')}")
-                    return {"video_path": None, "srt_path": srt_path, "audio_path": audio_path}
-                return {"video_path": video_path, "srt_path": srt_path, "audio_path": audio_path}
+                    return {
+                        "video_path": None, "srt_path": srt_path,
+                        "audio_path": audio_path, "qa_report": qa_report,
+                    }
+                return {
+                    "video_path": video_path, "srt_path": srt_path,
+                    "audio_path": audio_path, "qa_report": qa_report,
+                }
         except Exception as ex:
             print(f"[VideoGenerator] Short generation error: {ex}")
 
