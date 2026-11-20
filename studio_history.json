@@ -38,7 +38,8 @@
     "How AI Uses Checkpoints to Save Progress Like a Video Game",
     "Gemini 4 Neon",
     "How Engineers Keep Giant AI Servers Cool Using Liquid Pipes",
-    "Anthropic Founders Cash Out Two Billion Dollars in Historic Stock Debut"
+    "Anthropic Founders Cash Out Two Billion Dollars in Historic Stock Debut",
+    "Secret UK Cyber Operation Saves Thousands of Smart Fridges From Hackers"
   ],
   "events": [
     {
@@ -440,6 +441,17 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-20 11:37 AM",
+      "type": "video_broadcast",
+      "title": "Secret UK Cyber Operation Saves Thousands of Smart Fridges From Hackers",
+      "details": {
+        "youtube": true,
+        "instagram_reel": false,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -734,13 +746,21 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-20T03:53:34+00:00"
+    },
+    {
+      "title": "Secret UK Cyber Operation Saves Thousands of Smart Fridges From Hackers",
+      "series": "uk-cyber-fridge-op",
+      "audience": "beginner",
+      "pillar": "NEWS",
+      "long_form": false,
+      "time": "2026-11-20T11:37:10+00:00"
     }
   ],
   "youtube_units": {
     "2026-11-13": 6000,
     "2026-11-14": 4000,
     "2026-11-19": 6000,
-    "2026-11-20": 4000
+    "2026-11-20": 6000
   },
   "broadcast_counts": {
     "2026-11-13": 2,
@@ -748,6 +768,6 @@
     "2026-11-16": 2,
     "2026-11-17": 2,
     "2026-11-19": 2,
-    "2026-11-20": 1
+    "2026-11-20": 2
   }
 }
