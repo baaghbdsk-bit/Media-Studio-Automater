@@ -187,7 +187,6 @@ def main():
             "long-explainer",
             "generate-video",
             "generate-explainer",
-            "generate-demo-short",
             "ig-diagnose",
             "metrics",
             "doctor",
@@ -251,83 +250,6 @@ def main():
             f"{res.get('video_path')}[/bold green]"
         )
 
-    elif args.action == "generate-demo-short":
-        console.print("[bold cyan]🎬 Rendering next-generation demo short (no publishing)...[/bold cyan]")
-        import re
-
-        from src.short_script import build_short_script
-        from src.short_script_ai import build_short_script_ai
-        from src.storyboard_ai import build_storyboard_ai, deterministic_storyboard
-        from src.voice import synthesize_performance, write_srt
-        from src.short_visual_v3 import build_short_html_v3
-        from src.video_generator import VideoGenerator
-
-        topic = (
-            {"title": args.topic, "pillar": "ai_systems"}
-            if args.topic else engine.get_fresh_topic()
-        )
-        script = build_short_script_ai(topic) or build_short_script(topic)
-        storyboard = build_storyboard_ai(topic, script) or deterministic_storyboard(topic, script)
-        qa = script.get("qa", {})
-        console.print(
-            f"[dim]Script: {qa.get('word_count')} words, source={qa.get('source', 'fallback')}[/dim]"
-        )
-        console.print(
-            "[dim]Visual recipes: "
-            + ", ".join(b.get("template_id", "?") for b in storyboard["beats"])
-            + f" ({storyboard.get('source', '?')})[/dim]"
-        )
-        for beat in script["beats"]:
-            console.print(f"  [cyan]{beat['narration']}[/cyan]")
-
-        gen = VideoGenerator()
-        slug = re.sub(r"[^a-zA-Z0-9]+", "_", script["title"].lower()).strip("_")[:35]
-        work_dir = gen.output_dir / f"short_v3_{slug}"
-        work_dir.mkdir(parents=True, exist_ok=True)
-
-        raw_mp3 = work_dir / "voice_raw.mp3"
-        voice_result = None
-        for voice in ("en-US-AvaNeural", "en-US-AndrewNeural", "en-US-EmmaNeural"):
-            try:
-                voice_result = synthesize_performance(
-                    script["narration"], str(raw_mp3), voice=voice
-                )
-                break
-            except RuntimeError as exc:
-                console.print(f"[yellow]Voice {voice} failed: {exc}[/yellow]")
-        if voice_result is None:
-            raise SystemExit("All narration voices failed")
-        words = voice_result["words"]
-        target = max(40.0, (words[-1]["end"] if words else 0.0) + 2.0)
-        duration = gen._master_audio_from_mp3(
-            str(raw_mp3), str(work_dir / "narration_master.wav"), target
-        )
-
-        html = build_short_html_v3(topic, script, storyboard, words, duration)
-        (work_dir / "index.html").write_text(html, encoding="utf-8")
-        (work_dir / "script.txt").write_text(script["narration"], encoding="utf-8")
-        write_srt(words, str(work_dir / "subtitles.srt"))
-
-        video_path = str(work_dir / f"short_v3_{slug}.mp4")
-        ok = gen._render_hyperframes(work_dir, video_path)
-        console.print(
-            f"[bold green]Demo short: {video_path} ({duration:.1f}s, rendered={ok})[/bold green]"
-        )
-        if not ok:
-            raise SystemExit(1)
-        from scripts.qa_video import check_video
-
-        vqa_ok, vqa_report = check_video(video_path)
-        console.print(
-            f"[cyan]QA: static {vqa_report.get('frozen_total_s')}s total / "
-            f"{vqa_report.get('frozen_max_s')}s max, "
-            f"black {vqa_report.get('black_total_s')}s, "
-            f"loudness {vqa_report.get('loudness_lufs')} LUFS[/cyan]"
-        )
-        if not vqa_ok:
-            for err in vqa_report.get("errors", []):
-                console.print(f"[red]QA FAIL: {err}[/red]")
-            raise SystemExit(1)
 
     elif args.action == "ig-diagnose":
         from scripts import ig_diagnose
