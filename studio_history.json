@@ -43,7 +43,8 @@
     "Daniel Ek Backs New Startup Chasing Fusion Power",
     "How Computers Use Error Correction Codes to Fix Garbled Messages",
     "Startup Sues Apple Seeking Millions Over Indian Market iPhone Imports",
-    "Actor Sells Face To Microdrama Startup In Hollywood"
+    "Actor Sells Face To Microdrama Startup In Hollywood",
+    "How AI Uses Expert Committees to Solve Hard Problems"
   ],
   "events": [
     {
@@ -497,6 +498,14 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-21 09:54 PM",
+      "type": "explainer_video",
+      "title": "How AI Uses Expert Committees to Solve Hard Problems",
+      "details": {
+        "url": "https://youtube.com/shorts/SfMWmrX20AA"
+      }
     }
   ],
   "topic_log": [
@@ -831,13 +840,21 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-21T19:18:16+00:00"
+    },
+    {
+      "title": "How AI Uses Expert Committees to Solve Hard Problems",
+      "series": "mixture-of-experts",
+      "audience": "beginner",
+      "pillar": "ai_systems",
+      "long_form": true,
+      "time": "2026-11-21T21:54:49+00:00"
     }
   ],
   "youtube_units": {
     "2026-11-19": 6000,
     "2026-11-20": 6000,
     "2026-11-21": 6000,
-    "2026-11-22": 2000
+    "2026-11-22": 4000
   },
   "broadcast_counts": {
     "2026-11-16": 2,
