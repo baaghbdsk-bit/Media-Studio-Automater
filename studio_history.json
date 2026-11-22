@@ -44,7 +44,8 @@
     "How Computers Use Error Correction Codes to Fix Garbled Messages",
     "Startup Sues Apple Seeking Millions Over Indian Market iPhone Imports",
     "Actor Sells Face To Microdrama Startup In Hollywood",
-    "How AI Uses Expert Committees to Solve Hard Problems"
+    "How AI Uses Expert Committees to Solve Hard Problems",
+    "Why GPUs Beat CPUs for AI"
   ],
   "events": [
     {
@@ -506,6 +507,22 @@
       "details": {
         "url": "https://youtube.com/shorts/SfMWmrX20AA"
       }
+    },
+    {
+      "time": "2026-11-22 03:31 PM",
+      "type": "youtube_short",
+      "title": "Why GPUs Beat CPUs for AI",
+      "details": {
+        "url": "https://youtube.com/shorts/tLYfOsZ7vGY"
+      }
+    },
+    {
+      "time": "2026-11-22 03:31 PM",
+      "type": "instagram_reel",
+      "title": "Why GPUs Beat CPUs for AI",
+      "details": {
+        "msg": "static slideshow test post"
+      }
     }
   ],
   "topic_log": [
@@ -848,6 +865,14 @@
       "pillar": "ai_systems",
       "long_form": true,
       "time": "2026-11-21T21:54:49+00:00"
+    },
+    {
+      "title": "Why GPUs Beat CPUs for AI",
+      "series": "",
+      "audience": "",
+      "pillar": "",
+      "long_form": false,
+      "time": "2026-11-22T10:01:05+00:00"
     }
   ],
   "youtube_units": {
