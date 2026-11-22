@@ -38,7 +38,7 @@ def check_video(path: str, static: bool = False) -> tuple[bool, dict]:
         report["fps"] = video.get("avg_frame_rate", "?")
         if video["width"] < 900 or video["height"] < 1600:
             report["errors"].append("resolution below 1080x1920")
-        if not (20 <= report["duration_s"] <= 120):
+        if not (20 <= report["duration_s"] <= 179):
             report["errors"].append("unexpected duration")
         if not audio:
             report["errors"].append("no audio stream")

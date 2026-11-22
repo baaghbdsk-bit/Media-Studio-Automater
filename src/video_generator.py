@@ -182,8 +182,8 @@ class VideoGenerator:
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
 
         measured_dur = self._get_audio_duration(proc_wav)
-        total_dur = max(measured_dur + 2.0, duration_target)
-        fade_out_start = max(0.0, total_dur - 3.0)
+        total_dur = max(measured_dur + 1.0, duration_target)
+        fade_out_start = max(0.0, total_dur - 1.5)
 
         # Low ambient bed, ducked under the voice by the mix below.
         subprocess.run([
@@ -195,7 +195,7 @@ class VideoGenerator:
             "[0]volume=0.32[sub];"
             "[1]volume=0.18,chorus=0.6:0.8:60:0.4:0.25:2[pad];"
             "[2]lowpass=f=350,volume=0.2[tape];"
-            f"[sub][pad][tape]amix=inputs=3:normalize=0,volume=0.35,afade=t=in:st=0:d=2.0,afade=t=out:st={fade_out_start:.1f}:d=3[score_raw]",
+            f"[sub][pad][tape]amix=inputs=3:normalize=0,volume=0.35,afade=t=in:st=0:d=0.8,afade=t=out:st={fade_out_start:.1f}:d=1.5[score_raw]",
             "-map", "[score_raw]", "-t", f"{total_dur:.2f}", score_wav
         ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
 
@@ -349,7 +349,7 @@ class VideoGenerator:
                 raise RuntimeError("All narration voices failed")
 
             words = voice_result["words"]
-            target = max(40.0, (words[-1]["end"] if words else 0.0) + 2.0)
+            target = max(40.0, (words[-1]["end"] if words else 0.0) + 1.0)
             total_dur = self._master_audio_from_mp3(str(raw_mp3), audio_path, target)
             write_srt(words, srt_path)
 

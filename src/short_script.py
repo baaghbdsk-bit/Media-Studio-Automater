@@ -22,45 +22,32 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.content_quality import clean_text, is_slop, SLOP_PHRASES
+from src.short_config import (
+    BEAT_IDS,
+    FOCUS_WORDS,
+    LABELS,
+    TARGET_S as _TARGET_S_BASE,
+    SHORT_WPM,
+    SHORT_WORD_TARGET,
+    SHORT_WORD_MIN,
+    SHORT_WORD_MAX,
+    SHORT_MAX_SENTENCE_WORDS,
+    SHORT_BEATS,
+)
 
-_BEAT_ORDER: List[str] = [
-    "hook", "stake", "context", "mechanism", "aha", "payoff", "loop",
-]
-
-_TARGET_S: Dict[str, float] = {
-    "hook": 2.5,
-    "stake": 5.0,
-    "context": 7.0,
-    "mechanism": 11.0,
-    "aha": 8.0,
-    "payoff": 9.0,
-    "loop": 5.0,
-}
-
+_BEAT_ORDER: List[str] = list(BEAT_IDS)
+_TARGET_S: Dict[str, float] = dict(_TARGET_S_BASE)
 _BEAT_META: Dict[str, tuple] = {
-    "hook": ("The Hook", "the question"),
-    "stake": ("Why It Matters", "the cost"),
-    "context": ("The Setup", "the setup"),
-    "mechanism": ("How It Works", "the mechanism"),
-    "aha": ("The Surprise", "the surprise"),
-    "payoff": ("Your Move", "your move"),
-    "loop": ("The Loop", "one thing"),
+    beat_id: (LABELS[beat_id], FOCUS_WORDS[beat_id]) for beat_id in BEAT_IDS
 }
-
 _LINE_FALLBACKS: Dict[str, str] = {
-    "hook": "the real question",
-    "stake": "why it matters",
-    "context": "the setup",
-    "mechanism": "step by step",
-    "aha": "the surprise",
-    "payoff": "your move",
-    "loop": "one last thought",
+    beat_id: FOCUS_WORDS[beat_id] for beat_id in BEAT_IDS
 }
 
-_WPM = 145
-_TARGET_WORDS = 110
-_MAX_WORDS = 120
-_MAX_SENTENCE_WORDS = 20
+_WPM = SHORT_WPM
+_TARGET_WORDS = SHORT_WORD_TARGET
+_MAX_WORDS = SHORT_WORD_MAX
+_MAX_SENTENCE_WORDS = SHORT_MAX_SENTENCE_WORDS + 2
 
 _SENT_SPLIT = re.compile(r"(?<=[.!?])\s+")
 _CLAUSE_SPLIT = re.compile(
@@ -94,6 +81,24 @@ _EXTRA_SENTENCES: List[str] = [
     "It helps to see the two sides side by side.",
     "That framing makes the whole thing clearer.",
     "The takeaway is easy to carry with you.",
+    "Start with the part that touches your own work.",
+    "Watch what happens when the load gets heavier.",
+    "The same logic applies at a much larger scale.",
+    "You will notice it the first time it fails.",
+    "Nothing here requires a rewrite of your setup.",
+    "Think about the cost of getting this wrong.",
+    "A quick test makes the difference obvious.",
+    "Most people miss this on the first pass.",
+    "The answer becomes clear once you measure it.",
+    "Small changes here compound over time.",
+    "This is where the two paths truly diverge.",
+    "Keep that constraint in mind as we continue.",
+    "Real systems hit this limit sooner than you expect.",
+    "The fix is simpler than the symptom suggests.",
+    "You can verify this with a single experiment.",
+    "That is why the order of operations matters.",
+    "Picture the same idea running a thousand times.",
+    "The result speaks for itself once it is measured.",
 ]
 
 # Last-resort sentences, each with a unique opener, for degenerate inputs.
@@ -105,6 +110,13 @@ _FALLBACK_SENTENCES: List[str] = [
     "There's a simple way to see it.",
     "The core point is easy to miss.",
     "This is the bit that matters most.",
+    "Start with what you already know.",
+    "Watch the pattern as it grows.",
+    "The same rule holds at every scale.",
+    "You will see it in your own results.",
+    "Nothing changes until that step shifts.",
+    "Think of it as a chain of small decisions.",
+    "The proof is in the measured outcome.",
 ]
 
 _TITLE_STOPWORDS = {
@@ -314,13 +326,34 @@ def _build_banks(fields: Dict[str, str]) -> tuple:
     context.append(f"Here's the setup: {title_base}" if title_base else "")
     context.append("In plain terms, you're weighing two different approaches.")
 
-    mechanism: List[str] = []
+    friction: List[str] = []
+    if fields["problem"]:
+        friction.append(_complete_sentence(fields["problem"]))
+    friction.append("The friction shows up when the load starts climbing.")
+    friction.append("That is the moment the simple answer stops working.")
+    friction.append("Most people hit this wall without seeing it coming.")
+
+    mechanism_1: List[str] = []
     if fields["solution"]:
-        mechanism.append(_complete_sentence(fields["solution"]))
+        mechanism_1.append(_complete_sentence(fields["solution"]))
     if c0:
-        mechanism.append(f"The mechanism is simple: {c0}.")
-        mechanism.append(f"It starts with {c0}.")
-    mechanism.append("It works through one repeatable step.")
+        mechanism_1.append(f"The mechanism is simple: {c0}.")
+        mechanism_1.append(f"It starts with {c0}.")
+    mechanism_1.append("It works through one repeatable step.")
+
+    mechanism_2: List[str] = []
+    if c1:
+        mechanism_2.append(f"The second step builds on {c1}.")
+    mechanism_2.append("Each pass makes the next one cheaper.")
+    mechanism_2.append("That repetition is where the real gain appears.")
+    mechanism_2.append("The same move repeats at every layer of the system.")
+
+    example: List[str] = []
+    if c0:
+        example.append(f"Think of it this way: {c0}.")
+    example.append("A small test makes the whole pattern visible.")
+    example.append("Once you watch one run, the rest makes sense.")
+    example.append("The example is simple, but the principle scales.")
 
     aha: List[str] = []
     if fields["takeaway"]:
@@ -329,6 +362,12 @@ def _build_banks(fields: Dict[str, str]) -> tuple:
     aha.append("The surprising part is how that single step adds up.")
     aha.append("What catches people off guard is the simple math behind it.")
 
+    tradeoff: List[str] = []
+    tradeoff.append("Every gain here comes with a cost somewhere else.")
+    tradeoff.append("That tradeoff is the part most explanations skip.")
+    tradeoff.append("You pay for speed with memory, or for control with time.")
+    tradeoff.append("Knowing the tradeoff is what makes the choice yours.")
+
     payoff: List[str] = []
     if fields["pro_tip"]:
         payoff.append(_complete_sentence(fields["pro_tip"]))
@@ -336,13 +375,22 @@ def _build_banks(fields: Dict[str, str]) -> tuple:
     payoff.append("Match your workload to the tool built for that job.")
     payoff.append("Choose based on the work rather than the noise.")
 
+    proof: List[str] = []
+    proof.append("The numbers back this up once you measure it.")
+    proof.append("You can repeat the result with a simple test.")
+    proof.append("That is the part that turns a claim into a fact.")
+    proof.append("Measure it yourself and the pattern holds.")
+
     loop: List[str] = [
         "So which side does your own work fall on?",
         "Which option fits what you're building?",
         "So what does your own setup look like?",
     ]
 
-    return [hook, stake, context, mechanism, aha, payoff, loop], title_base
+    return [
+        hook, stake, context, friction, mechanism_1, mechanism_2,
+        example, aha, tradeoff, payoff, proof, loop,
+    ], title_base
 
 
 def _short_line(sentence: str, fallback: str) -> str:
@@ -380,7 +428,7 @@ def build_short_script(topic: dict) -> dict:
 
     # Reach the target using whole sentences only, spread across the middle
     # beats so no single beat becomes a wall of text.
-    rotation = [1, 2, 3, 4, 5]
+    rotation = list(range(3, min(11, len(banks))))
     added = 0
     for candidate in _EXTRA_SENTENCES:
         if total() >= _TARGET_WORDS:
@@ -412,7 +460,12 @@ def build_short_script(topic: dict) -> dict:
             "id": beat_id,
             "label": label,
             "focus_word": focus,
-            "lines": [focus.title(), _short_line(per_beat[i][0], _LINE_FALLBACKS[beat_id])],
+            "lines": [
+                focus.title(),
+                _short_line(per_beat[i][0], _LINE_FALLBACKS[beat_id]),
+                _short_line(per_beat[i][1], _LINE_FALLBACKS[beat_id])
+                if len(per_beat[i]) > 1 else _LINE_FALLBACKS[beat_id].title(),
+            ],
             "narration": narrations[i],
             "target_s": _TARGET_S[beat_id],
         })
@@ -423,7 +476,7 @@ def build_short_script(topic: dict) -> dict:
     all_sentences = [s for beat in per_beat for s in beat]
 
     flags: List[str] = []
-    if not (100 <= word_count <= 120):
+    if not (SHORT_WORD_MIN <= word_count <= SHORT_WORD_MAX):
         flags.append("word_count_out_of_range")
     if is_slop(narration):
         flags.append("slop_detected")
@@ -435,7 +488,7 @@ def build_short_script(topic: dict) -> dict:
         flags.append("repeated_sentence")
     if len({_opener(s) for s in all_sentences}) != len(all_sentences):
         flags.append("repeated_opener")
-    if len(beats) != 7:
+    if len(beats) != SHORT_BEATS:
         flags.append("beat_count_mismatch")
 
     title = fields["title"] or title_base or fields["summary"][:80].strip() or "Quick Breakdown"
@@ -478,7 +531,7 @@ if __name__ == "__main__":
     print("\nFull narration:\n" + result["narration"])
     print("QA: " + str(result["qa"]))
 
-    assert 100 <= result["qa"]["word_count"] <= 120, "word count must be 100-120"
-    assert len(result["beats"]) == 7, "exactly seven beats required"
+    assert SHORT_WORD_MIN <= result["qa"]["word_count"] <= SHORT_WORD_MAX, "word count out of range"
+    assert len(result["beats"]) == SHORT_BEATS, "wrong beat count"
     assert result["qa"]["flags"] == [], "QA flags must be empty"
     print("Self-test passed.")

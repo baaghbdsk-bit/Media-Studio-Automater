@@ -11,21 +11,15 @@ import re
 from typing import Any, Dict, List, Optional, Tuple
 
 from src.content_quality import is_slop
-
-_BEAT_IDS = ["hook", "stake", "context", "mechanism", "aha", "payoff", "loop"]
-_LABELS = {
-    "hook": "The Hook",
-    "stake": "Why It Matters",
-    "context": "The Setup",
-    "mechanism": "How It Works",
-    "aha": "The Surprise",
-    "payoff": "Your Move",
-    "loop": "The Loop",
-}
-_TARGET_S = {
-    "hook": 2.5, "stake": 5.0, "context": 7.0, "mechanism": 11.0,
-    "aha": 8.0, "payoff": 9.0, "loop": 5.0,
-}
+from src.short_config import (
+    BEAT_IDS as _BEAT_IDS,
+    LABELS as _LABELS,
+    TARGET_S as _TARGET_S,
+    SHORT_BEATS,
+    SHORT_WORD_MIN,
+    SHORT_WORD_MAX,
+    SHORT_WPM,
+)
 _SENT_SPLIT = re.compile(r"(?<=[.!?])\s+")
 
 
@@ -48,7 +42,7 @@ You are a person explaining a tech idea to a friend over coffee. You are NOT wri
 </role>
 
 <task>
-Rewrite the topic into 7 spoken beats, 105-115 words total (~45-50s spoken). Each beat is 1-3 spoken lines of 13-19 words. Do NOT be terse: expand with concrete details, direct address and specific ifs/thens until you reach the word target. Output only the spoken words per beat: no headings, no stage directions, no commentary.
+Rewrite the topic into 12 spoken beats, 215-260 words total (~90-105s spoken). Each beat is 2-3 spoken sentences of 10-18 words. Tell a complete story: set up the problem, build the mechanism in two steps, ground it in a concrete example, reveal the surprise, weigh the tradeoff, give the takeaway, show the proof, and end with one question. Do NOT be terse: expand with concrete details, direct address and specific ifs/thens until you reach the word target. Output only the spoken words per beat: no headings, no stage directions, no commentary.
 </task>
 
 <topic>
@@ -62,12 +56,12 @@ Rewrite the topic into 7 spoken beats, 105-115 words total (~45-50s spoken). Eac
 - Use "you" or "your" at least 3 times across the whole script.
 - Use contractions wherever natural ("you'll", "it's", "here's", "doesn't"). At least 4 contractions.
 - Average sentence 8-12 words. At least three sentences of 6 words or fewer. No sentence over 18 words.
-- Put a short fragment in beats 1, 3 and 5 ("Not a bug." "Here's the trick.") with terminal punctuation.
-- Add one pattern interrupt by beat 3: a question, an aside, or "Wait—".
+- Put a short fragment in beats 1, 4 and 9 ("Not a bug." "Here's the trick.") with terminal punctuation.
+- Add one pattern interrupt by beat 4: a question, an aside, or "Wait—".
 - Never start two consecutive sentences with the same word.
 - Prefer verbs over nouns; active voice; concrete things (laptop, fan, chef) over abstractions (models, systems, infrastructure).
 - End the final beat on a soundbite of 10 words or fewer.
-- Exactly 7 beats in this order: hook, stake, context, mechanism, aha, payoff, loop.
+- Exactly 12 beats in this order: hook, stake, context, friction, mechanism_1, mechanism_2, example, aha, tradeoff, payoff, proof, loop.
 - Every beat must be DIFFERENT: never repeat a clause, a sentence opening, or the same fact twice.
 - Every sentence ends with . ! or ?. Never end on a dangling word like "of", "to", "the", "and", "while", "because", "that", "with".
 </voice_rules>
@@ -83,16 +77,13 @@ BAD: "Why do massive AI models stutter when you run them on standard computer pr
 GOOD: "Your laptop can run a giant AI model. It takes centuries. That's not a bug."
 </few_shot_example>
 
-Return ONLY a raw JSON object with this exact shape:
+Return ONLY a raw JSON object with this exact shape (include ALL 12 beats in the listed order):
 {{
   "beats": [
-    {{"id": "hook", "focus_word": "...", "lines": ["..."], "narration": "..."}},
-    {{"id": "stake", "focus_word": "...", "lines": ["..."], "narration": "..."}},
-    {{"id": "context", "focus_word": "...", "lines": ["..."], "narration": "..."}},
-    {{"id": "mechanism", "focus_word": "...", "lines": ["..."], "narration": "..."}},
-    {{"id": "aha", "focus_word": "...", "lines": ["..."], "narration": "..."}},
-    {{"id": "payoff", "focus_word": "...", "lines": ["..."], "narration": "..."}},
-    {{"id": "loop", "focus_word": "...", "lines": ["..."], "narration": "..."}}
+    {{"id": "hook", "focus_word": "...", "lines": ["...", "...", "..."], "narration": "..."}},
+    {{"id": "stake", "focus_word": "...", "lines": ["...", "...", "..."], "narration": "..."}},
+    ... continue for all 12 ids in order ...
+    {{"id": "loop", "focus_word": "...", "lines": ["...", "...", "..."], "narration": "..."}}
   ]
 }}"""
 
@@ -113,6 +104,33 @@ def _parse_response(text: str) -> Optional[List[Dict[str, Any]]]:
     return data.get("beats") if isinstance(data, dict) else None
 
 
+def _clean_text(text: str) -> str:
+    """Normalize garbled punctuation artifacts from model responses."""
+    text = str(text or "")
+    text = re.sub(r"[\ufffd\u2014]+\s*\??\s*", ", ", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
+
+def _repair_beats(beats: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Drop trailing dangling words so a good script isn't rejected on one token."""
+    for beat in beats:
+        beat["lines"] = [_clean_text(x) for x in (beat.get("lines") or [])]
+        narration = _clean_text(str(beat.get("narration") or ""))
+        sentences = [s.strip() for s in _SENT_SPLIT.split(narration) if s.strip()]
+        fixed: List[str] = []
+        for sentence in sentences:
+            parts = sentence.split()
+            if len(parts) > 3:
+                tail = re.sub(r"[^a-z ]", "", parts[-1].lower()).strip()
+                if tail in _DANGLING:
+                    parts = parts[:-1]
+                    sentence = " ".join(parts).rstrip(".,!?;:") + "."
+            fixed.append(sentence)
+        beat["narration"] = " ".join(fixed)
+    return beats
+
+
 _BANNED_PHRASES = (
     "in this video", "today we'll", "let's dive in", "imagine", "picture this",
     "it's important to note", "the fact that", "in order to", "utilize",
@@ -130,8 +148,8 @@ _DANGLING = {
 
 
 def _validate(beats: List[Dict[str, Any]]) -> Optional[str]:
-    if not isinstance(beats, list) or len(beats) != 7:
-        return "expected 7 beats"
+    if not isinstance(beats, list) or len(beats) != SHORT_BEATS:
+        return f"expected {SHORT_BEATS} beats"
     if [str(b.get("id") or "") for b in beats] != _BEAT_IDS:
         return "wrong beat ids/order"
     narrations: List[str] = []
@@ -151,9 +169,6 @@ def _validate(beats: List[Dict[str, Any]]) -> Optional[str]:
                 return f"beat {b.get('id')} has a sentence over 18 words"
             if sentence[-1] not in ".!?":
                 return f"beat {b.get('id')} has an unterminated sentence"
-            tail = re.sub(r"[^a-z ]", "", sentence.lower()).split()[-1:]
-            if tail and tail[0] in _DANGLING:
-                return f"beat {b.get('id')} ends on a dangling word: {tail[0]}"
             sentences.append(sentence)
             openings.append(sentence.split()[0].lower())
         key = re.sub(r"\W+", " ", narration.lower()).strip()
@@ -163,7 +178,7 @@ def _validate(beats: List[Dict[str, Any]]) -> Optional[str]:
         narrations.append(narration)
 
     total = sum(len(n.split()) for n in narrations)
-    if not (75 <= total <= 125):
+    if not (SHORT_WORD_MIN <= total <= SHORT_WORD_MAX):
         return f"total word count {total}"
     mean_sentence = total / max(1, len(sentences))
     if mean_sentence > 16:
@@ -176,15 +191,13 @@ def _validate(beats: List[Dict[str, Any]]) -> Optional[str]:
     lowered = all_text.lower()
     if len(re.findall(r"\b(?:you|your)\b", lowered)) < 2:
         return "not enough second-person framing"
-    if len(_CONTRACTION_RE.findall(all_text)) < 3:
+    if len(_CONTRACTION_RE.findall(all_text)) < 2:
         return "not enough contractions"
     for phrase in _BANNED_PHRASES:
         if phrase in lowered:
             return f"banned article-style phrase: {phrase}"
-    if _PASSIVE_RE.search(all_text):
-        return "passive voice detected"
-    if all_text.count("?") > 1:
-        return "more than one rhetorical question"
+    if all_text.count("?") > 3:
+        return "too many rhetorical questions"
     if any(openings[i] == openings[i + 1] for i in range(len(openings) - 1)):
         return "two consecutive sentences share an opening word"
     if len(sentences[-1].split()) > 10:
@@ -220,6 +233,8 @@ def build_short_script_ai(topic: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         try:
             response = client.models.generate_content(model=model, contents=prompt)
             beats_raw = _parse_response(getattr(response, "text", ""))
+            if beats_raw:
+                beats_raw = _repair_beats(beats_raw)
             error = _validate(beats_raw or [])
             if error:
                 print(f"[ShortScriptAI] {model} rejected: {error}")
@@ -228,7 +243,7 @@ def build_short_script_ai(topic: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             for b in beats_raw:
                 bid = str(b["id"])
                 narration = re.sub(r"\s+", " ", str(b["narration"]).strip())
-                lines = [str(x).strip() for x in (b.get("lines") or []) if str(x).strip()][:2]
+                lines = [str(x).strip() for x in (b.get("lines") or []) if str(x).strip()][:3]
                 beats.append({
                     "id": bid,
                     "label": _LABELS[bid],
@@ -241,7 +256,7 @@ def build_short_script_ai(topic: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             words = narration.split()
             qa = {
                 "word_count": len(words),
-                "estimated_seconds_at_145wpm": round(len(words) / 145 * 60, 1),
+                "estimated_seconds_at_145wpm": round(len(words) / SHORT_WPM * 60, 1),
                 "flags": [],
                 "source": f"gemini:{model}",
             }

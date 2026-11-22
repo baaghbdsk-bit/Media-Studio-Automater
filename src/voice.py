@@ -70,6 +70,10 @@ _TICKS_PER_SECOND = 10_000_000
 # A cue is also closed when a word ends with one of these characters.
 _CUE_END_PUNCTUATION = ".!?,;:"
 
+# Edge TTS strips punctuation from WordBoundary text, so real audio gaps are
+# the reliable signal for closing a caption cue at a sentence boundary.
+_CUE_GAP_S = 0.18
+
 
 async def _stream_speech(
     text: str,
@@ -247,7 +251,8 @@ def _format_srt_timestamp(seconds: float) -> str:
 def write_srt(
     words: List[Dict[str, Any]],
     out_path: str,
-    group_words: int = 4,
+    group_words: int = 5,
+    cue_gap_s: float = _CUE_GAP_S,
 ) -> str:
     """Write word timings to a standard SRT subtitle file.
 
@@ -285,6 +290,10 @@ def write_srt(
         group.clear()
 
     for word in words:
+        if group and (float(word["start"]) - float(group[-1]["end"])) >= cue_gap_s:
+            # A real pause in the audio — close the cue there so captions
+            # match what the viewer hears instead of straddling sentences.
+            flush()
         group.append(word)
         token = str(word.get("text", "")).strip()
         if len(group) >= group_words or (
@@ -315,9 +324,9 @@ def split_spoken_lines(text: str) -> List[str]:
 def make_prosody_profile(sentences: List[str]) -> List[Tuple[str, str, int]]:
     """Return (rate, pitch, pause_ms) for each sentence.
 
-    Small, deliberate variation between sentences is what breaks the flat
-    "article reader" cadence.  The first line is brighter, fragments are
-    snappy, questions lift, and the last line settles.
+    High-end explainer cadence: a narrow +6%..+10% band so no sentence drags,
+    subtle pitch shaping, and short varied pauses (<=120ms) to avoid dead air.
+    The last line settles with pitch, never by slowing down.
     """
     profile: List[Tuple[str, str, int]] = []
     last = len(sentences) - 1
@@ -325,17 +334,17 @@ def make_prosody_profile(sentences: List[str]) -> List[Tuple[str, str, int]]:
         stripped = sentence.strip()
         short = len(stripped.split()) <= 6
         if index == 0:
-            profile.append(("+12%", "+3Hz", 380))
+            profile.append(("+10%", "+2Hz", 120))
         elif stripped.endswith("?"):
-            profile.append(("+2%", "+6Hz", 280))
+            profile.append(("+8%", "+4Hz", 100))
         elif index == last:
-            profile.append(("-6%", "-2Hz", 0))
+            profile.append(("+6%", "-1Hz", 0))
         elif short:
-            profile.append(("+8%", "+1Hz", 130))
+            profile.append(("+10%", "+1Hz", 50))
         elif index == 1:
-            profile.append(("+5%", "+0Hz", 200))
+            profile.append(("+8%", "+0Hz", 90))
         else:
-            profile.append(("+3%", "+0Hz", 170))
+            profile.append(("+6%", "+0Hz", 70))
     return profile
 
 
@@ -389,14 +398,36 @@ def synthesize_performance(
         except Exception as exc:
             raise RuntimeError(f"Edge-TTS narration failed for voice '{voice}': {exc}") from exc
         chunk_duration = _media_duration(str(chunk_path))
+
+        # Edge TTS bakes ~0.10s of leading silence and up to ~0.9s of trailing
+        # silence into every chunk. Trim to a tight 40ms head / 120ms tail so
+        # the narration does not feel full of long pauses.
+        head_trim = max(0.0, (chunk_words[0]["start"] if chunk_words else 0.0) - 0.04)
+        tail_trim = min(
+            chunk_duration,
+            (chunk_words[-1]["end"] if chunk_words else chunk_duration) + 0.12,
+        )
+        if tail_trim - head_trim > 0.05:
+            piece_path = work_dir / f"trim_{index:02d}.mp3"
+            subprocess.run(
+                [ffmpeg, "-y", "-i", str(chunk_path),
+                 "-af", f"atrim=start={head_trim:.3f}:end={tail_trim:.3f},"
+                        f"asetpts=PTS-STARTPTS",
+                 "-c:a", "libmp3lame", "-q:a", "9", str(piece_path)],
+                capture_output=True, check=True,
+            )
+            piece_duration = _media_duration(str(piece_path))
+        else:
+            piece_path, piece_duration, head_trim = chunk_path, chunk_duration, 0.0
+
         for word in chunk_words:
             words.append({
                 "text": word["text"],
-                "start": elapsed + float(word["start"]),
-                "end": elapsed + float(word["end"]),
+                "start": elapsed + float(word["start"]) - head_trim,
+                "end": elapsed + float(word["end"]) - head_trim,
             })
-        elapsed += chunk_duration
-        pieces.append(chunk_path)
+        elapsed += piece_duration
+        pieces.append(piece_path)
         details.append({
             "index": index, "text": sentence, "rate": rate, "pitch": pitch,
             "pause_ms": pause_ms, "duration": round(chunk_duration, 2),

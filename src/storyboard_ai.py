@@ -14,6 +14,8 @@ import json
 import re
 from typing import Any, Dict, List, Optional
 
+from src.short_config import SHORT_BEATS, LABELS as _BEAT_LABELS
+
 # The closed animation-recipe vocabulary owned by our renderer.
 ALLOWED_TEMPLATES = (
     "flood",
@@ -49,10 +51,11 @@ _FALLBACK_PALETTES = {
 }
 
 # Disallowed "scaffolding" labels that must never appear on screen.
-_SCAFFOLDING = {
-    "the hook", "why it matters", "the setup", "how it works",
-    "the surprise", "your move", "the loop", "hook", "stake",
-    "context", "mechanism", "aha", "payoff", "loop",
+_SCAFFOLDING = set(_BEAT_LABELS.values()) | {
+    label.lower() for label in _BEAT_LABELS.values()
+} | {
+    "hook", "stake", "context", "mechanism", "aha", "payoff", "loop",
+    "friction", "mechanism_1", "mechanism_2", "example", "tradeoff", "proof",
 }
 
 _HEX_RE = re.compile(r"^#?(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
@@ -89,8 +92,8 @@ def _prompt(topic: dict, script: dict) -> str:
             "id": str(beat.get("id") or ""),
             "label": str(beat.get("label") or ""),
             "focus_word": str(beat.get("focus_word") or ""),
-            "lines": [str(x) for x in (beat.get("lines") or [])][:2],
-            "narration": str(beat.get("narration") or "")[:240],
+            "lines": [str(x) for x in (beat.get("lines") or [])][:3],
+            "narration": str(beat.get("narration") or "")[:400],
             "target_s": beat.get("target_s"),
         })
 
@@ -103,13 +106,13 @@ def _prompt(topic: dict, script: dict) -> str:
         "and payoff recipes to visualise structure, combination and result."
     )
 
-    return f"""You are a visual director for a 45-second, silent-understandable tech Short.
+    return f"""You are a visual director for a 90-105 second, silent-understandable tech Short.
 The viewer watches with sound OFF, so the picture plus on-screen text must carry the whole idea.
 
 TOPIC:
 {json.dumps(topic_payload, ensure_ascii=False)}
 
-SCRIPT BEATS (7, in order) ΓÇö these are facts and narration you must NOT copy verbatim:
+SCRIPT BEATS (12, in order) ΓÇö these are facts and narration you must NOT copy verbatim:
 {json.dumps(beats_payload, ensure_ascii=False)}
 
 {lean}
@@ -123,9 +126,9 @@ Choose one animation RECIPE per beat from this CLOSED vocabulary (never invent a
 - merge: separate streams combine into one (integration / synthesis).
 - payoff: a single result or number lands large (outcome / takeaway).
 
-For EACH of the 7 beats output a JSON object with EXACTLY these six keys:
+For EACH of the 12 beats output a JSON object with EXACTLY these six keys:
 - "template_id": one of flood, queue, parallel_grid, race, bottleneck, merge, payoff.
-- "on_screen_text": max 5 words, a short label or number only, NEVER a sentence.
+- "on_screen_text": max 8 words, a short label or number only, NEVER a sentence.
 - "focus_label": 1-3 words of optional accent label (may be empty).
 - "params": an object of numeric/string params appropriate to that recipe
   (e.g. counts, values, labels, number strings such as {{"count": 12, "label": "requests"}}).
@@ -136,8 +139,8 @@ Also output a top-level "palette" object with keys "primary", "secondary", "acce
 each a hex color like "#22d3ee".
 
 HARD RULES:
-- Use at least 4 DIFFERENT template_ids across the 7 beats.
-- on_screen_text is <= 5 words and is a label/number, never a sentence.
+- Use at least 6 DIFFERENT template_ids across the 12 beats.
+- on_screen_text is <= 8 words and is a label/number, never a sentence.
 - Do NOT repeat any sentence from a beat's narration on screen.
 - NEVER use scaffolding labels such as "The Hook" or "Why It Matters" as on-screen text.
 - Match the recipe to the beat's role, but keep every recipe from the closed vocabulary.
@@ -146,7 +149,7 @@ Return ONLY a raw JSON object with this exact shape:
 {{
   "beats": [
     {{"template_id": "...", "on_screen_text": "...", "focus_label": "...", "params": {{}}, "camera": "...", "visual_metaphor": "..."}},
-    ... seven objects total, in the same order as the script beats ...
+    ... twelve objects total, in the same order as the script beats ...
   ],
   "palette": {{"primary": "#...", "secondary": "#...", "accent": "#...", "bg": "#..."}}
 }}"""
@@ -205,8 +208,8 @@ def _narration_sentences(script: dict) -> set:
 def _validate(data: Dict[str, Any], script: dict) -> Optional[str]:
     """Return a rejection reason, or None when the payload is acceptable."""
     beats = data.get("beats")
-    if not isinstance(beats, list) or len(beats) != 7:
-        return "expected 7 beats"
+    if not isinstance(beats, list) or len(beats) != SHORT_BEATS:
+        return f"expected {SHORT_BEATS} beats"
 
     palette = data.get("palette")
     if not isinstance(palette, dict):
@@ -235,7 +238,7 @@ def _validate(data: Dict[str, Any], script: dict) -> Optional[str]:
             return f"beat {index} bad camera: {camera}"
         text = str(beat.get("on_screen_text") or "").strip()
         text_words = _words(text)
-        if not text_words or len(text_words) > 5:
+        if not text_words or len(text_words) > 8:
             return f"beat {index} on_screen_text word count {len(text_words)}"
         focus = str(beat.get("focus_label") or "").strip()
         focus_words = _words(focus)
@@ -247,8 +250,8 @@ def _validate(data: Dict[str, Any], script: dict) -> Optional[str]:
             return f"beat {index} params not an object"
         templates.append(template)
 
-    if len(set(templates)) < 4:
-        return f"only {len(set(templates))} distinct templates (need 4)"
+    if len(set(templates)) < 6:
+        return f"only {len(set(templates))} distinct templates (need 6)"
     return None
 
 
@@ -327,7 +330,7 @@ def build_storyboard_ai(topic: dict, script: dict) -> Optional[dict]:
                 print(f"[StoryboardAI] {model} rejected: {error}")
                 continue
             result = _normalize(data, model, script or {})
-            print(f"[StoryboardAI] built a 7-beat storyboard with {model}")
+            print(f"[StoryboardAI] built a {SHORT_BEATS}-beat storyboard with {model}")
             return result
         except Exception as exc:
             print(f"[StoryboardAI] {model} failed: {exc}")
@@ -348,10 +351,15 @@ def deterministic_storyboard(topic: dict, script: dict) -> dict:
         ("flood", {"count": 40, "label": "requests"}, "dolly_in", "a surge of items pouring in", "SURGE"),
         ("queue", {"count": 12, "label": "items"}, "pan_right", "items waiting in a line", "WAITING"),
         ("parallel_grid", {"rows": 3, "cols": 4, "label": "workers"}, "zoom_out", "cells working side by side", "PARALLEL"),
+        ("bottleneck", {"capacity": 5, "label": "pipeline", "pressure": 3}, "zoom_out", "flow squeezing through a gap", "FRICTION"),
+        ("merge", {"inputs": 2, "label": "step one"}, "dolly_in", "the first repeatable step", "STEP ONE"),
+        ("parallel_grid", {"rows": 4, "cols": 5, "label": "cores"}, "zoom_out", "more workers running at once", "SCALE"),
+        ("race", {"labels": ["OLD", "NEW"], "winner": "NEW"}, "pan_right", "one concrete example in motion", "EXAMPLE"),
         ("race", {"lanes": 3, "labels": ["A", "B", "C"], "winner": "A"}, "dolly_in", "lanes racing to the finish", "SPEED"),
-        ("bottleneck", {"capacity": 5, "label": "pipeline", "pressure": 3}, "zoom_out", "flow squeezing through a gap", "LIMIT"),
         ("merge", {"inputs": 3, "label": "streams"}, "pan_right", "streams combining into one", "COMBINE"),
+        ("flood", {"count": 28, "label": "results"}, "dolly_in", "results arriving at scale", "IMPACT"),
         ("payoff", {"value": "10x", "label": "gain"}, "dolly_in", "one result landing large", "RESULT"),
+        ("queue", {"count": 7, "label": "thoughts"}, "none", "one last question in the air", "ONE THING"),
     ]
 
     script_beats = [b for b in (script.get("beats") or []) if isinstance(b, dict)]
@@ -360,7 +368,7 @@ def deterministic_storyboard(topic: dict, script: dict) -> dict:
         source = script_beats[index] if index < len(script_beats) else {}
         text = " ".join(str(source.get("focus_word") or "idea").split())[:60] or "idea"
         text_words = _words(text)
-        if not text_words or len(text_words) > 5:
+        if not text_words or len(text_words) > 8:
             text = " ".join(text_words[:5]) or "idea"
         beats.append({
             "template_id": template,

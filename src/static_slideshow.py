@@ -63,8 +63,11 @@ def _clamp_text(text: str, limit: int = 160) -> str:
 def _support(script_beat: Dict[str, Any], story_beat: Dict[str, Any]) -> str:
     lines = [str(x).strip() for x in (script_beat.get("lines") or []) if str(x).strip()]
     if lines:
-        return _clamp_text(lines[0], 150)
-    return _clamp_text(story_beat.get("on_screen_text") or story_beat.get("visual_metaphor"), 150)
+        # The first line mirrors the focus headline — skip it to avoid
+        # printing the same phrase twice on one slide.
+        detail = lines[1:] or lines[:1]
+        return _clamp_text(" ".join(detail[:2]), 170)
+    return _clamp_text(story_beat.get("on_screen_text") or story_beat.get("visual_metaphor"), 170)
 
 
 def _stat(script_beat: Dict[str, Any]) -> str:
