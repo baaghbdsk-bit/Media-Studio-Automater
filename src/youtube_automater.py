@@ -18,6 +18,7 @@ from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+import socket
 
 logger = logging.getLogger("YouTubeAutomater")
 
@@ -78,7 +79,10 @@ class YouTubeAutomater:
                     creds = None
 
         if creds and creds.valid:
-            self.service = build("youtube", "v3", credentials=creds)
+            # A generous socket timeout keeps longer (up to 3 min) Shorts from
+            # failing on slow connections during resumable upload writes.
+            socket.setdefaulttimeout(300)
+            self.service = build("youtube", "v3", credentials=creds, num_retries=5)
             logger.info("YouTube API client initialized successfully.")
         else:
             logger.warning(

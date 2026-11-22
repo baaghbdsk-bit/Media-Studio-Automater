@@ -47,7 +47,8 @@
     "How AI Uses Expert Committees to Solve Hard Problems",
     "Why GPUs Beat CPUs for AI",
     "How AI Models Compress Knowledge",
-    "LLM API Outage Frequency & Degradation Index"
+    "LLM API Outage Frequency & Degradation Index",
+    "How Fallback Models Keep AI Services Online During Outages"
   ],
   "events": [
     {
@@ -552,6 +553,22 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-22 10:45 PM",
+      "type": "instagram_reel",
+      "title": "How Fallback Models Keep AI Services Online During Outages",
+      "details": {
+        "msg": "detailed 12-beat short"
+      }
+    },
+    {
+      "time": "2026-11-22 10:52 PM",
+      "type": "youtube_short",
+      "title": "How Fallback Models Keep AI Services Online During Outages",
+      "details": {
+        "url": "https://youtube.com/shorts/rjUT6cF8jaY"
+      }
     }
   ],
   "topic_log": [
@@ -918,6 +935,14 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-22T11:19:28+00:00"
+    },
+    {
+      "title": "How Fallback Models Keep AI Services Online During Outages",
+      "series": "",
+      "audience": "",
+      "pillar": "",
+      "long_form": false,
+      "time": "2026-11-22T17:15:30+00:00"
     }
   ],
   "youtube_units": {
