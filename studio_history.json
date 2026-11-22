@@ -49,7 +49,8 @@
     "How AI Models Compress Knowledge",
     "LLM API Outage Frequency & Degradation Index",
     "How Fallback Models Keep AI Services Online During Outages",
-    "Why data centers are at the center of the Big Tech backlash"
+    "Why data centers are at the center of the Big Tech backlash",
+    "How Circuit Breakers Stop Computer Systems From Crashing Completely"
   ],
   "events": [
     {
@@ -581,6 +582,14 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-22 09:55 PM",
+      "type": "explainer_video",
+      "title": "How Circuit Breakers Stop Computer Systems From Crashing Completely",
+      "details": {
+        "url": "https://youtube.com/shorts/dunUiLFQ1W4"
+      }
     }
   ],
   "topic_log": [
@@ -963,6 +972,14 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-22T19:39:29+00:00"
+    },
+    {
+      "title": "How Circuit Breakers Stop Computer Systems From Crashing Completely",
+      "series": "system-resilience",
+      "audience": "beginner",
+      "pillar": "engineering",
+      "long_form": true,
+      "time": "2026-11-22T21:55:18+00:00"
     }
   ],
   "youtube_units": {
@@ -970,7 +987,7 @@
     "2026-11-20": 6000,
     "2026-11-21": 6000,
     "2026-11-22": 6000,
-    "2026-11-23": 2000
+    "2026-11-23": 4000
   },
   "broadcast_counts": {
     "2026-11-16": 2,
