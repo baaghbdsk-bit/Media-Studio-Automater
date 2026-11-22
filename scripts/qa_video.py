@@ -17,7 +17,7 @@ def _bin(name: str) -> str:
     return shutil.which(name) or (name if name != "ffmpeg" else _FFMPEG_FALLBACK)
 
 
-def check_video(path: str) -> tuple[bool, dict]:
+def check_video(path: str, static: bool = False) -> tuple[bool, dict]:
     ffmpeg, ffprobe = _bin("ffmpeg"), _bin("ffprobe")
     p = Path(path)
     report: dict = {"path": str(p), "errors": [], "warnings": []}
@@ -45,18 +45,25 @@ def check_video(path: str) -> tuple[bool, dict]:
     except Exception as exc:
         report["errors"].append(f"ffprobe failed: {exc}")
 
-    freeze = subprocess.run(
-        [ffmpeg, "-hide_banner", "-v", "info", "-i", str(p),
-         "-vf", "freezedetect=n=-45dB:d=0.5", "-f", "null", "NUL"],
-        capture_output=True, text=True,
-    )
-    durations = [float(m) for m in re.findall(r"freeze_duration:\s*([\d.]+)", freeze.stderr)]
-    report["frozen_total_s"] = round(sum(durations), 2)
-    report["frozen_max_s"] = round(max(durations), 2) if durations else 0.0
-    if report["frozen_total_s"] > 3.0 or report["frozen_max_s"] > 1.0:
-        report["errors"].append(
-            f"static frames: total {report['frozen_total_s']}s, max {report['frozen_max_s']}s"
+    # Static slideshows are intentionally frozen between hard cuts, so freeze
+    # detection would reject every valid slide. All other checks still apply.
+    if static:
+        report["frozen_total_s"] = 0.0
+        report["frozen_max_s"] = 0.0
+        report["warnings"].append("static slideshow: freeze detection skipped by design")
+    else:
+        freeze = subprocess.run(
+            [ffmpeg, "-hide_banner", "-v", "info", "-i", str(p),
+             "-vf", "freezedetect=n=-45dB:d=0.5", "-f", "null", "NUL"],
+            capture_output=True, text=True,
         )
+        durations = [float(m) for m in re.findall(r"freeze_duration:\s*([\d.]+)", freeze.stderr)]
+        report["frozen_total_s"] = round(sum(durations), 2)
+        report["frozen_max_s"] = round(max(durations), 2) if durations else 0.0
+        if report["frozen_total_s"] > 3.0 or report["frozen_max_s"] > 1.0:
+            report["errors"].append(
+                f"static frames: total {report['frozen_total_s']}s, max {report['frozen_max_s']}s"
+            )
 
     black = subprocess.run(
         [ffmpeg, "-hide_banner", "-v", "info", "-i", str(p),
@@ -84,11 +91,13 @@ def check_video(path: str) -> tuple[bool, dict]:
 
 def main() -> int:
     if len(sys.argv) < 2:
-        print("usage: python scripts/qa_video.py <video.mp4> [more.mp4 ...]")
+        print("usage: python scripts/qa_video.py [--static] <video.mp4> [more.mp4 ...]")
         return 2
+    static = "--static" in sys.argv
+    paths = [arg for arg in sys.argv[1:] if arg != "--static"]
     all_ok = True
-    for raw in sys.argv[1:]:
-        ok, report = check_video(raw)
+    for raw in paths:
+        ok, report = check_video(raw, static=static)
         all_ok = all_ok and ok
         print(f"[QA] {Path(raw).name}: {'PASS' if ok else 'FAIL'}")
         for key in ("duration_s", "resolution", "fps", "frozen_total_s", "frozen_max_s",

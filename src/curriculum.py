@@ -636,8 +636,16 @@ def acts_from_topic(topic: Dict[str, Any], n: int = 7) -> List[Dict[str, Any]]:
     ]
     spec = long if n > 7 else seven
     spec = spec[:n]
+    closers = (
+        "Notice how that connects back to the main idea. That is why the details matter in practice.",
+        "This is the step people usually miss. You can see the same pattern in real systems.",
+        "That detail changes how you judge the result. It is a small idea with a large consequence.",
+        "Hold that thought for the next part. This sets up the next piece of the puzzle.",
+    )
     acts: List[Dict[str, Any]] = []
-    for layer, badge, narration, metric in spec:
+    for index, (layer, badge, narration, metric) in enumerate(spec):
+        if n > 7:
+            narration = f"{narration} {closers[index % len(closers)]}"
         acts.append({
             "title": badge.title(),
             "narration": narration,

@@ -37,7 +37,6 @@ on:
           - threads
           - generate-video
           - generate-explainer
-          - generate-demo-short
 
 concurrency:
   group: 'media-studio-cloud-engine'

@@ -22,6 +22,7 @@ class InstagramAutomater:
         self.user_data_dir = config.BASE_DIR / "instagram_session"
         self.last_outcome_unknown = False
         self.last_message = ""
+        self.last_published_url = ""
         self._ensure_cookies()
 
     def _ensure_cookies(self):
@@ -40,45 +41,101 @@ class InstagramAutomater:
             except Exception as e:
                 print(f"[InstagramAutomater] Failed to restore INSTAGRAM_COOKIES_BASE64: {e}")
 
-    def is_session_available(self) -> bool:
-        """Checks if a saved Instagram session with valid cookies exists."""
+    def _cookie_records(self) -> list:
+        """Return the stored Instagram cookies as a list of dicts (empty on any error)."""
         cookie_file = self.user_data_dir / "cookies.json"
-        return cookie_file.exists()
+        if not cookie_file.exists():
+            return []
+        try:
+            with open(cookie_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            raw = data.get("cookies", data) if isinstance(data, dict) else data
+            return raw if isinstance(raw, list) else []
+        except Exception:
+            return []
+
+    def is_session_available(self) -> bool:
+        """Validate the saved Instagram session instead of only checking file existence.
+
+        An empty/stale GitHub secret still produces a cookies.json file, which used to
+        make the doctor and the publisher claim the account was authenticated. Require
+        the real auth cookies, a non-empty value, and a non-expired timestamp.
+        """
+        cookies = self._cookie_records()
+        if not cookies:
+            return False
+        by_name = {c.get("name"): c for c in cookies if isinstance(c, dict)}
+        session = by_name.get("sessionid")
+        user_id = by_name.get("ds_user_id")
+        if not session or not session.get("value"):
+            return False
+        if not user_id or not user_id.get("value"):
+            return False
+        now = time.time()
+        for cookie in (session, user_id):
+            expires = cookie.get("expires", cookie.get("expirationDate", -1))
+            try:
+                expires = float(expires)
+            except (TypeError, ValueError):
+                expires = -1
+            # Negative/unknown expiry means a session cookie with no set end date.
+            if expires > 0 and expires <= now:
+                return False
+        return True
 
     def _await_share_confirmation(self, page, timeout_ms: int) -> bool:
-        """Return true when Instagram confirms the share or the composer closes/navigates away."""
+        """Return True only on an explicit Instagram publish confirmation.
+
+        The old implementation returned True whenever the composer dialog closed,
+        which also happened on upload errors and login challenges — producing false
+        "published" entries in studio_history.json.
+        """
         deadline = time.time() + (timeout_ms / 1000)
+        # Explicit confirmation text only. Generic words like "shared" or "view post"
+        # appear all over the home feed and caused false positives.
         phrases = (
             "your post has been shared",
             "your reel has been shared",
+            "your post has been published",
+            "your reel has been published",
             "post shared",
             "reel shared",
-            "shared",
-            "view post",
-            "view reel",
         )
+        self.last_published_url = ""
         while time.time() < deadline:
             try:
-                # Instagram redirects to the posted reel/post URL on a successful share
                 url = page.url.lower()
-                if "/reel/" in url:
+                if "create" not in url and ("/reel/" in url or "/p/" in url):
+                    self.last_published_url = page.url
                     return True
-                if "/p/" in url and "create" not in url:
-                    return True
+            except Exception:
+                pass
+            try:
                 body = page.locator("body").inner_text(timeout=2000).lower()
                 if any(phrase in body for phrase in phrases):
                     return True
             except Exception:
                 pass
-            try:
-                dialogs = page.locator('div[role="dialog"]')
-                visible = any(dialogs.nth(i).is_visible() for i in range(dialogs.count()))
-                if not visible:
-                    return True
-            except Exception:
-                pass
             page.wait_for_timeout(1000)
         return False
+
+    def _verify_published_url(self, page, url: str) -> bool:
+        """Verify a captured reel/post URL actually resolves to the new content."""
+        if not url:
+            # Confirmation came from an explicit toast with no canonical URL.
+            return True
+        try:
+            response = page.goto(url, wait_until="domcontentloaded", timeout=30000)
+            if response is not None and response.status >= 400:
+                return False
+            page.wait_for_timeout(2500)
+            text = page.locator("body").inner_text(timeout=5000).lower()
+            if "page isn't available" in text or "page not found" in text:
+                return False
+            return "/reel/" in page.url.lower() or "/p/" in page.url.lower()
+        except Exception:
+            # A navigation error is inconclusive, not proof of failure.
+            return True
 
     def _select_crop_ratio(self, page, preferred_ratios: List[str]):
         """Selects aspect ratio in Instagram web composer to avoid automatic square cropping."""
@@ -248,6 +305,10 @@ class InstagramAutomater:
                 if not self._await_share_confirmation(page, 45000):
                     self.last_outcome_unknown = True
                     self.last_message = "Instagram carousel submission was not confirmed; retry blocked."
+                    return False, self.last_message
+                if not self._verify_published_url(page, getattr(self, "last_published_url", "")):
+                    self.last_outcome_unknown = True
+                    self.last_message = "Instagram carousel URL did not resolve; retry blocked."
                     return False, self.last_message
 
                 print("[InstagramAutomater] ✅ Successfully published carousel to Instagram (@neubench)!")
@@ -446,6 +507,10 @@ class InstagramAutomater:
                 if not self._await_share_confirmation(page, 120000):
                     self.last_outcome_unknown = True
                     self.last_message = "Instagram Reel submission was not confirmed; retry blocked."
+                    return False, self.last_message
+                if not self._verify_published_url(page, getattr(self, "last_published_url", "")):
+                    self.last_outcome_unknown = True
+                    self.last_message = "Instagram Reel URL did not resolve; retry blocked."
                     return False, self.last_message
 
                 print("[InstagramAutomater] ✅ Successfully published Reel to Instagram (@neubench)!")

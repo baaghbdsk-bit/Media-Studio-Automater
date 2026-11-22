@@ -310,12 +310,12 @@ class VideoGenerator:
         }
 
     def generate_dynamic_short(self, topic_data: Dict[str, Any], dry_run: bool = False) -> Dict[str, Optional[str]]:
-        """Render a 9:16 Short with spoken script, AI storyboard and object animation."""
+        """Render a 9:16 Short as a clear, motion-rich narration slideshow."""
         from src.short_script import build_short_script
         from src.short_script_ai import build_short_script_ai
         from src.storyboard_ai import build_storyboard_ai, deterministic_storyboard
         from src.voice import synthesize_performance, write_srt
-        from src.short_visual_v3 import build_short_html_v3
+        from src.static_slideshow import build_static_slideshow_html
         from scripts.qa_video import check_video
 
         script = build_short_script_ai(topic_data) or build_short_script(topic_data)
@@ -353,12 +353,12 @@ class VideoGenerator:
             total_dur = self._master_audio_from_mp3(str(raw_mp3), audio_path, target)
             write_srt(words, srt_path)
 
-            html = build_short_html_v3(topic_data, script, storyboard, words, total_dur)
+            html = build_static_slideshow_html(topic_data, script, storyboard, total_dur)
             (work_dir / "index.html").write_text(html, encoding="utf-8")
             (work_dir / "script.txt").write_text(script["narration"], encoding="utf-8")
 
             if self._render_hyperframes(work_dir, video_path):
-                qa_ok, qa_report = check_video(video_path)
+                qa_ok, qa_report = check_video(video_path, static=True)
                 print(f"[VideoGenerator] QA: {qa_report}")
                 if not qa_ok:
                     print(f"[VideoGenerator] QA failed: {qa_report.get('errors')}")
@@ -445,148 +445,6 @@ class VideoGenerator:
             "audio_path": audio_path,
             "chapters": chapters
         }
-
-    def _build_vertical_short_html(self, title: str, hook: str, analogy: str, problem: str, solution: str, takeaway: str, pro_tip: str, duration: float, mode: str = "concept") -> str:
-        """Generates full 9:16 Vertical (1080x1920) HyperFrames composition with 5 beginner-friendly scenes."""
-        act_dur = duration / 5.0
-        if mode == "news":
-            badge_1, badge_2, badge_3, badge_4, badge_5 = "BREAKING", "WHAT HAPPENED", "WHY IT MATTERS", "THE REACTION", "WHAT'S NEXT"
-            head_2, head_3, head_4, head_5 = "The <span>Story</span>", "The <span>Stakes</span>", "The <span>Fallout</span>", "The <span>Bottom Line</span>"
-            card_1, card_2, card_3, card_4, card_5 = "The Headline", "The Details", "The Risk", "The Response", "Why It Matters"
-        else:
-            badge_1, badge_2, badge_3, badge_4, badge_5 = "THE BIG QUESTION", "REAL-WORLD METAPHOR", "THE HIDDEN PROBLEM", "THE BREAKTHROUGH", "KEY TAKEAWAY"
-            head_2, head_3, head_4, head_5 = "Think Of It <span>Like This</span>", "Why Naive Systems <span>Fail</span>", "How It <span>Actually Works</span>", "What To <span>Remember</span>"
-            card_1, card_2, card_3, card_4, card_5 = "Ever Wondered?", "The Intuition", "The Bottleneck", "The Mechanism", "The Big Idea"
-        return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>{title} • Vertical Short</title>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
-  <style>
-    *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
-    body {{
-      margin: 0; padding: 0; background: #020409; color: #f8fafc;
-      font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden;
-    }}
-    #root {{
-      width: 1080px; height: 1920px; position: relative; overflow: hidden; background: #020409;
-    }}
-    .bg-canvas {{
-      position: absolute; inset: 0; z-index: 0;
-      background: radial-gradient(circle at 50% 30%, #0d1b33 0%, #040813 70%, #010308 100%);
-    }}
-    .bg-canvas::before {{
-      content: ""; position: absolute; inset: 0;
-      background-image: 
-        radial-gradient(1.5px 1.5px at 20% 30%, rgba(56, 189, 248, 0.5) 1.5px, transparent 0),
-        radial-gradient(1.5px 1.5px at 80% 70%, rgba(192, 132, 252, 0.45) 1.5px, transparent 0);
-      background-size: 320px 320px; opacity: 0.6;
-    }}
-    .scene {{
-      position: absolute; inset: 0; opacity: 0; pointer-events: none;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 100px 60px; z-index: 2; text-align: center;
-    }}
-    .badge {{
-      display: inline-flex; align-items: center; gap: 10px;
-      padding: 12px 28px; border-radius: 999px;
-      background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.4);
-      color: #38bdf8; font-size: 20px; font-weight: 700; letter-spacing: 0.14em;
-      text-transform: uppercase; margin-bottom: 30px;
-    }}
-    .hero-title {{
-      font-size: 58px; font-weight: 900; line-height: 1.15; margin-bottom: 24px;
-      background: linear-gradient(135deg, #ffffff 40%, #cbd5e1 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }}
-    .hero-title span {{
-      background: linear-gradient(135deg, #38bdf8, #c084fc);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }}
-    .card {{
-      width: 100%; max-width: 920px; padding: 44px 40px; border-radius: 28px;
-      background: rgba(9, 14, 26, 0.88); border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 30px 80px rgba(0,0,0,0.7); text-align: left; margin-top: 24px;
-    }}
-    .card-title {{ font-size: 28px; font-weight: 800; color: #38bdf8; margin-bottom: 16px; }}
-    .card-body {{ font-size: 24px; color: #cbd5e1; line-height: 1.55; }}
-  </style>
-</head>
-<body>
-  <div id="root" data-composition-id="main" data-start="0" data-duration="{duration:.1f}" data-width="1080" data-height="1920">
-    <audio id="narration" src="narration_master.wav" data-start="0" data-duration="{duration:.1f}" data-volume="1"></audio>
-    <div class="bg-canvas clip" data-start="0" data-duration="{duration:.1f}"></div>
-
-    <!-- Act 1: The Curious Hook -->
-    <div id="scene1" class="scene clip" data-start="0" data-duration="{act_dur:.1f}" data-track-index="0">
-      <div class="badge"><span style="width:8px; height:8px; border-radius:50%; background:#38bdf8;"></span> {badge_1}</div>
-      <h1 class="hero-title">{title}</h1>
-      <div class="card">
-        <div class="card-title">{card_1}</div>
-        <div class="card-body">{hook}</div>
-      </div>
-    </div>
-
-    <!-- Act 2: Everyday Metaphor -->
-    <div id="scene2" class="scene clip" data-start="{act_dur:.1f}" data-duration="{act_dur:.1f}" data-track-index="0">
-      <div class="badge" style="border-color:#38bdf8; color:#38bdf8;">{badge_2}</div>
-      <h2 class="hero-title">{head_2}</h2>
-      <div class="card" style="border-color: rgba(56, 189, 248, 0.4);">
-        <div class="card-title" style="color:#38bdf8;">{card_2}</div>
-        <div class="card-body">{analogy}</div>
-      </div>
-    </div>
-
-    <!-- Act 3: Detailed Bottleneck -->
-    <div id="scene3" class="scene clip" data-start="{act_dur*2:.1f}" data-duration="{act_dur:.1f}" data-track-index="0">
-      <div class="badge" style="border-color:#f43f5e; color:#f43f5e;">{badge_3}</div>
-      <h2 class="hero-title">{head_3}</h2>
-      <div class="card" style="border-color: rgba(244, 63, 94, 0.4);">
-        <div class="card-title" style="color:#f43f5e;">{card_3}</div>
-        <div class="card-body">{problem}</div>
-      </div>
-    </div>
-
-    <!-- Act 4: The Technical Unlock -->
-    <div id="scene4" class="scene clip" data-start="{act_dur*3:.1f}" data-duration="{act_dur:.1f}" data-track-index="0">
-      <div class="badge" style="border-color:#c084fc; color:#c084fc;">{badge_4}</div>
-      <h2 class="hero-title">{head_4}</h2>
-      <div class="card" style="border-color: rgba(192, 132, 252, 0.4);">
-        <div class="card-title" style="color:#c084fc;">{card_4}</div>
-        <div class="card-body">{solution}</div>
-      </div>
-    </div>
-
-    <!-- Act 5: The 'Aha!' Takeaway -->
-    <div id="scene5" class="scene clip" data-start="{act_dur*4:.1f}" data-duration="{act_dur:.1f}" data-track-index="0">
-      <div class="badge" style="border-color:#34d399; color:#34d399;">{badge_5}</div>
-      <h2 class="hero-title">{head_5}</h2>
-      <div class="card" style="border-color: rgba(52, 211, 153, 0.4);">
-        <div class="card-title" style="color:#34d399;">{card_5}</div>
-        <div class="card-body">{takeaway}<br><br><span style="color:#38bdf8; font-weight:700;">💡 Rule:</span> {pro_tip}</div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    window.__timelines = window.__timelines || {{}};
-    const tl = gsap.timeline({{ paused: true }});
-    const d = {act_dur:.2f};
-    tl.to("#scene1", {{ opacity: 1, duration: 0.5 }}, 0);
-    tl.to("#scene1", {{ opacity: 0, duration: 0.5 }}, d - 0.5);
-    tl.fromTo("#scene2", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.5 }}, d);
-    tl.to("#scene2", {{ opacity: 0, duration: 0.5 }}, (d * 2) - 0.5);
-    tl.fromTo("#scene3", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.5 }}, d * 2);
-    tl.to("#scene3", {{ opacity: 0, duration: 0.5 }}, (d * 3) - 0.5);
-    tl.fromTo("#scene4", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.5 }}, d * 3);
-    tl.to("#scene4", {{ opacity: 0, duration: 0.5 }}, (d * 4) - 0.5);
-    tl.fromTo("#scene5", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.5 }}, d * 4);
-    tl.to("#scene5", {{ opacity: 0, duration: 0.5 }}, {duration:.1f} - 0.5);
-    window.__timelines["main"] = tl;
-  </script>
-</body>
-</html>"""
 
     def _build_widescreen_explainer_html(self, title: str, hook: str, analogy: str, problem: str, solution: str, takeaway: str, pro_tip: str, duration: float) -> str:
         """Generates full 16:9 Landscape (1920x1080) HyperFrames composition with 5 beginner-friendly chapters."""

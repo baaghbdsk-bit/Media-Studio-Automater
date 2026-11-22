@@ -1,4 +1,4 @@
-"""Gemini-powered structured visual storyboard for 45s tech Shorts.
+﻿"""Gemini-powered structured visual storyboard for 45s tech Shorts.
 
 The renderer owns a closed vocabulary of animation recipes (templates). This
 module does NOT let the model invent arbitrary visuals: it asks Gemini to pick,
@@ -109,7 +109,7 @@ The viewer watches with sound OFF, so the picture plus on-screen text must carry
 TOPIC:
 {json.dumps(topic_payload, ensure_ascii=False)}
 
-SCRIPT BEATS (7, in order) — these are facts and narration you must NOT copy verbatim:
+SCRIPT BEATS (7, in order) ΓÇö these are facts and narration you must NOT copy verbatim:
 {json.dumps(beats_payload, ensure_ascii=False)}
 
 {lean}

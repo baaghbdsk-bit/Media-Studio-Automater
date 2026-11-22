@@ -239,7 +239,7 @@ class ExplainerStoryboardPlanner:
                         long_form: bool = False) -> Dict[str, Any]:
         from .. import curriculum
 
-        total = 16 if long_form else 7
+        total = 12 if long_form else 7
         acts = [a for a in (acts or []) if isinstance(a, dict)]
         if len(acts) < total:
             filler = curriculum.acts_from_topic(topic_data, total)

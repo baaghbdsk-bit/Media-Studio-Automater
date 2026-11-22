@@ -460,6 +460,16 @@ class StudioEngine:
         vpath = self._rendered_video_path(v_res, "YouTube explainer")
         if vpath is None:
             return False
+        try:
+            rendered_duration = float(v_res.get("duration") or 0.0)
+        except (TypeError, ValueError):
+            rendered_duration = 0.0
+        if rendered_duration > 175.0:
+            console.print(
+                f"[red]Explainer is {rendered_duration:.0f}s, above the 175s "
+                "safety limit for Instagram-friendly uploads. Skipping publish.[/red]"
+            )
+            return False
         srt_path = Path(v_res.get("srt_path") or "") if v_res.get("srt_path") else None
         chapters = v_res.get("chapters", [
             "00:00 Introduction & Architectural Context",
