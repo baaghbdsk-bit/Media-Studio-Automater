@@ -313,11 +313,13 @@ class VideoGenerator:
         """Render a 9:16 Short as a clear, motion-rich narration slideshow."""
         from src.short_script import build_short_script
         from src.short_script_ai import build_short_script_ai
+        from src.storyboard_ai import build_storyboard_ai, deterministic_storyboard
         from src.voice import synthesize_performance, write_srt
-        from src.slideshow_renderer import build_slideshow_html
+        from src.static_slideshow import build_static_slideshow_html
         from scripts.qa_video import check_video
 
         script = build_short_script_ai(topic_data) or build_short_script(topic_data)
+        storyboard = build_storyboard_ai(topic_data, script) or deterministic_storyboard(topic_data, script)
         title = str(script.get("title") or topic_data.get("title") or "AI Explained")
         slug = re.sub(r'[^a-zA-Z0-9]+', '_', title.lower()).strip('_')[:35]
         work_dir = self.output_dir / f"short_{slug}"
@@ -351,12 +353,12 @@ class VideoGenerator:
             total_dur = self._master_audio_from_mp3(str(raw_mp3), audio_path, target)
             write_srt(words, srt_path)
 
-            html = build_slideshow_html(script, total_dur, str(topic_data.get("pillar") or ""))
+            html = build_static_slideshow_html(topic_data, script, storyboard, total_dur)
             (work_dir / "index.html").write_text(html, encoding="utf-8")
             (work_dir / "script.txt").write_text(script["narration"], encoding="utf-8")
 
             if self._render_hyperframes(work_dir, video_path):
-                qa_ok, qa_report = check_video(video_path)
+                qa_ok, qa_report = check_video(video_path, static=True)
                 print(f"[VideoGenerator] QA: {qa_report}")
                 if not qa_ok:
                     print(f"[VideoGenerator] QA failed: {qa_report.get('errors')}")
