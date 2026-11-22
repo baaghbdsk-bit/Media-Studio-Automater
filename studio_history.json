@@ -45,7 +45,8 @@
     "Startup Sues Apple Seeking Millions Over Indian Market iPhone Imports",
     "Actor Sells Face To Microdrama Startup In Hollywood",
     "How AI Uses Expert Committees to Solve Hard Problems",
-    "Why GPUs Beat CPUs for AI"
+    "Why GPUs Beat CPUs for AI",
+    "How AI Models Compress Knowledge"
   ],
   "events": [
     {
@@ -523,6 +524,22 @@
       "details": {
         "msg": "static slideshow test post"
       }
+    },
+    {
+      "time": "2026-11-22 04:07 PM",
+      "type": "instagram_reel",
+      "title": "How AI Models Compress Knowledge",
+      "details": {
+        "msg": "refined static slideshow test post"
+      }
+    },
+    {
+      "time": "2026-11-22 04:08 PM",
+      "type": "youtube_short",
+      "title": "How AI Models Compress Knowledge",
+      "details": {
+        "url": "https://youtube.com/shorts/LvOuCN450MU"
+      }
     }
   ],
   "topic_log": [
@@ -873,6 +890,14 @@
       "pillar": "",
       "long_form": false,
       "time": "2026-11-22T10:01:05+00:00"
+    },
+    {
+      "title": "How AI Models Compress Knowledge",
+      "series": "",
+      "audience": "",
+      "pillar": "",
+      "long_form": false,
+      "time": "2026-11-22T10:37:38+00:00"
     }
   ],
   "youtube_units": {
