@@ -1,6 +1,7 @@
 """Media Studio Automater CLI.
 Autonomous Production Studio for YouTube Shorts, Instagram Reels, and Pinterest.
 """
+import os
 import sys
 import subprocess
 import time
@@ -109,8 +110,8 @@ def run_doctor():
             table.add_row("Instagram (@neubench)", "[green]AUTHENTICATED[/green]", "Valid session cookies loaded")
             auth_status["Instagram"] = {"status": "ok"}
         else:
-            table.add_row("Instagram (@neubench)", "[red]DISCONNECTED[/red]", "Session missing. Set INSTAGRAM_COOKIES_BASE64")
-            auth_status["Instagram"] = {"status": "disconnected", "detail": "Set INSTAGRAM_COOKIES_BASE64"}
+            table.add_row("Instagram (@neubench)", "[red]DISCONNECTED[/red]", "Session missing/expired. Refresh INSTAGRAM_COOKIES_BASE64")
+            auth_status["Instagram"] = {"status": "disconnected", "detail": "Instagram cookies missing or expired. Refresh INSTAGRAM_COOKIES_BASE64"}
     except Exception as e:
         table.add_row("Instagram (@neubench)", "[red]ERROR[/red]", str(e)[:60])
 
@@ -149,6 +150,57 @@ def run_doctor():
     except Exception:
         pass
 
+# Channel -> config flag. A channel is "configured" unless explicitly disabled.
+PUBLISH_CHANNEL_FLAGS = {
+    "youtube": "YOUTUBE_ENABLED",
+    "instagram_reel": "INSTAGRAM_ENABLED",
+    "pinterest": "PINTEREST_ENABLED",
+    "threads": "THREADS_ENABLED",
+}
+
+
+def _fail_on_publish_error() -> bool:
+    return os.getenv("FAIL_ON_PUBLISH_ERROR", "true").strip().lower() in ("true", "1")
+
+
+def _strict_publish_channels():
+    """Channels whose failure fails the run. Defaults to Instagram only.
+
+    Pinterest/Threads auth is often still being repaired; keep CI green for those
+    while still emitting loud ::error:: annotations via _report_channel_failures.
+    """
+    raw = os.getenv("STRICT_PUBLISH_CHANNELS", "instagram_reel")
+    return {channel.strip() for channel in raw.split(",") if channel.strip()}
+
+
+def _report_channel_failures(results):
+    """Emit CI annotations for configured channels that failed to publish.
+
+    Previously the workflow showed a green check even when Instagram silently
+    failed for days, because YouTube alone counted as a successful broadcast.
+    """
+    failures = []
+    for platform, flag in PUBLISH_CHANNEL_FLAGS.items():
+        if platform not in results:
+            continue
+        if os.getenv(flag, "true").strip().lower() not in ("true", "1"):
+            continue
+        if not results.get(platform):
+            failures.append(platform)
+            console.print(f"::error::Publish failed for configured channel: {platform}")
+    if failures:
+        console.print(f"[red]Channel(s) failed to publish: {', '.join(failures)}[/red]")
+    return failures
+
+
+def _verify_broadcast_results(results):
+    failures = _report_channel_failures(results)
+    blocking = set(failures).intersection(_strict_publish_channels())
+    if blocking and _fail_on_publish_error():
+        raise SystemExit(1)
+    return failures
+
+
 def _run_scheduled_reels_result(results, skipped=""):
     if skipped:
         console.print(f"[yellow]Scheduled slot skipped ({skipped}); no action needed.[/yellow]")
@@ -157,6 +209,7 @@ def _run_scheduled_reels_result(results, skipped=""):
     if not any(results.get(platform, False) for platform in video_platforms):
         console.print("[red]Scheduled video broadcast produced no published video. See the automation log for details.[/red]")
         raise SystemExit(1)
+    _verify_broadcast_results(results)
 
 def _run_scheduled_reels(engine):
     if engine.daily_broadcast_cap_reached():
@@ -217,7 +270,9 @@ def main():
     if args.action in ("studio-all", "post-all"):
         console.print(f"[bold cyan]🚀 Triggering Studio Broadcast Cycle (Dry-run: {args.dry_run})...[/bold cyan]")
         custom_topic = {"title": args.topic} if args.topic else None
-        engine.run_studio_all(topic=custom_topic)
+        results = engine.run_studio_all(topic=custom_topic)
+        if results and not args.dry_run:
+            _verify_broadcast_results(results)
 
     elif args.action == "youtube":
         console.print(f"[bold cyan]🎬 Publishing YouTube Short (Dry-run: {args.dry_run})...[/bold cyan]")

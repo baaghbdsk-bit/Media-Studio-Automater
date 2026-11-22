@@ -95,6 +95,22 @@ class ExplainerScheduleTests(unittest.TestCase):
 class ScheduledCliResultTests(unittest.TestCase):
     def test_partial_reels_broadcast_is_failure(self):
         class FakeEngine:
+            def daily_broadcast_cap_reached(self):
+                return False
+
+            def run_studio_all(self):
+                return {"youtube": True, "instagram_reel": False}
+
+        with self.assertRaises(SystemExit) as exc:
+            _run_scheduled_reels(FakeEngine())
+        self.assertEqual(exc.exception.code, 1)
+
+    @patch.dict("os.environ", {"FAIL_ON_PUBLISH_ERROR": "false"})
+    def test_partial_broadcast_is_allowed_when_strict_mode_disabled(self):
+        class FakeEngine:
+            def daily_broadcast_cap_reached(self):
+                return False
+
             def run_studio_all(self):
                 return {"youtube": True, "instagram_reel": False}
 
@@ -102,10 +118,22 @@ class ScheduledCliResultTests(unittest.TestCase):
 
     def test_all_reels_destinations_succeed(self):
         class FakeEngine:
+            def daily_broadcast_cap_reached(self):
+                return False
+
             def run_studio_all(self):
                 return {"youtube": True, "instagram_reel": True}
 
         self.assertIsNone(_run_scheduled_reels(FakeEngine()))
+
+    def test_pinterest_failure_is_not_blocking_by_default(self):
+        # Only Instagram is a blocking channel by default; Pinterest/Threads still
+        # get loud CI annotations but must not turn every run red while being repaired.
+        self.assertIsNone(
+            _run_scheduled_reels_result(
+                {"youtube": True, "instagram_reel": True, "pinterest": False}
+            )
+        )
 
     def test_broadcast_with_only_threads_is_not_a_video_success(self):
         with self.assertRaises(SystemExit) as exc:
