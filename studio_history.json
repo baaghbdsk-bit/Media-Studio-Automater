@@ -50,7 +50,8 @@
     "LLM API Outage Frequency & Degradation Index",
     "How Fallback Models Keep AI Services Online During Outages",
     "Why data centers are at the center of the Big Tech backlash",
-    "How Circuit Breakers Stop Computer Systems From Crashing Completely"
+    "How Circuit Breakers Stop Computer Systems From Crashing Completely",
+    "Anthropic Secures Billions From Major Investors Before IPO"
   ],
   "events": [
     {
@@ -590,6 +591,17 @@
       "details": {
         "url": "https://youtube.com/shorts/dunUiLFQ1W4"
       }
+    },
+    {
+      "time": "2026-11-23 12:30 PM",
+      "type": "video_broadcast",
+      "title": "Anthropic Secures Billions From Major Investors Before IPO",
+      "details": {
+        "youtube": true,
+        "instagram_reel": false,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -980,6 +992,14 @@
       "pillar": "engineering",
       "long_form": true,
       "time": "2026-11-22T21:55:18+00:00"
+    },
+    {
+      "title": "Anthropic Secures Billions From Major Investors Before IPO",
+      "series": "anthropic-major-backing",
+      "audience": "beginner",
+      "pillar": "NEWS",
+      "long_form": false,
+      "time": "2026-11-23T12:30:53+00:00"
     }
   ],
   "youtube_units": {
@@ -987,7 +1007,7 @@
     "2026-11-20": 6000,
     "2026-11-21": 6000,
     "2026-11-22": 6000,
-    "2026-11-23": 4000
+    "2026-11-23": 6000
   },
   "broadcast_counts": {
     "2026-11-16": 2,
@@ -996,6 +1016,6 @@
     "2026-11-20": 2,
     "2026-11-21": 2,
     "2026-11-22": 2,
-    "2026-11-23": 1
+    "2026-11-23": 2
   }
 }
