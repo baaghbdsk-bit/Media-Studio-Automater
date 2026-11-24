@@ -52,7 +52,8 @@
     "Why data centers are at the center of the Big Tech backlash",
     "How Circuit Breakers Stop Computer Systems From Crashing Completely",
     "Anthropic Secures Billions From Major Investors Before IPO",
-    "Jensen Huang Reinstated at Nvidia Following Sudden Scandal"
+    "Jensen Huang Reinstated at Nvidia Following Sudden Scandal",
+    "How Computers Think in Layers Like a Layer Cake"
   ],
   "events": [
     {
@@ -614,6 +615,14 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-24 03:03 AM",
+      "type": "explainer_video",
+      "title": "How Computers Think in Layers Like a Layer Cake",
+      "details": {
+        "url": "https://youtube.com/shorts/imodQ7_8TAY"
+      }
     }
   ],
   "topic_log": [
@@ -1020,6 +1029,14 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-24T01:47:27+00:00"
+    },
+    {
+      "title": "How Computers Think in Layers Like a Layer Cake",
+      "series": "deep-neural-networks",
+      "audience": "beginner",
+      "pillar": "foundations",
+      "long_form": true,
+      "time": "2026-11-24T03:03:08+00:00"
     }
   ],
   "youtube_units": {
@@ -1028,7 +1045,7 @@
     "2026-11-21": 6000,
     "2026-11-22": 6000,
     "2026-11-23": 6000,
-    "2026-11-24": 2000
+    "2026-11-24": 4000
   },
   "broadcast_counts": {
     "2026-11-17": 2,
