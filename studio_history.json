@@ -51,7 +51,8 @@
     "How Fallback Models Keep AI Services Online During Outages",
     "Why data centers are at the center of the Big Tech backlash",
     "How Circuit Breakers Stop Computer Systems From Crashing Completely",
-    "Anthropic Secures Billions From Major Investors Before IPO"
+    "Anthropic Secures Billions From Major Investors Before IPO",
+    "Jensen Huang Reinstated at Nvidia Following Sudden Scandal"
   ],
   "events": [
     {
@@ -602,6 +603,17 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-24 01:47 AM",
+      "type": "video_broadcast",
+      "title": "Jensen Huang Reinstated at Nvidia Following Sudden Scandal",
+      "details": {
+        "youtube": true,
+        "instagram_reel": false,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -1000,6 +1012,14 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-23T12:30:53+00:00"
+    },
+    {
+      "title": "Jensen Huang Reinstated at Nvidia Following Sudden Scandal",
+      "series": "nvidia-jensen-huang-return",
+      "audience": "beginner",
+      "pillar": "NEWS",
+      "long_form": false,
+      "time": "2026-11-24T01:47:27+00:00"
     }
   ],
   "youtube_units": {
@@ -1007,15 +1027,16 @@
     "2026-11-20": 6000,
     "2026-11-21": 6000,
     "2026-11-22": 6000,
-    "2026-11-23": 6000
+    "2026-11-23": 6000,
+    "2026-11-24": 2000
   },
   "broadcast_counts": {
-    "2026-11-16": 2,
     "2026-11-17": 2,
     "2026-11-19": 2,
     "2026-11-20": 2,
     "2026-11-21": 2,
     "2026-11-22": 2,
-    "2026-11-23": 2
+    "2026-11-23": 2,
+    "2026-11-24": 1
   }
 }
