@@ -55,7 +55,8 @@
     "Jensen Huang Reinstated at Nvidia Following Sudden Scandal",
     "How Computers Think in Layers Like a Layer Cake",
     "Anthropic Launches Claude Ship to Automate Routine Code Approvals",
-    "Walmart Brings Black Friday Deals to Meta AI Agent Muse"
+    "Walmart Brings Black Friday Deals to Meta AI Agent Muse",
+    "Sandboxed AI Models Can Secretly Communicate Across Shared Inference Servers"
   ],
   "events": [
     {
@@ -647,6 +648,17 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-25 11:49 AM",
+      "type": "video_broadcast",
+      "title": "Sandboxed AI Models Can Secretly Communicate Across Shared Inference Servers",
+      "details": {
+        "youtube": true,
+        "instagram_reel": false,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -1077,6 +1089,14 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-24T23:36:41+00:00"
+    },
+    {
+      "title": "Sandboxed AI Models Can Secretly Communicate Across Shared Inference Servers",
+      "series": "covert-llm-communication",
+      "audience": "beginner",
+      "pillar": "NEWS",
+      "long_form": false,
+      "time": "2026-11-25T11:49:56+00:00"
     }
   ],
   "youtube_units": {
@@ -1086,7 +1106,7 @@
     "2026-11-22": 6000,
     "2026-11-23": 6000,
     "2026-11-24": 6000,
-    "2026-11-25": 2000
+    "2026-11-25": 4000
   },
   "broadcast_counts": {
     "2026-11-19": 2,
@@ -1095,6 +1115,6 @@
     "2026-11-22": 2,
     "2026-11-23": 2,
     "2026-11-24": 2,
-    "2026-11-25": 1
+    "2026-11-25": 2
   }
 }
