@@ -310,23 +310,25 @@ class VideoGenerator:
         }
 
     def generate_dynamic_short(self, topic_data: Dict[str, Any], dry_run: bool = False) -> Dict[str, Optional[str]]:
-        """Render a 9:16 Short as a clear, motion-rich narration slideshow."""
-        from src.short_script import build_short_script
-        from src.short_script_ai import build_short_script_ai
-        from src.storyboard_ai import build_storyboard_ai, deterministic_storyboard
-        from src.voice import synthesize_performance, write_srt
-        from src.static_slideshow import build_static_slideshow_html
+        """Render a 9:16 vertical Short using the ProShortEngine (V3 Architecture)."""
+        from src.pro_short_engine import (
+            generate_scene_spec,
+            synthesize_scenes,
+            build_studio_audio,
+            build_pro_html,
+            render_deterministic_mp4,
+        )
+        from src.voice import write_srt
         from scripts.qa_video import check_video
 
-        script = build_short_script_ai(topic_data) or build_short_script(topic_data)
-        storyboard = build_storyboard_ai(topic_data, script) or deterministic_storyboard(topic_data, script)
-        title = str(script.get("title") or topic_data.get("title") or "AI Explained")
+        spec = generate_scene_spec(topic_data)
+        title = str(spec.get("title") or topic_data.get("title") or "AI Explained")
         slug = re.sub(r'[^a-zA-Z0-9]+', '_', title.lower()).strip('_')[:35]
         work_dir = self.output_dir / f"short_{slug}"
         work_dir.mkdir(parents=True, exist_ok=True)
 
         video_path = str(work_dir / f"cinematic_short_{slug}.mp4")
-        audio_path = str(work_dir / "narration_master.wav")
+        audio_path = str(work_dir / "narration_master.m4a")
         srt_path = str(work_dir / f"subtitles_{slug}.srt")
 
         if dry_run:
@@ -335,37 +337,29 @@ class VideoGenerator:
             return {"video_path": video_path, "srt_path": srt_path, "audio_path": audio_path}
 
         try:
-            raw_mp3 = work_dir / "voice_raw.mp3"
-            voice_result = None
-            for voice in ("en-US-AvaNeural", "en-US-AndrewNeural", "en-US-EmmaNeural"):
-                try:
-                    voice_result = synthesize_performance(
-                        script["narration"], str(raw_mp3), voice=voice
-                    )
-                    break
-                except RuntimeError as exc:
-                    print(f"[VideoGenerator] Voice {voice} failed: {exc}")
-            if voice_result is None:
-                raise RuntimeError("All narration voices failed")
-
-            words = voice_result["words"]
-            target = max(40.0, (words[-1]["end"] if words else 0.0) + 1.0)
-            total_dur = self._master_audio_from_mp3(str(raw_mp3), audio_path, target)
+            scenes = spec["scenes"]
+            timings, raw_vo_wav, words = synthesize_scenes(scenes, work_dir)
+            total_dur = build_studio_audio(scenes, timings, raw_vo_wav, work_dir, Path(audio_path))
             write_srt(words, srt_path)
 
-            html = build_static_slideshow_html(topic_data, script, storyboard, total_dur)
-            (work_dir / "index.html").write_text(html, encoding="utf-8")
-            (work_dir / "script.txt").write_text(script["narration"], encoding="utf-8")
+            html = build_pro_html(spec, timings, total_dur)
+            html_path = work_dir / "index.html"
+            html_path.write_text(html, encoding="utf-8")
+            (work_dir / "scene_spec.json").write_text(json.dumps(spec, indent=2, ensure_ascii=False), encoding="utf-8")
+            (work_dir / "script.txt").write_text(
+                "\n".join(str(s.get("spoken") or "") for s in scenes), encoding="utf-8"
+            )
 
-            if self._render_hyperframes(work_dir, video_path):
-                qa_ok, qa_report = check_video(video_path, static=True)
-                print(f"[VideoGenerator] QA: {qa_report}")
-                if not qa_ok:
-                    print(f"[VideoGenerator] QA failed: {qa_report.get('errors')}")
-                    return {"video_path": None, "srt_path": srt_path, "audio_path": audio_path}
-                return {"video_path": video_path, "srt_path": srt_path, "audio_path": audio_path}
+            render_deterministic_mp4(html_path, Path(audio_path), Path(video_path), total_dur, fps=24)
+
+            qa_ok, qa_report = check_video(video_path, static=True)
+            print(f"[VideoGenerator] QA: {qa_report}")
+            if not qa_ok:
+                print(f"[VideoGenerator] QA failed: {qa_report.get('errors')}")
+                return {"video_path": None, "srt_path": srt_path, "audio_path": audio_path}
+            return {"video_path": video_path, "srt_path": srt_path, "audio_path": audio_path}
         except Exception as ex:
-            print(f"[VideoGenerator] Short generation error: {ex}")
+            print(f"[VideoGenerator] ProShortEngine error: {ex}")
 
         return {
             "video_path": video_path if Path(video_path).exists() else None,
