@@ -631,6 +631,35 @@ def build_pro_html(spec: Dict[str, Any], timings: List[Dict[str, Any]], total_du
       }}
 
       stage.innerHTML = `<div class="flex flex-col gap-6 w-full" style="opacity:${{p}}">${{header}}${{body}}</div>`;
+      stage.querySelectorAll('svg').forEach(svg => {{
+        const vb = svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal : {{ x: 0, y: 0, width: 900, height: 540 }};
+        const rects = Array.from(svg.querySelectorAll('rect')).map(r => {{
+          const b = r.getBBox();
+          return {{ x: b.x, y: b.y, w: b.width, h: b.height, area: b.width * b.height }};
+        }}).filter(r => r.w > 30 && r.h > 18 && r.w < vb.width * 0.92);
+        svg.querySelectorAll('text').forEach(txt => {{
+          const tb = txt.getBBox();
+          if (!tb || tb.width <= 0) return;
+          const cx = tb.x + tb.width / 2, cy = tb.y + tb.height / 2;
+          const box = rects.filter(r => cx >= r.x && cx <= r.x + r.w && cy >= r.y && cy <= r.y + r.h).sort((a, b) => a.area - b.area)[0] || {{ x: vb.x + 16, y: vb.y + 16, w: vb.width - 32, h: vb.height - 32 }};
+          const maxW = Math.max(40, box.w - 24);
+          if (tb.width > maxW) {{
+            const cs = window.getComputedStyle(txt);
+            const curFs = parseFloat(txt.getAttribute('font-size') || cs.fontSize || '20') || 20;
+            const newFs = Math.max(11, curFs * (maxW / tb.width) * 0.96);
+            txt.setAttribute('font-size', newFs.toFixed(1));
+            txt.style.fontSize = newFs.toFixed(1) + 'px';
+          }}
+          const nb = txt.getBBox();
+          if (nb.x < box.x + 10) {{
+            const oldX = parseFloat(txt.getAttribute('x') || '0');
+            if (!isNaN(oldX)) txt.setAttribute('x', (oldX + (box.x + 10 - nb.x)).toFixed(1));
+          }} else if (nb.x + nb.width > box.x + box.w - 10) {{
+            const oldX = parseFloat(txt.getAttribute('x') || '0');
+            if (!isNaN(oldX)) txt.setAttribute('x', (oldX - (nb.x + nb.width - (box.x + box.w - 10))).toFixed(1));
+          }}
+        }});
+      }});
     }}
 
     window.renderFrame = renderFrame;
