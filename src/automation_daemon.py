@@ -16,8 +16,8 @@ console = Console()
 BASE_DIR = Path(__file__).resolve().parent.parent
 LOG_FILE = BASE_DIR / "output" / "automation.log"
 
-REELS_SHORT_TIMES = ["17:15", "19:15"]  # 5:15 PM and 7:15 PM daily
-EXPLAINER_TIME = "21:15"  # 9:15 PM on alternate days
+REELS_SHORT_TIMES = ["17:30", "21:30"]  # 5:30 PM and 9:30 PM daily
+EXPLAINER_TIME = "22:30"  # 10:30 PM on alternate days (spaced 1h after 9:30 PM Reels/Shorts)
 
 class AutomationDaemon:
     def __init__(self, dry_run: bool = False):
