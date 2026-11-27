@@ -151,6 +151,7 @@ CRITICAL ART DIRECTION RULES:
    - "product_ui": Clean Apple-style app UI cards for tools, workflows, and tutorials.
 2. NEVER invent fake CLI commands or fake code if the topic is consumer/product news (e.g., pricing, usage limits, company mergers). Use `custom_svg` visual metaphors, app UI mockups, gauges, or `compare_stack` instead!
 3. Include at least 2 `"custom_svg"` scenes with bespoke, crisp Light-Mode SVG illustrations (`viewBox="0 0 900 540"`, light backgrounds `#FFFFFF`/`#F8FAFC`, dark readable text `#0F172A`, bold colored shapes/arrows/gauges/tanks/UI mockups, minimum `font-size="22"` inside SVG).
+4. HOOK & MOBILE SAFE ZONES: Scene 1 (0-2s) MUST open with a scroll-stopping 3-6 word visual hook (surprising stat, concrete contrast, or sharp question) — never a generic intro. Keep all primary text/diagrams centered with generous margins so YouTube Shorts / Instagram Reels bottom & right-edge UI buttons never cover key labels.
 4. Unconstrained length: 5 to 8 scenes (~45-95s) so the topic is explained clearly without fluff or AI clichés.
 5. Every scene MUST use one of these templates and match its exact `data` schema:
    - "custom_svg": {{"card_title": str, "svg": "<svg viewBox='0 0 900 540'>...</svg>", "takeaway_pill": str}}

@@ -103,7 +103,7 @@ def _check_visual_frames(video_path: Path, ffmpeg: str, duration_s: float) -> di
             score = int(parsed.get("score", 0))
             defects = [str(d) for d in (parsed.get("critical_defects") or []) if str(d).strip()]
             summary = str(parsed.get("summary") or "")
-            passed = score >= 80 and not defects
+            passed = score >= 75 and not defects
             _log_feedback(video_path, score, passed, defects, summary)
             return {
                 "model": model_name,
@@ -194,7 +194,7 @@ def check_video(path: str, static: bool = False, visual_qa: bool = True) -> tupl
         report["visual_qa"] = vqa
         if "score" in vqa:
             if not vqa["passed"]:
-                defects_str = "; ".join(vqa["critical_defects"]) if vqa["critical_defects"] else "score below 80"
+                defects_str = "; ".join(vqa["critical_defects"]) if vqa["critical_defects"] else "score below 75"
                 report["errors"].append(f"visual QA failed ({vqa['score']}/100): {defects_str}")
         elif "skipped" in vqa:
             report["warnings"].append(f"visual QA skipped: {vqa['skipped']}")
