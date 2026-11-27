@@ -127,14 +127,21 @@ def generate_scene_spec(topic_data: Dict[str, Any]) -> Dict[str, Any]:
     summary = str(topic_data.get("summary") or "")
     hook = str(topic_data.get("hook") or "")
     pillar = str(topic_data.get("pillar") or "TECH")
+    qa_feedback = str(topic_data.get("qa_feedback") or "").strip()
 
     if api_key:
+        feedback_block = (
+            f"\nPREVIOUS RENDER FAILED QA — FIX THESE SPECIFIC ISSUES:\n{qa_feedback}\n"
+            if qa_feedback
+            else ""
+        )
         prompt = f"""You are an elite motion-graphics director (Vox, Kurzgesagt, Apple Keynote, ByteByteGo).
 Create a visually UNIQUE, Light-Mode 9:16 vertical explainer video spec for:
 Title: {title}
 Pillar: {pillar}
 Hook: {hook}
 Summary: {summary}
+{feedback_block}
 
 CRITICAL ART DIRECTION RULES:
 1. Pick the BEST `theme` for this topic (do NOT use the same look for every topic):

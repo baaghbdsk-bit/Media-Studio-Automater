@@ -337,27 +337,39 @@ class VideoGenerator:
             return {"video_path": video_path, "srt_path": srt_path, "audio_path": audio_path}
 
         try:
-            scenes = spec["scenes"]
-            timings, raw_vo_wav, words = synthesize_scenes(scenes, work_dir)
-            total_dur = build_studio_audio(scenes, timings, raw_vo_wav, work_dir, Path(audio_path))
-            write_srt(words, srt_path)
+            current_topic = dict(topic_data)
+            for attempt in range(1, 3):
+                if attempt > 1:
+                    spec = generate_scene_spec(current_topic)
 
-            html = build_pro_html(spec, timings, total_dur)
-            html_path = work_dir / "index.html"
-            html_path.write_text(html, encoding="utf-8")
-            (work_dir / "scene_spec.json").write_text(json.dumps(spec, indent=2, ensure_ascii=False), encoding="utf-8")
-            (work_dir / "script.txt").write_text(
-                "\n".join(str(s.get("spoken") or "") for s in scenes), encoding="utf-8"
-            )
+                scenes = spec["scenes"]
+                timings, raw_vo_wav, words = synthesize_scenes(scenes, work_dir)
+                total_dur = build_studio_audio(scenes, timings, raw_vo_wav, work_dir, Path(audio_path))
+                write_srt(words, srt_path)
 
-            render_deterministic_mp4(html_path, Path(audio_path), Path(video_path), total_dur, fps=24)
+                html = build_pro_html(spec, timings, total_dur)
+                html_path = work_dir / "index.html"
+                html_path.write_text(html, encoding="utf-8")
+                (work_dir / "scene_spec.json").write_text(json.dumps(spec, indent=2, ensure_ascii=False), encoding="utf-8")
+                (work_dir / "script.txt").write_text(
+                    "\n".join(str(s.get("spoken") or "") for s in scenes), encoding="utf-8"
+                )
 
-            qa_ok, qa_report = check_video(video_path, static=True)
-            print(f"[VideoGenerator] QA: {qa_report}")
-            if not qa_ok:
-                print(f"[VideoGenerator] QA failed: {qa_report.get('errors')}")
-                return {"video_path": None, "srt_path": srt_path, "audio_path": audio_path}
-            return {"video_path": video_path, "srt_path": srt_path, "audio_path": audio_path}
+                render_deterministic_mp4(html_path, Path(audio_path), Path(video_path), total_dur, fps=24)
+
+                qa_ok, qa_report = check_video(video_path, static=True)
+                print(f"[VideoGenerator] QA (attempt {attempt}/2): {qa_report}")
+                if qa_ok:
+                    return {"video_path": video_path, "srt_path": srt_path, "audio_path": audio_path}
+
+                errors = qa_report.get("errors") or []
+                vqa_summary = (qa_report.get("visual_qa") or {}).get("summary", "")
+                print(f"[VideoGenerator] QA failed on attempt {attempt}/2: {errors}")
+                if attempt == 2:
+                    return {"video_path": None, "srt_path": srt_path, "audio_path": audio_path}
+
+                current_topic["qa_feedback"] = f"Errors: {errors}. Visual review: {vqa_summary}"
+                print("[VideoGenerator] Regenerating video once with QA feedback...")
         except Exception as ex:
             print(f"[VideoGenerator] ProShortEngine error: {ex}")
 
