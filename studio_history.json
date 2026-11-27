@@ -57,7 +57,8 @@
     "Anthropic Launches Claude Ship to Automate Routine Code Approvals",
     "Walmart Brings Black Friday Deals to Meta AI Agent Muse",
     "Sandboxed AI Models Can Secretly Communicate Across Shared Inference Servers",
-    "Nvidia Pauses AI Server Shipments to Four Southeast Asian Nations"
+    "Nvidia Pauses AI Server Shipments to Four Southeast Asian Nations",
+    "NeuBench Benchmarks Reveal Up to 40% Speed Gaps Across Hosted AI Endpoints"
   ],
   "events": [
     {
@@ -671,6 +672,17 @@
         "pinterest": false,
         "threads": false
       }
+    },
+    {
+      "time": "2026-11-27 07:47 AM",
+      "type": "video_broadcast",
+      "title": "NeuBench Benchmarks Reveal Up to 40% Speed Gaps Across Hosted AI Endpoints",
+      "details": {
+        "youtube": true,
+        "instagram_reel": true,
+        "pinterest": false,
+        "threads": false
+      }
     }
   ],
   "topic_log": [
@@ -1117,6 +1129,14 @@
       "pillar": "NEWS",
       "long_form": false,
       "time": "2026-11-27T07:27:46+00:00"
+    },
+    {
+      "title": "NeuBench Benchmarks Reveal Up to 40% Speed Gaps Across Hosted AI Endpoints",
+      "series": "neubench-ttft-speed-gap",
+      "audience": "beginner",
+      "pillar": "NEWS",
+      "long_form": false,
+      "time": "2026-11-27T07:47:29+00:00"
     }
   ],
   "youtube_units": {
@@ -1126,7 +1146,7 @@
     "2026-11-23": 6000,
     "2026-11-24": 6000,
     "2026-11-25": 4000,
-    "2026-11-27": 2000
+    "2026-11-27": 4000
   },
   "broadcast_counts": {
     "2026-11-20": 2,
@@ -1135,6 +1155,6 @@
     "2026-11-23": 2,
     "2026-11-24": 2,
     "2026-11-25": 2,
-    "2026-11-27": 1
+    "2026-11-27": 2
   }
 }
