@@ -2,13 +2,11 @@ name: Media Studio Cloud Autopilot (YouTube Shorts, Instagram Reels, Pinterest, 
 
 on:
   schedule:
-    # 4 short-form slots at 08:40, 12:40, 17:40 and 19:40 IST (UTC+05:30).
-    # Uses off-peak minute (:10) to prevent GitHub Actions from dropping cron triggers.
-    # On long-form days the engine skips the 19:40 short to protect the
-    # 10,000 unit/day YouTube quota (3 shorts + 1 long = 8,000 units).
-    - cron: '10 3,7,12,14 * * *'
-    # 16:9 long-form slot at 21:40 IST, published on alternate days only.
-    - cron: '10 16 * * *'
+    # 2 short-form slots at ~17:30 and ~21:30 IST (UTC+05:30).
+    # Uses off-peak minute (:55 -> 17:25 and 21:25 IST) to avoid GitHub Actions :00 queue drops.
+    - cron: '55 11,15 * * *'
+    # 16:9 long-form slot at ~22:25 IST (1h after 21:30 short), published on alternate days only.
+    - cron: '55 16 * * *'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -125,7 +123,7 @@ jobs:
           TOPIC: ${{ github.event.inputs.topic || '' }}
         run: |
           ACTION="${{ github.event.inputs.action || 'schedule-autopilot' }}"
-          if [ "${{ github.event.schedule }}" = "10 16 * * *" ]; then
+          if [ "${{ github.event.schedule }}" = "55 16 * * *" ]; then
             ACTION="long-explainer"
           fi
           DRY_RUN_FLAG=""
